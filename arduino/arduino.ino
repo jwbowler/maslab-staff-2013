@@ -1,90 +1,96 @@
-#include <SoftareSerial.h>
-#include <Servo.h>
+//comm codes
+#define ackCode 0x00
+#define setDriveCode 0x01
+#define readAnalogCode 0x02
 
-//codes
-#define liveCode 0x00
-#define moveCode 0x01
-
-#define leftMotorDirPin 0
-#define leftMotorPwnPin 0
-#define leftMotorCurPin 0
-
-#define rightMotorDirPin 0
-#define rightMotorPwnPin 0
-#define rightMotorCurPin 0
-
-#define irPin 0
-
-/*
-struct Motor {
-  int dirPin;
-  int pwmPin;
-  int curPint;
-}
-
-Motor rightMotor;
-Motor leftMotor;
-*/
-
-void setMotor(int dirPin, int pwmPin, int dir, int pwm) {
-  if (pwm < 0) pwm = 0;
-  else if (pwm > 255) pwm = 255;
-  
-  digitalWrite(dirPin, (dir>=0)?HIGH:LOW);
-  analogWrite(pwmPin, pwm);
-}
-
-// Define a serial read that actually blocks
-char serialRead()
+class Motor
 {
-  char in;
-  // Loop until input is not -1 (which means no input was available)
-  while ((in = Serial.read()) == -1) {}
-  return in;
-}
+  private:
+    int currentPin, directionPin, pwmPin;
+  public:
+    Motor(int pPin, int dPin, int cPin)
+    {
+      currentPin = cPin; // Pin to receive current value (unused in the code)
+      directionPin = dPin; // Pin to set motor direction, should be a digital pin, 22-53)
+      pwmPin = pPin; // Pin to set motor speed (should be a PWM pin, 2-13)
+      pinMode(currentPin, INPUT);
+      pinMode(directionPin, OUTPUT);
+      pinMode(pwmPin, OUTPUT);
+    }
+    void setSpeed(int s)
+    {
+      // Clamp to [-126, 127]
+      if (s < -126) s = -126;
+      else if (s > 127) s = 127;
+      // Scale to [-252, 254]
+      s *= 2;
+      
+      // Set direction and pwm pins
+      digitalWrite(directionPin, (s>=0)?HIGH:LOW);
+      analogWrite(pwmPin, abs(s));
+    }
+    int getCurrent() {
+      return analogRead(currentPin);
+    }
+};
+
+Motor *rightMotor;
+Motor *leftMotor;
 
 // Special function run when the arduino is first connected to power
 void setup()
 {
   // Create the serial connection with the eeePC
   Serial.begin(9600);
-  // Clear the buffer
   Serial.flush();
 
-  //pin modes for left motor
-  pinMode(leftMotorCurPin, INPUT);
-  pinMode(leftMotorDirPin, OUTPUT);
-  pinMode(leftMotorPwnPin, OUTPUT);
-  
-  //pin modes for left motor
-  pinMode(rightMotorCurPin, INPUT);
-  pinMode(rightMotorDirPin, OUTPUT);
-  pinMode(rightMotorPwnPin, OUTPUT);
+  leftMotor = new Motor(4,5,0);
+  rightMotor = new Motor(6,7,0);
 }
 
 
+int args[4];
+char code;
 // Special function that is repeatedly called during normal running
 // of the Arduino
 void loop()
 {
-  setMotor(leftMotorDirPin, leftMotorPwnPin, 1, 64);
-  setMotor(rightMotorDirPin, rightMotorPwnPin, 1, 64);
-
-  Serial.write(analogRead(irPin));
+  leftMotor->setSpeed(64);
+  rightMotor->setSpeed(64);
+  Serial.write(analogRead(0));
   
   return;
 
   // Check if there is any input, otherwise do nothing
-  int in;
-  while ((in = Serial.read()) == -1) {}
   if (Serial.available() > 0)
   {
-    char mode = serialRead();
+    code = serialRead();
 
-    switch (mode)
+    switch (code)
     {
-      //setMotors();
-      break;
+      case ackCode:
+        Serial.write(0x00);
+        break;
+      case setDriveCode:
+        fillArgs(2);
+        leftMotor->setSpeed(args[0]);
+        rightMotor->setSpeed(args[1]);
+        Serial.write(0x00);
+        break;
+      case readAnalogCode:
+        fillArgs(2);
+        Serial.write(analogRead(args[0]));
+        break;
+    }
+  }
+}
+
+int argsReceived = 0;
+void fillArgs(int num) {
+  argsReceived = 0;
+  while(argsReceived < num) {
+    if(Serial.available() > 0) {
+      args[argsReceived++] = Serial.read();
     }
   }
 }

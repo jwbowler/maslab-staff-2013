@@ -1,0 +1,15 @@
+Commands
+
+0x00 ack?
+0 bytes data
+echo 0x00 if alive
+
+0x01 setDrive
+2 bytes data [left][right] 0-255
+echo 0x00
+
+0x02 readAnalog
+1 byte [sensor]
+echo reading
+
+0x03 readBump
