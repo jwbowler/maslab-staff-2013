@@ -1,7 +1,7 @@
 import utils
 import pid
 
-import balltracking
+import vision
 
 import arduino
 
@@ -13,7 +13,7 @@ camYFov = 50
 imageHeight = 480
 imageWidth = 640
 
-balltracking.setup()
+vision.setup()
 
 #arduino
 ard = arduino.Arduino()
@@ -37,7 +37,7 @@ state = 0
 
 while True:
   (r, l) = (0, 0)
-  loc = balltracking.run()
+  loc = vision.run()
 
   if state == searchState:
     print "search"
@@ -57,7 +57,7 @@ while True:
     distance = 0
     angle = (x - (imageHeight/2.0)) * camXFov / imageWidth
 
-    if (!pid.running):
+    if (not pid.running):
       pid.start(angle, 0)
       continue
     
