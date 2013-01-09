@@ -1,15 +1,19 @@
 import cv, cv2, numpy, cPickle, time, random, math
 import scipy.cluster.hierarchy as hcluster
-import matplotlib.pyplot as plt
+import cProfile
 
 #OpenCV HSV ranges: 0-180, 0-255, 0-255
 
+pixelCounters = None
+
 def run():
 
+    print 1
     cv2.namedWindow("raw")
     cv2.namedWindow("scatter")
-    cv2.namedWindow("map")
+    #cv2.namedWindow("map")
     vc = cv2.VideoCapture(0)
+    print 2
 
     if vc.isOpened(): # try to get the first frame
         rval, frame = vc.read()
@@ -17,26 +21,37 @@ def run():
         rval = False
         t = time.clock()
 
+    global pixelCounters
+    pixelCounters = numpy.empty(frame.shape, dtype=int)
+    for i in range(frame.shape[0]):
+        for j in range(frame.shape[1]):
+            pixelCounters[i, j] = random.randint(1, 100)
+
     while rval:
 
         start = time.clock();
+
+        #print 2.5
 
         dispImage = numpy.copy(frame)
         colors = numpy.empty(frame.shape, frame.dtype)
         mapImage = numpy.empty(frame.shape, frame.dtype)
         hsv = cv2.cvtColor(frame, cv.CV_BGR2HSV)
+        #hsv = frame
+
+        #print 3
         
         (data, clusters) = identify(hsv, colors)
         
-        if clusters != None:
-            draw_scatter(hsv, colors, data)
-            centers = draw_centers(dispImage, data, clusters)
-            create_map(centers, mapImage)
-            colors = cv2.cvtColor(colors, cv.CV_HSV2BGR)
+##        if clusters != None:
+##            draw_scatter(hsv, colors, data)
+##            centers = draw_centers(dispImage, data, clusters)
+##            create_map(centers, mapImage)
+##            colors = cv2.cvtColor(colors, cv.CV_HSV2BGR)
 
         cv2.imshow("raw", dispImage)
         cv2.imshow("scatter", colors)
-        cv2.imshow("map", mapImage)
+        #cv2.imshow("map", mapImage)
         
         rval, frame = vc.read()
         end = time.clock()
@@ -51,14 +66,21 @@ def run():
 
 def identify(image, colors):
 
+    global pixelCounters
+
     num_colors = 1
 
-    data = numpy.zeros((10000,2))
+    
+
+    #data = numpy.zeros((1000,2))
     n = 0
-    for x in range(image.shape[0]):
-        for y in range(image.shape[1]):
-            if random.random() > 0.02:
+    a = 0
+    for x in xrange(0, image.shape[0]):
+        for y in xrange(0, image.shape[1]):
+            a += 1
+            if a & 0b1111111 != 0:
                 continue
+            continue
             for i in range(num_colors):                
                 hue = image[x, y, 0]
                 sat = image[x, y, 1]
@@ -140,8 +162,21 @@ def create_map(centers, map_image):
                 map_image[y_map + i, x_map + j, 1] = 0
                 map_image[y_map + i, x_map + j, 2] = 255
     #print ""
-    
-run()
 
+
+ra = 0x1ac57d3e
+rb = 0x12345678
+def rand(e): # returns True with probability 1/(2^e)
+    global ra
+    global rb
+    ra += rb
+    rb += 1
+    return not (ra % (1 << (e-1)))
+
+#for i in range(32):
+#    print rand(5)
+    
+#cProfile.run('run()')
+run()
 
 

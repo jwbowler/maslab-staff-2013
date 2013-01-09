@@ -11,6 +11,6 @@ ard.run() # Start the thread which communicates with the Arduino
 # Make the LED blink once a second
 while True:
     led.setValue(0)
-    time.sleep(1)
+    time.sleep(2)
     led.setValue(1)
-    time.sleep(1)
+    time.sleep(2)
