@@ -4,6 +4,7 @@ class Pid:
 
   (kp, ki, kd, iLim) = (0,0,0,0)
   (i, target, prevValue, prevTime) = (0,0,0,0)
+  running = False
 
   def __init__(self, p, i, d, lim):
     self.kp = p
@@ -15,6 +16,10 @@ class Pid:
     self.i = 0
     self.prevValue = value
     self.prevTime = time.time()
+    self.running = True
+
+  def stop(self):
+    self.running = False
  
   def iterate(self, value):
     curTime = time.time()
