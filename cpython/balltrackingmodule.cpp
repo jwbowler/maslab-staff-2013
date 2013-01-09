@@ -2,9 +2,7 @@
 #include <iostream>
 #include "balltracking.h"
 
-using namespace cv;
 using namespace std;
-
 
 static PyObject *balltracking_setup(PyObject *self, PyObject *args) {
     const char *command;
