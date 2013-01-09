@@ -36,3 +36,7 @@ nosetests.xml
 
 # Emacs created files
 *~
+
+# Vim created files
+.swp
+*.swp
