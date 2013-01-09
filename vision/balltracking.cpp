@@ -1,5 +1,6 @@
 #include "balltracking.h"
 
+
 /*
 int getI(char r, char g, char b);
 int getV(char r, char g, char b);
@@ -75,33 +76,21 @@ char getV(char r, char g, char b) {
 int getHPrime(char r, char g, char b);
 */
 
-int main(int, char**) {
-    setup();
-    while (1) {
-        int out = run();
-        cout << out << endl;
-    }
-    return 0;
-}
-
 int counts[640*480];
 Mat frame;
 Mat colors;
 Mat hsv;
-VideoCapture cap(0);
+VideoCapture cap(CAMERA);
+
 
 int setup() {
-    //VideoCapture cap(1); // open camera
+
     if(!cap.isOpened())  // check if we succeeded
         return -1;
-
     
     cap >> frame;
     colors = frame.clone();
     hsv = frame.clone();
-    
-    namedWindow("raw",1);
-    namedWindow("scatter",1);
 
     int *j = counts;
     for (int i = 0; i < 640*480; i++) {
@@ -112,18 +101,20 @@ int setup() {
     return 0;
 }    
 
-int run() {
+int run(Mat **frame_ptr, Mat **scatter_ptr) {
     cap >> frame; // get a new frame from camera
     cvtColor(frame, hsv, CV_BGR2HSV);
         
     colors.setTo(Scalar(0));
       
     int out = identify(hsv, colors);
-       
-    imshow("raw", frame);
-    imshow("scatter", colors);
-
-    //cout << out << endl;
+    
+    if (frame_ptr != NULL) {
+        *frame_ptr = &frame;
+    }
+    if (scatter_ptr != NULL) {
+        *scatter_ptr = &colors;
+    }
     
     return out;
 }
