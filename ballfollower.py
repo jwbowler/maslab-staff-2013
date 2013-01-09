@@ -1,7 +1,7 @@
 import utils
 import pid
 
-import vision
+from vision import balltrackingscript
 
 import arduino
 
@@ -13,7 +13,7 @@ camYFov = 50
 imageHeight = 480
 imageWidth = 640
 
-vision.setup()
+balltrackingscript.setup()
 
 #arduino
 ard = arduino.Arduino()
@@ -26,7 +26,7 @@ targetSpeed = .2
 
 
 #pid
-myPid = Pid(1,0,0,0)
+myPid = pid.Pid(1,0,0,0)
 
 #state
 searchState = 0
@@ -37,12 +37,12 @@ state = 0
 
 while True:
   (r, l) = (0, 0)
-  loc = vision.run()
+  loc = balltrackingscript.run()
 
   if state == searchState:
     print "search"
 
-    (r, l) = getMotorSpeeds(0.0, rotationSpeed)
+    (r, l) = utils.getMotorSpeeds(0.0, rotationSpeed)
 
     if (loc != 0):
       state = huntState
@@ -57,18 +57,19 @@ while True:
     distance = 0
     angle = (x - (imageHeight/2.0)) * camXFov / imageWidth
 
-    if (not pid.running):
-      pid.start(angle, 0)
+    if (not myPid.running):
+      myPid.start(angle, 0)
       continue
     
     pidVal = myPid.iterate(angle)
 
-    (r, l) = getMotorSpeeds(targetSpeed, rotationSpeed * pidVal)
+    (r, l) = utils.getMotorSpeeds(targetSpeed, rotationSpeed * pidVal)
 
     if (loc != None):
-      state = doneState
+      pass
+      #state = doneState
 
-  r = int(boundAndScale(r, 0, 1.0, .01, 32, 255)/2)
-  l = int(boundAndScale(l, 0, 1.0, .01, 32, 255)/2)
+  r = int(utils.boundAndScale(r, 0, 1.0, .01, 32, 255)/2)
+  l = int(utils.boundAndScale(l, 0, 1.0, .01, 32, 255)/2)
   mRight.setSpeed(r)
   mLeft.setSpeed(l)

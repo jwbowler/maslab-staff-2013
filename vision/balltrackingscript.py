@@ -5,4 +5,3 @@ def setup():
 
 def run():
   return balltracking.run()
-
