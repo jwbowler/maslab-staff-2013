@@ -1,43 +1,4 @@
-#include <Python.h>
-#include <iostream>
 #include "balltracking.h"
-
-using namespace cv;
-using namespace std;
-
-
-static PyObject *balltracking_setup(PyObject *self, PyObject *args) {
-    const char *command;
-    int vec;
-
-    if (!PyArg_ParseTuple(args, "", &command))
-        return NULL;
-    vec = setup();
-    return Py_BuildValue("i", vec);
-}
-
-static PyObject *balltracking_run(PyObject *self, PyObject *args) {
-    const char *command;
-    int vec;
-
-    if (!PyArg_ParseTuple(args, "", &command))
-        return NULL;
-    vec = run();
-    return Py_BuildValue("i", vec);
-}
-
-static PyMethodDef BallTrackingMethods[] = {
-    {"setup",  balltracking_setup, METH_VARARGS,
-     "Setup openCV stuff."},
-    {"run",  balltracking_run, METH_VARARGS,
-     "Get screen position of ball."},
-    {NULL, NULL, 0, NULL}      
-};
-
-PyMODINIT_FUNC initballtracking(void) {
-    (void) Py_InitModule("balltracking", BallTrackingMethods);
-}
-
 
 /*
 int getI(char r, char g, char b);
@@ -114,11 +75,11 @@ char getV(char r, char g, char b) {
 int getHPrime(char r, char g, char b);
 */
 
-/*
 int main(int, char**) {
     setup();
     while (1) {
-        run();
+        int out = run();
+        cout << out << endl;
     }
     return 0;
 }
@@ -201,6 +162,14 @@ int identify(Mat &image, Mat &colors) {
         unsigned char *ptr;
 
         for (int i = 0; i < num_colors; i++) {
+            /*
+         	ptr = input + image.cols * y + x;
+         	hue = *ptr;
+         	ptr++;
+         	sat = *ptr;
+         	ptr++;
+         	val = *ptr;
+         	*/
          	hue = input[image.step*y + 3*x];
          	sat = input[image.step*y + 3*x + 1];
          	val = input[image.step*y + 3*x + 2];
@@ -239,9 +208,15 @@ int identify(Mat &image, Mat &colors) {
         //return (None, None)
     return xsum*480 + ysum;
     
+    /*
+    
+    t = 30
+    data = data[0:n, :]
+    clusters = hcluster.fclusterdata(data, t, criterion="distance")
+    
+    return (data, clusters)
+    */
 }
-
-*/
 
 /*
 rgbToHsv(r, g, b){
