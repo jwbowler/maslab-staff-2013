@@ -5,9 +5,43 @@
 using namespace cv;
 using namespace std;
 
-int counts[640*480];
+int setup();
+int run();
+int identify(Mat &image, Mat &colors);
 
-void identify(Mat &image, Mat &colors);
+
+static PyObject *balltracking_setup(PyObject *self, PyObject *args) {
+    const char *command;
+    int vec;
+
+    if (!PyArg_ParseTuple(args, "", &command))
+        return NULL;
+    vec = setup();
+    return Py_BuildValue("i", vec);
+}
+
+static PyObject *balltracking_run(PyObject *self, PyObject *args) {
+    const char *command;
+    int vec;
+
+    if (!PyArg_ParseTuple(args, "", &command))
+        return NULL;
+    vec = run();
+    return Py_BuildValue("i", vec);
+}
+
+static PyMethodDef BallTrackingMethods[] = {
+    {"setup",  balltracking_setup, METH_VARARGS,
+     "Setup openCV stuff."},
+    {"run",  balltracking_run, METH_VARARGS,
+     "Get screen position of ball."},
+    {NULL, NULL, 0, NULL}      
+};
+
+PyMODINIT_FUNC initballtracking(void) {
+    (void) Py_InitModule("balltracking", BallTrackingMethods);
+}
+
 
 /*
 int getI(char r, char g, char b);
@@ -84,47 +118,59 @@ char getV(char r, char g, char b) {
 int getHPrime(char r, char g, char b);
 */
 
-
 int main(int, char**) {
+    setup();
+    while (1) {
+        run();
+    }
+    return 0;
+}
 
-    VideoCapture cap(1); // open camera
+int counts[640*480];
+Mat frame;
+Mat colors;
+Mat hsv;
+VideoCapture cap(1);
+
+int setup() {
+    //VideoCapture cap(1); // open camera
     if(!cap.isOpened())  // check if we succeeded
         return -1;
 
-    Mat frame;
+    
     cap >> frame;
-    Mat colors = frame.clone();
-    Mat hsv = frame.clone();
+    colors = frame.clone();
+    hsv = frame.clone();
     
     namedWindow("raw",1);
     namedWindow("scatter",1);
 
     int *j = counts;
-        for (int i = 0; i < 640*480; i++) {
-            *j = rand() % 1000;
-            j++;
-        }
-    
-    for(;;) {
-        Mat frame;
-        cap >> frame; // get a new frame from camera
-        cvtColor(frame, hsv, CV_BGR2HSV);
-        
-        colors.setTo(Scalar(0));
-        
-        identify(hsv, colors);
-        
-        imshow("raw", frame);
-        imshow("scatter", colors);
-
-        if(waitKey(30) >= 0) break;
+    for (int i = 0; i < 640*480; i++) {
+        *j = rand() % 1000;
+        j++;
     }
-    // the camera will be deinitialized automatically in VideoCapture destructor
-
+    
     return 0;
+}    
+
+int run() {
+    cap >> frame; // get a new frame from camera
+    cvtColor(frame, hsv, CV_BGR2HSV);
+        
+    colors.setTo(Scalar(0));
+      
+    int out = identify(hsv, colors);
+       
+    imshow("raw", frame);
+    imshow("scatter", colors);
+
+    //cout << out << endl;
+    
+    return out;
 }
 
-void identify(Mat &image, Mat &colors) {
+int identify(Mat &image, Mat &colors) {
 
     int num_colors = 1;
     
@@ -197,12 +243,12 @@ void identify(Mat &image, Mat &colors) {
         input[image.step*ysum + 3*xsum + 2] = -1;
     }
     
-    cout << xsum << " " << ysum << endl;
+    //cout << xsum << " " << ysum << endl;
     
     
     //if n < 2:
         //return (None, None)
-    return;
+    return xsum*480 + ysum;
     
     /*
     
