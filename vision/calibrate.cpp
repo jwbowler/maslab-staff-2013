@@ -1,22 +1,10 @@
 #include "balltracking.h"
 
 Mat *raw_display;
-<<<<<<< HEAD
 Mat *hsv_display;
 Mat *scatter_display;
 
 int test_thresh[num_obj * 6];
-=======
-Mat *scatter_display;
-//Mat *hsv_display;
-
-/*
-static void onMouse(int event, int x, int y, int, void*) {
-    cvtColor(*raw_display, *hsv_display, CV_BGR2HSV);
-    cout << "HI" << endl;
-}
-*/
->>>>>>> 6a0e4712b81a62d4863b110dca893cff6a30f6c5
 
 int main() {
 
@@ -53,8 +41,6 @@ int main() {
 	}
 	namedWindow("raw",1);
     namedWindow("scatter",1);
-    
-<<<<<<< HEAD
     
     for (int i = 0; i < num_obj; i++) {
     	string s = obj[i];
@@ -158,26 +144,6 @@ int main() {
         	}
         	cout << endl;
     	}
-=======
-    //setMouseCallback("raw", onMouse, 0);
-    
-    Mat *raw_display;
-    Mat *scatter_display;
-    
-    setup();
-    
-    run(&raw_display, &scatter_display);
-    //*hsv_display = raw_display->clone();
-    
-    while (1) {
-        int out = run(&raw_display, &scatter_display);
-        cout << out/480 << " " << out%480 << endl;
-        imshow("raw", *raw_display);
-        imshow("scatter", *scatter_display);
-        if (waitKey(10) > 0) {
-            break;
-        }
->>>>>>> 6a0e4712b81a62d4863b110dca893cff6a30f6c5
     }
     
     myfile.close();
