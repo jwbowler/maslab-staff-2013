@@ -26,12 +26,12 @@ while False:
   mLeft.setSpeed(60)
 
 #motion
-rotationSpeed = .3
+rotationSpeed = .2
 targetSpeed = .1
 
 
 #pid
-myPid = pid.Pid(.03,0,0,0)
+myPid = pid.Pid(.03,.005,.005,100)
 
 #state
 searchState = 0
@@ -60,7 +60,7 @@ while True:
     print (x, y)
 
     distance = 0
-    angle = (x - (imageHeight/2.0)) * camXFov / imageWidth
+    angle = -1 * (x - (imageHeight/2.0)) * camXFov / imageWidth
     print angle
 
     if (not myPid.running):
