@@ -24,7 +24,6 @@ int main() {
       		if (line == "") {
       			break;
       		}
-      		cout << endl;
       		obj_count++;
     	}
     	tfile.close();

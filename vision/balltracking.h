@@ -1,7 +1,7 @@
 #ifndef _BALLTRACKING_H
 #define _BALLTRACKING_H
 
-#define CAMERA 0
+#define CAMERA 1
 
 #include "opencv2/opencv.hpp"
 #include <iostream>

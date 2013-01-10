@@ -91,15 +91,22 @@ int setup() {
 
 void load_thresh() {
 	string line;
-	ifstream myfile("color.cfg");
+	ifstream myfile("vision/color.cfg");
 	if (myfile.is_open()) {
 		int obj_count = 0;
     	while (myfile.good()) {
     		for (int i = 0; i < 6; i++) {
       			getline(myfile, line);
+      			if (line == "") {
+      				break;
+      			}
       			thresh[obj_count*6 + i] = atoi(line.c_str());
       			cout << thresh[obj_count*6 + i] << endl;
       		}
+      		if (line == "") {
+      			break;
+      		}
+      		obj_count++;
     	}
     	myfile.close();
   	} else {
@@ -124,13 +131,19 @@ int init_opencv() {
     return 0;
 } 
 
-int run(Mat **frame_ptr, Mat **hsv_ptr, Mat **scatter_ptr, int *thresh, int num_colors) {
+int run(Mat **frame_ptr, Mat **hsv_ptr, Mat **scatter_ptr, int *thr, int num_colors) {
+
+	if (num_colors == 0) {
+		num_colors = num_obj;
+		thr = thresh;
+	}
+	
     cap >> frame; // get a new frame from camera
     cvtColor(frame, hsv, CV_BGR2HSV);
         
     colors.setTo(Scalar(0));
       
-    int out = identify(hsv, colors, thresh, num_colors);
+    int out = identify(hsv, colors, thr, num_colors);
     
     if (frame_ptr != NULL) {
         *frame_ptr = &frame;
@@ -193,6 +206,12 @@ int identify(Mat &image, Mat &colors, int *thresh, int num_colors) {
         for (int i = 0; i < num_colors; i++) {
         	
         	int *t = &(thresh[i * 6]);
+        	/*
+        	cout << t[0] << " " << t[1] << " "
+        	     << t[2] << " " << t[3] << " "
+        	     << t[4] << " " << t[5] << endl;
+        	     */
+        	     
             if  ((h >= t[0] && h < t[1])
               && (s >= t[2] && s < t[3])
               && (v >= t[4] && v < t[5])) {
