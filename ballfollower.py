@@ -26,7 +26,7 @@ targetSpeed = .2
 
 
 #pid
-myPid = pid.Pid(1,0,0,0)
+myPid = pid.Pid(.03,0,0,0)
 
 #state
 searchState = 0
@@ -56,12 +56,17 @@ while True:
 
     distance = 0
     angle = (x - (imageHeight/2.0)) * camXFov / imageWidth
+    print angle
 
     if (not myPid.running):
       myPid.start(angle, 0)
       continue
+
+    print 'running'
     
     pidVal = myPid.iterate(angle)
+
+    print pidVal
 
     (r, l) = utils.getMotorSpeeds(targetSpeed, rotationSpeed * pidVal)
 
@@ -69,7 +74,10 @@ while True:
       pass
       #state = doneState
 
-  r = int(utils.boundAndScale(r, 0, 1.0, .01, 32, 255)/2)
-  l = int(utils.boundAndScale(l, 0, 1.0, .01, 32, 255)/2)
+  print (r, l)
+  r = int(utils.boundAndScale(r, 0, 1.0, .01, 16, 127))
+  l = int(utils.boundAndScale(l, 0, 1.0, .01, 16, 127))
+  print (r, l)
+
   mRight.setSpeed(r)
   mLeft.setSpeed(l)

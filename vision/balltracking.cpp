@@ -170,8 +170,8 @@ int identify(Mat &image, Mat &colors) {
         
             if ((hue >= 0 && hue < 10)
               && (sat > -114 && sat < 0)
-              && (val > 50 || val < 0)) {
-                //cout << "MATCH" << endl;
+              && (val > 50 || val < -10)) {
+                //cout << "RED" << endl;
                 output[colors.step*y + 3*x] = -1;
                 output[colors.step*y + 3*x + 1] = -1;
                 output[colors.step*y + 3*x + 2] = -1;
@@ -179,7 +179,20 @@ int identify(Mat &image, Mat &colors) {
                 xsum += x;
                 ysum += y;
             }
-            
+       //     if ((hue >= 35 && hue < 45)
+       //       && (sat > -128 && sat < 0)
+       //       && (val > 100 || val < 0)) {
+            if ((hue >= 40 && hue < 75)
+                && (sat > 50 || sat < 0)
+                && (val > 50 || val < -10)) {
+                //cout << "GREEN" << endl;
+                output[colors.step*y + 3*x] = -1;
+                output[colors.step*y + 3*x + 1] = -1;
+                output[colors.step*y + 3*x + 2] = -1;
+                addcount++;
+                xsum += x;
+                ysum += y;
+            }
         }
 
     }
