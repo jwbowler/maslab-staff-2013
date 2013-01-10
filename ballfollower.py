@@ -19,10 +19,15 @@ balltrackingscript.setup()
 ard = arduino.Arduino()
 mRight = arduino.Motor(ard, 10, 5, 3)
 mLeft = arduino.Motor(ard, 10, 6, 4)
+ard.run()
+
+while False:
+  mRight.setSpeed(60)
+  mLeft.setSpeed(60)
 
 #motion
-rotationSpeed = .2
-targetSpeed = .2
+rotationSpeed = .3
+targetSpeed = .1
 
 
 #pid
@@ -79,5 +84,5 @@ while True:
   l = int(utils.boundAndScale(l, 0, 1.0, .01, 16, 127))
   print (r, l)
 
-  mRight.setSpeed(r)
-  mLeft.setSpeed(l)
+  mRight.setSpeed(-r)
+  mLeft.setSpeed(-l)
