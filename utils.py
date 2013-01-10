@@ -6,7 +6,7 @@ def bound(val, low, high):
   return val
 
 
-def boundAndScale(val, iMin, iMax, oMin, oMax, thresh):
+def boundAndScale(val, iMin, iMax, thresh,  oMin, oMax):
   sign = -1 if val < 0 else 1
   val *= sign
   val -= iMin

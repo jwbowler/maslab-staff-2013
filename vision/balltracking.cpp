@@ -81,11 +81,34 @@ Mat frame;
 Mat colors;
 Mat hsv;
 VideoCapture cap(CAMERA);
-
+int thresh[num_obj * 6];
 
 int setup() {
+	load_thresh();
+	init_opencv();
+	return 0;
+}
 
-    if(!cap.isOpened())  // check if we succeeded
+void load_thresh() {
+	string line;
+	ifstream myfile("color.cfg");
+	if (myfile.is_open()) {
+		int obj_count = 0;
+    	while (myfile.good()) {
+    		for (int i = 0; i < 6; i++) {
+      			getline(myfile, line);
+      			thresh[obj_count*6 + i] = atoi(line.c_str());
+      			cout << thresh[obj_count*6 + i] << endl;
+      		}
+    	}
+    	myfile.close();
+  	} else {
+  		cout << "Unable to open file";
+  	}
+}
+
+int init_opencv() {
+	if(!cap.isOpened())  // check if we succeeded
         return -1;
     
     cap >> frame;
@@ -99,18 +122,21 @@ int setup() {
     }
     
     return 0;
-}    
+} 
 
-int run(Mat **frame_ptr, Mat **scatter_ptr) {
+int run(Mat **frame_ptr, Mat **hsv_ptr, Mat **scatter_ptr, int *thresh, int num_colors) {
     cap >> frame; // get a new frame from camera
     cvtColor(frame, hsv, CV_BGR2HSV);
         
     colors.setTo(Scalar(0));
       
-    int out = identify(hsv, colors);
+    int out = identify(hsv, colors, thresh, num_colors);
     
     if (frame_ptr != NULL) {
         *frame_ptr = &frame;
+    }
+    if (hsv_ptr != NULL) {
+        *hsv_ptr = &hsv;
     }
     if (scatter_ptr != NULL) {
         *scatter_ptr = &colors;
@@ -119,9 +145,7 @@ int run(Mat **frame_ptr, Mat **scatter_ptr) {
     return out;
 }
 
-int identify(Mat &image, Mat &colors) {
-
-    int num_colors = 1;
+int identify(Mat &image, Mat &colors, int *thresh, int num_colors) {
     
     //n = 0
     int *j = counts;
@@ -130,7 +154,7 @@ int identify(Mat &image, Mat &colors) {
     int ysum = 0;
  	int addcount = 0;
  	
- 	unsigned char *input = (unsigned char*) (image.data);
+	unsigned char *input = (unsigned char*) (image.data);
     unsigned char *output = (unsigned char*) (colors.data);
          	
     for (int c = 0; c < 640*480; c++) {
@@ -146,40 +170,44 @@ int identify(Mat &image, Mat &colors) {
         
         int x = c / 480;
         int y = c % 480;
-        //cout << x << " " << y << " " << endl;
-        //continue;
         
         char hue, sat, val;
         unsigned char *ptr;
+        
+        /*
+     	ptr = input + image.cols * y + x;
+     	hue = *ptr;
+     	ptr++;
+     	sat = *ptr;
+     	ptr++;
+     	val = *ptr;
+     	*/
+     	hue = input[image.step*y + 3*x];
+     	sat = input[image.step*y + 3*x + 1];
+     	val = input[image.step*y + 3*x + 2];
+     	
+     	int h = (hue >= 0) ? hue : ((int) hue) + 256;
+    	int s = (sat >= 0) ? sat : ((int) sat) + 256;
+    	int v = (val >= 0) ? val : ((int) val) + 256;
 
         for (int i = 0; i < num_colors; i++) {
-            /*
-         	ptr = input + image.cols * y + x;
-         	hue = *ptr;
-         	ptr++;
-         	sat = *ptr;
-         	ptr++;
-         	val = *ptr;
-         	*/
-         	hue = input[image.step*y + 3*x];
-         	sat = input[image.step*y + 3*x + 1];
-         	val = input[image.step*y + 3*x + 2];
-         	
-         	
-         	//cout << (int) hue << " " << (int) sat << " " << (int) val << endl;
-        
-            if ((hue >= 0 && hue < 10)
-              && (sat > -114 && sat < 0)
-              && (val > 50 || val < 0)) {
-                //cout << "MATCH" << endl;
+        	
+        	int *t = &(thresh[i * 6]);
+            if  ((h >= t[0] && h < t[1])
+              && (s >= t[2] && s < t[3])
+              && (v >= t[4] && v < t[5])) {
                 output[colors.step*y + 3*x] = -1;
                 output[colors.step*y + 3*x + 1] = -1;
                 output[colors.step*y + 3*x + 2] = -1;
                 addcount++;
                 xsum += x;
                 ysum += y;
+            } else {
+            	output[colors.step*y + 3*x] = -1;
+                output[colors.step*y + 3*x + 1] = 127;
+                output[colors.step*y + 3*x + 2] = 0;
             }
-            
+
         }
 
     }
@@ -187,7 +215,7 @@ int identify(Mat &image, Mat &colors) {
     if (addcount) {
         xsum /= addcount;
         ysum /= addcount;
-        input[image.step*ysum + 3*xsum] = 127;
+        input[image.step*ysum + 3*xsum] = -1;
         input[image.step*ysum + 3*xsum + 1] = -1;
         input[image.step*ysum + 3*xsum + 2] = -1;
     }

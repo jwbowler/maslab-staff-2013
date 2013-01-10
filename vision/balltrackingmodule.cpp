@@ -20,7 +20,7 @@ static PyObject *balltracking_run(PyObject *self, PyObject *args) {
 
     if (!PyArg_ParseTuple(args, "", &command))
         return NULL;
-    vec = run(NULL, NULL);
+    vec = run(NULL, NULL, NULL);
     return Py_BuildValue("i", vec);
 }
 
