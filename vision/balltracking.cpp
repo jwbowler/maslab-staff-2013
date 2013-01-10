@@ -191,11 +191,47 @@ int identify(Mat &image, Mat &colors, int *thresh, int num_colors) {
     	int v = (val >= 0) ? val : ((int) val) + 256;
 
         for (int i = 0; i < num_colors; i++) {
+<<<<<<< HEAD
         	
         	int *t = &(thresh[i * 6]);
             if  ((h >= t[0] && h < t[1])
               && (s >= t[2] && s < t[3])
               && (v >= t[4] && v < t[5])) {
+=======
+            /*
+         	ptr = input + image.cols * y + x;
+         	hue = *ptr;
+         	ptr++;
+         	sat = *ptr;
+         	ptr++;
+         	val = *ptr;
+         	*/
+         	hue = input[image.step*y + 3*x];
+         	sat = input[image.step*y + 3*x + 1];
+         	val = input[image.step*y + 3*x + 2];
+         	
+         	
+         	//cout << (int) hue << " " << (int) sat << " " << (int) val << endl;
+        
+            if ((hue >= 0 && hue < 10)
+              && (sat > -114 && sat < 0)
+              && (val > 50 || val < -10)) {
+                //cout << "RED" << endl;
+                output[colors.step*y + 3*x] = -1;
+                output[colors.step*y + 3*x + 1] = -1;
+                output[colors.step*y + 3*x + 2] = -1;
+                addcount++;
+                xsum += x;
+                ysum += y;
+            }
+       //     if ((hue >= 35 && hue < 45)
+       //       && (sat > -128 && sat < 0)
+       //       && (val > 100 || val < 0)) {
+            if ((hue >= 40 && hue < 75)
+                && (sat > 50 || sat < 0)
+                && (val > 50 || val < -10)) {
+                //cout << "GREEN" << endl;
+>>>>>>> 6a0e4712b81a62d4863b110dca893cff6a30f6c5
                 output[colors.step*y + 3*x] = -1;
                 output[colors.step*y + 3*x + 1] = -1;
                 output[colors.step*y + 3*x + 2] = -1;
@@ -207,7 +243,10 @@ int identify(Mat &image, Mat &colors, int *thresh, int num_colors) {
                 output[colors.step*y + 3*x + 1] = 127;
                 output[colors.step*y + 3*x + 2] = 0;
             }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 6a0e4712b81a62d4863b110dca893cff6a30f6c5
         }
 
     }
