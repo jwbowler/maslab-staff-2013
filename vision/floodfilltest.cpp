@@ -6,7 +6,7 @@ using namespace std;
 
 int main() {
 
-    VideoCapture cap(0);
+    VideoCapture cap(1);
     namedWindow("ds", 1);
     namedWindow("bw", 1);
     Mat src;
@@ -14,34 +14,47 @@ int main() {
     Mat hsv;
     Mat bw;
     
-    long double tLast = time(0);
+    long double tLast = clock();
     long double tAvg = 0;
     
+    int i = 0;
     while (1) {
         cap >> src;
         if (src.empty())
             return -1;
             
-        float scale = 0.5;
-        resize(src, ds, Size(), scale, scale, INTER_NEAREST);
-
-        cvtColor(ds, hsv, CV_BGR2HSV);
-
+        tLast = clock();
+            
+        //float scale = 0.5;
+        //resize(src, ds, Size(), scale, scale, INTER_NEAREST);
+        
+        
+        cvtColor(src, hsv, CV_BGR2HSV);
+        
         inRange(hsv, Scalar(0, 130, 50), Scalar(10, 255, 245), bw);
+        
+        Moments m = moments(bw, true);
+        //cout << m.m10/m.m00 << " " << m.m01/m.m00 << endl;
+        
+        /*
 
-        imshow("ds", ds);
+        imshow("ds", src);
         imshow("bw", bw);
         
         if (waitKey(10) != -1) {
 			break;
 		}
 		
-		long double tCurr = time(0);
+		*/
+		long double tCurr = clock();
 		long double tDiff = tCurr - tLast;
 		tLast = tCurr;
-		tAvg = 0.9*tAvg + 0.1*tCurr;
+		tAvg = 0.9*tAvg + 0.1*tDiff;
 		
-		cout << 1000/tAvg << endl;
+		if (i%20 == 0) {
+		    cout << CLOCKS_PER_SEC/tAvg << endl;
+		}
+		i++;
     }
 
     return 0;
