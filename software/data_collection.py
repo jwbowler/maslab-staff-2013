@@ -2,16 +2,16 @@ import math
 
 class DataCollection:
 
-    def __init__(self, visionWrapper, sensorWrapper):
-        self.vw = visionWrapper
-        self.sw = sensorWrapper
+    def __init__(self, visionInterface, sensorInterface):
+        self.vi = visionInterface
+        self.si = sensorInterface
         self.cam = Camera()
 
     # Returns list of (sighted feature type, distance, angle)
     def get():
-        visionDataRaw = self.vw.get()
+        visionDataRaw = self.vi.get()
         visionData = [(t, getPolarFromScreen(loc)) for (t, loc) in visionDataRaw]
-        sensorData = self.sw.get()
+        sensorData = self.si.get()
         return visionData.extend(sensorData)
         
         def getPolarFromScreen((x, y)):

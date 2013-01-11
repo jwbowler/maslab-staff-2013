@@ -11,13 +11,14 @@ import control
 
 def main():
 
-	ard = arduino.Arduino()
-    vw = VisionWrapper()
-    sw = SensorWrapper(ard)
+    ard = arduino.Arduino()
+    vw = VisionInterface()
+    sw = SensorInterface(ard)
     dc = DataCollection(vw, sw)
     ctl = Control()
+    # FollowWallState only takes an Arduino object for now; will take SensorWrapper
     stateDict = { \
-                 "FOLLOW_WALL", FollowWallState(ard, ctl), \ # only takes ard for now
+                 "FOLLOW_WALL", FollowWallState(ard, ctl), \
                  "HUNT_BALL", HuntBallState(ctl), \
                  "HALT", HaltState(ctl) \
                 }

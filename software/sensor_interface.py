@@ -1,6 +1,6 @@
 import arduino
 
-class SensorWrapper:
+class SensorInterface:
 
 	def __init__(self, arduino):
         self.ard = arduino
