@@ -1,18 +1,5 @@
 #include "balltracking.h"
 
-#define MIN3(x,y,z)  ((y) <= (z) ? \
-                         ((x) <= (y) ? (x) : (y)) \
-                     : \
-                         ((x) <= (z) ? (x) : (z)))
-
-#define MAX3(x,y,z)  ((y) >= (z) ? \
-                         ((x) >= (y) ? (x) : (y)) \
-                     : \
-                         ((x) >= (z) ? (x) : (z)))
-
-int getHue(int r, int g, int b);
-int getSat(int r, int g, int b);
-int getVal(int r, int g, int b);
 
 /*
 int getI(char r, char g, char b);
@@ -152,10 +139,11 @@ int step(Mat **frame_ptr, Mat **hsv_ptr, Mat **scatter_ptr, int *thr, int num_co
 	}
 	
     cap >> frame; // get a new frame from camera
+    cvtColor(frame, hsv, CV_BGR2HSV);
         
     colors.setTo(Scalar(0));
       
-    int out = identify(frame, colors, thr, num_colors);
+    int out = identify(hsv, colors, thr, num_colors);
     
     if (frame_ptr != NULL) {
         *frame_ptr = &frame;
@@ -177,7 +165,7 @@ int identify(Mat &image, Mat &colors, int *thresh, int num_colors) {
     
     int xsum = 0;
     int ysum = 0;
-    int addcount = 0;
+ 	int addcount = 0;
  	
 	unsigned char *input = (unsigned char*) (image.data);
     unsigned char *output = (unsigned char*) (colors.data);
@@ -188,7 +176,6 @@ int identify(Mat &image, Mat &colors, int *thresh, int num_colors) {
 
         //(*j)++;
         //j++;
-        
         counts[c]++;
         if (counts[c] & 0xFF) {
             continue;
@@ -197,10 +184,17 @@ int identify(Mat &image, Mat &colors, int *thresh, int num_colors) {
         int x = c / 480;
         int y = c % 480;
         
-        /*
         char hue, sat, val;
         unsigned char *ptr;
         
+        /*
+     	ptr = input + image.cols * y + x;
+     	hue = *ptr;
+     	ptr++;
+     	sat = *ptr;
+     	ptr++;
+     	val = *ptr;
+     	*/
      	hue = input[image.step*y + 3*x];
      	sat = input[image.step*y + 3*x + 1];
      	val = input[image.step*y + 3*x + 2];
@@ -208,23 +202,6 @@ int identify(Mat &image, Mat &colors, int *thresh, int num_colors) {
      	int h = (hue >= 0) ? hue : ((int) hue) + 256;
     	int s = (sat >= 0) ? sat : ((int) sat) + 256;
     	int v = (val >= 0) ? val : ((int) val) + 256;
-    	*/
-    	
-    	char cr, cg, cb;
-    	int r, g, b;
-        unsigned char *ptr;
-        
-     	cb = input[image.step*y + 3*x];
-     	cg = input[image.step*y + 3*x + 1];
-     	cr = input[image.step*y + 3*x + 2];
-     	
-     	b = (cb >= 0) ? cb : ((int) cb) + 256;
-    	g = (cg >= 0) ? cg : ((int) cg) + 256;
-    	r = (cr >= 0) ? cr : ((int) cr) + 256;
-     	
-     	int h = getHue(r,g,b);
-     	int s = getSat(r,g,b);
-     	int v = getVal(r,g,b);
 
         for (int i = 0; i < num_colors; i++) {
         
@@ -253,7 +230,6 @@ int identify(Mat &image, Mat &colors, int *thresh, int num_colors) {
                 output[colors.step*y + 3*x + 1] = 127;
                 output[colors.step*y + 3*x + 2] = 0;
             }
-            
         }
 
     }
@@ -306,71 +282,3 @@ rgbToHsv(r, g, b){
     return [h, s, v];
 }
 */
-
-int getHue(int r, int g, int b) {
-    int hue = 0;
-    int base = 0;
-    if (r >= g && r >= b) {
-        base = 0;
-        if (g > b) {
-            if (r == b) {
-                hue = 150;
-            } else {
-                hue = base + 30 * (g-b) / (r-b);
-            }
-        } else {
-            if (r == g) {
-                hue = 30;
-            } else {
-                hue = base - 30 * (b-g) / (r-g);
-            }
-        }
-    } else if (g >= r && g >= b) {
-        base = 60;
-        if (b > r) {
-            if (g == r) {
-                hue = 30;
-            } else {
-                hue = base + 30 * (b-r) / (g-r);
-            }
-        } else {
-            if (g == b) {
-                hue = 90;
-            } else {
-                hue = base - 30 * (r-b) / (g-b);
-            }
-        }
-    } else {
-        base = 120;
-        if (r > g) {
-            if (b == g) {
-                hue = 90;
-            } else {
-                hue = base + 30 * (r-g) / (b-g);
-            }
-        } else {
-            if (b == r) {
-                hue = 150;
-            } else {
-                hue = base - 30 * (g-r) / (b-r);
-            }
-        }
-    }
-    //cout << "hue:" << endl;
-    //cout << hue << endl;
-    return hue;
-}
-
-int getSat(int r, int g, int b) {
-    //cout << "sat:" << endl;
-    int out = MAX3(r, g, b) - MIN3(r, g, b);
-    //cout << out << endl;
-    return out;
-}
-
-int getVal(int r, int g, int b) {
-    //cout << "val:" << endl;
-    int out = MAX3(r, g, b);
-    //cout << out << endl;
-    return out;
-}
