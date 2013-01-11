@@ -1,8 +1,8 @@
 import sys
 
 import arduino
-import vision_wrapper
-import sensor_wrapper
+import vision_interface
+import sensor_interface
 import data_collection 
 import state_machine
 import state_follow_wall
@@ -11,13 +11,14 @@ import control
 
 def main():
 
-	ard = arduino.Arduino()
-    vw = VisionWrapper()
-    sw = SensorWrapper(ard)
-    dc = DataCollection(vw, sw)
+    ard = arduino.Arduino()
+    vi = VisionInterface()
+    si = SensorInterface(ard)
+    dc = DataCollection(vi, si)
     ctl = Control()
+    # FollowWallState only takes an Arduino object for now; will take SensorWrapper
     stateDict = { \
-                 "FOLLOW_WALL", FollowWallState(ard, ctl), \ # only takes ard for now
+                 "FOLLOW_WALL", FollowWallState(ard, ctl), \
                  "HUNT_BALL", HuntBallState(ctl), \
                  "HALT", HaltState(ctl) \
                 }

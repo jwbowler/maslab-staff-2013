@@ -1,6 +1,6 @@
 from vision import balltrackingscript
 
-class VisionWrapper:
+class VisionInterface:
 
     def __init__(self, ballTracker):
         self.bt = ballTracker
