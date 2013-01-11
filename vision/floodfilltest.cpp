@@ -24,7 +24,7 @@ int main() {
             return -1;
             
         tLast = clock();
-            
+            osue
         //float scale = 0.5;
         //resize(src, ds, Size(), scale, scale, INTER_NEAREST);
         
