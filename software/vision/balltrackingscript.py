@@ -5,6 +5,10 @@ SIG_STOP = 0
 	
 
 class BallTracker:
+
+	def __init__(self):
+		self.x = None
+		self.y = None
 	
 	def start(self):
 		balltracking.setup()
@@ -18,13 +22,27 @@ class BallTracker:
 		data = conn.recv()
 		while (conn.poll()):
 			data = conn.recv()
-		return data
+		self.x = data / 480
+		self.y = data % 480
 	
 	def stop(self):
 		conn = self.conn_Py2Cv
 		conn.send(SIG_STOP)
 		conn.close()
 		self.p.join()
+	
+	#The following are incomplete
+	def getNumObj()
+		return 1
+		
+	def getX(i):
+		return self.x
+
+	def getY(i):
+		return self.y
+		
+	def getType(i):
+		return "RedBall"
 		
 def f(conn):
 	while (True):
