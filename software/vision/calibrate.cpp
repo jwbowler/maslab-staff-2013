@@ -41,6 +41,10 @@ int main() {
 	namedWindow("raw",1);
     namedWindow("scatter",1);
     
+    long double tLast;
+    long double tAvg = 0;
+    int k = 1;
+    
     for (int i = 0; i < num_obj; i++) {
     	string s = obj[i];
     	cout << "Calibrating " << s << endl;
@@ -48,11 +52,26 @@ int main() {
     		cout << test_thresh[i*6 + j] << " ";
     	}
     	cout << endl;
+    	
     	while (1) {
+    	
+    	    tLast = clock();
+    	    
     		step(&raw_display, &hsv_display, &scatter_display,
     		    &(test_thresh[i*6]), 1);
+    		    
+    		long double tCurr = clock();
+		    long double tDiff = tCurr - tLast;
+		    tAvg = 0.9*tAvg + 0.1*tDiff;
+		    
     		imshow("raw", *raw_display);
         	imshow("scatter", *scatter_display);
+        			
+		    if (i%20 == 0) {
+		        cout << CLOCKS_PER_SEC/tAvg << endl;
+		    }
+		    k++;
+		    
         	char c = waitKey(10);
         	if (c == -1) {
         		continue;
@@ -142,6 +161,7 @@ int main() {
         		cout << test_thresh[i*6 + j] << " ";
         	}
         	cout << endl;
+        	
     	}
     }
     
