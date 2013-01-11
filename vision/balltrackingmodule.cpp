@@ -14,21 +14,21 @@ static PyObject *balltracking_setup(PyObject *self, PyObject *args) {
     return Py_BuildValue("i", vec);
 }
 
-static PyObject *balltracking_run(PyObject *self, PyObject *args) {
+static PyObject *balltracking_step(PyObject *self, PyObject *args) {
     const char *command;
     int vec;
 
     if (!PyArg_ParseTuple(args, "", &command))
         return NULL;
-    vec = run(NULL, NULL, NULL, NULL, 0);
+    vec = step(NULL, NULL, NULL, NULL, 0);
     return Py_BuildValue("i", vec);
 }
 
 static PyMethodDef BallTrackingMethods[] = {
     {"setup",  balltracking_setup, METH_VARARGS,
      "Setup openCV stuff."},
-    {"run",  balltracking_run, METH_VARARGS,
-     "Get screen position of ball."},
+    {"step",  balltracking_step, METH_VARARGS,
+     "Process one new camera frame."},
     {NULL, NULL, 0, NULL}      
 };
 

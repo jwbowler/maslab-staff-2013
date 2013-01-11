@@ -131,7 +131,7 @@ int init_opencv() {
     return 0;
 } 
 
-int run(Mat **frame_ptr, Mat **hsv_ptr, Mat **scatter_ptr, int *thr, int num_colors) {
+int step(Mat **frame_ptr, Mat **hsv_ptr, Mat **scatter_ptr, int *thr, int num_colors) {
 
 	if (num_colors == 0) {
 		num_colors = num_obj;
@@ -204,6 +204,10 @@ int identify(Mat &image, Mat &colors, int *thresh, int num_colors) {
     	int v = (val >= 0) ? val : ((int) val) + 256;
 
         for (int i = 0; i < num_colors; i++) {
+        
+        	if (!obj_toggle[i]) {
+        		continue;
+        	}
         	
         	int *t = &(thresh[i * 6]);
         	/*

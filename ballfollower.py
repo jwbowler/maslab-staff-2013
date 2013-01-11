@@ -1,88 +1,123 @@
 import utils
 import pid
+import time
 
 from vision import balltrackingscript
 
 import arduino
 
-#vision
-camAngle = 0
-camHeight = 6
-camXFov = 67
-camYFov = 50
-imageHeight = 480
-imageWidth = 640
+bt = balltrackingscript.BallTracker()
 
-balltrackingscript.setup()
+def main():
 
-#arduino
-ard = arduino.Arduino()
-mRight = arduino.Motor(ard, 10, 5, 3)
-mLeft = arduino.Motor(ard, 10, 6, 4)
-ard.run()
+  global bt
+  global mRight
+  global mLeft
 
-while False:
-  mRight.setSpeed(60)
-  mLeft.setSpeed(60)
+  #vision
+  camAngle = 0
+  camHeight = 6
+  camXFov = 67
+  camYFov = 50
+  imageHeight = 480
+  imageWidth = 640
 
-#motion
-rotationSpeed = .3
-targetSpeed = .1
+  #arduino
+  ard = arduino.Arduino()
+  mRight = arduino.Motor(ard, 10, 5, 3)
+  mLeft = arduino.Motor(ard, 10, 6, 4)
+  ard.run()
+
+  while False:
+    mRight.setSpeed(60)
+    mLeft.setSpeed(60)
+
+  #motion
+  rotationSpeed = .3
+  targetSpeed = .1
 
 
-#pid
-myPid = pid.Pid(.03,0,0,0)
+  #pid
+  myPid = pid.Pid(.03,0,0,0)
 
-#state
-searchState = 0
-huntState = 1
-doneState = 2
+  #state
+  searchState = 0
+  huntState = 1
+  doneState = 2
 
-state = 0
+  state = 0
 
-while True:
-  (r, l) = (0, 0)
-  loc = balltrackingscript.run()
+  bt.start()
+  
+  #fps
+  tLast = time.time()
+  tAvg = 0
 
-  if state == searchState:
-    print "search"
+  while True:
+    (r, l) = (0, 0)
+    loc = bt.update()
 
-    (r, l) = utils.getMotorSpeeds(0.0, rotationSpeed)
+    if state == searchState:
+      print "search"
 
-    if (loc != 0):
-      state = huntState
+      (r, l) = utils.getMotorSpeeds(0.0, rotationSpeed)
 
-  if state == huntState:
-    print "hunt"
+      if (loc != 0):
+        state = huntState
 
-    y = loc % imageHeight
-    x = loc / imageHeight
-    print (x, y)
+    if state == huntState:
+      print "hunt"
 
-    distance = 0
-    angle = (x - (imageHeight/2.0)) * camXFov / imageWidth
-    print angle
+      y = loc % imageHeight
+      x = loc / imageHeight
+      print (x, y)
 
-    if (not myPid.running):
-      myPid.start(angle, 0)
-      continue
+      distance = 0
+      angle = (x - (imageHeight/2.0)) * camXFov / imageWidth
+      print angle
 
-    print 'running'
+      if (not myPid.running):
+        myPid.start(angle, 0)
+        continue
+
+      print 'running'
+      
+      pidVal = myPid.iterate(angle)
+
+      print pidVal
+
+      (r, l) = utils.getMotorSpeeds(targetSpeed, rotationSpeed * pidVal)
+
+      if (loc != None):
+        pass
+        #state = doneState
+
+    print (r, l)
+    r = int(utils.boundAndScale(r, 0, 1.0, .01, 16, 127))
+    l = int(utils.boundAndScale(l, 0, 1.0, .01, 16, 127))
+    print (r, l)
+
+    mRight.setSpeed(-r)
+    mLeft.setSpeed(-l)
     
-    pidVal = myPid.iterate(angle)
+    tCurr = time.time()
+    tDiff = tCurr - tLast
+    tLast = tCurr
+    tAvg = 0.9*tAvg + 0.1*tDiff
+    print 1/tAvg
+    
+def stopRobot():
+  global mRight
+  global mLrgt
+  mRight.setSpeed(0)
+  mLeft.setSpeed(0)
+  
 
-    print pidVal
-
-    (r, l) = utils.getMotorSpeeds(targetSpeed, rotationSpeed * pidVal)
-
-    if (loc != None):
-      pass
-      #state = doneState
-
-  print (r, l)
-  r = int(utils.boundAndScale(r, 0, 1.0, .01, 16, 127))
-  l = int(utils.boundAndScale(l, 0, 1.0, .01, 16, 127))
-  print (r, l)
-
-  mRight.setSpeed(-r)
-  mLeft.setSpeed(-l)
+try:
+  main()
+except KeyboardInterrupt:
+  stopRobot()
+  print "Stopped robot"
+  bt.stop()
+  print "Stopped vision thread"
+   
