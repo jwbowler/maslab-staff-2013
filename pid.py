@@ -14,6 +14,7 @@ class Pid:
 
   def start(self, value, target):
     self.i = 0
+    self.target = target
     self.prevValue = value
     self.prevTime = time.time()
     self.running = True

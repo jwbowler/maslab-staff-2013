@@ -22,19 +22,30 @@ def main():
   imageHeight = 480
   imageWidth = 640
 
+<<<<<<< HEAD
   #arduino
   ard = arduino.Arduino()
   mRight = arduino.Motor(ard, 10, 5, 3)
   mLeft = arduino.Motor(ard, 10, 6, 4)
   ard.run()
+=======
+#motion
+rotationSpeed = .2
+targetSpeed = .1
+>>>>>>> cde50bce1336b83bc72964b50dbc07824efc026f
 
   while False:
     mRight.setSpeed(60)
     mLeft.setSpeed(60)
 
+<<<<<<< HEAD
   #motion
   rotationSpeed = .3
   targetSpeed = .1
+=======
+#pid
+myPid = pid.Pid(.03,.005,.005,100)
+>>>>>>> cde50bce1336b83bc72964b50dbc07824efc026f
 
 
   #pid
@@ -62,8 +73,14 @@ def main():
 
       (r, l) = utils.getMotorSpeeds(0.0, rotationSpeed)
 
+<<<<<<< HEAD
       if (loc != 0):
         state = huntState
+=======
+    distance = 0
+    angle = -1 * (x - (imageHeight/2.0)) * camXFov / imageWidth
+    print angle
+>>>>>>> cde50bce1336b83bc72964b50dbc07824efc026f
 
     if state == huntState:
       print "hunt"
