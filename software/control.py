@@ -2,19 +2,29 @@ import arduino
 import pid
 
 class Control:
-    def __init__(self, arduino)
-        self.ard = arduino
+    def __init__(self, ard):
+        self.ard = ard
 
-        motors[] = []
-        self.motors[0] = arduino.Motor(ard, 10, 5, 3)
-        self.motors[1] = arduino.Motor(ard, 10, 6, 4)
+        self.motors = [ \
+                        arduino.Motor(ard, 10, 5, 3), \
+                        arduino.Motor(ard, 10, 6, 4)  \
+                      ]
     
-    def drive(r, l):
+    def drive(self, r, l):
         self.motors[0].setSpeed(r)
         self.motors[1].setSpeed(l)
         
-    def ballCaptureOn():
+    def ballCaptureOn(self):
         pass
         
-    def ballCaptureOff():
+    def ballCaptureOff(self):
         pass
+        
+
+class ControlDummy:
+    
+    def __init__(self, ard):
+        pass
+        
+    def drive(self, r, l):
+        print "DRIVE: r=" + str(r) + ", l=" + str(l)

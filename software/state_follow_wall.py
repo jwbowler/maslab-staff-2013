@@ -2,11 +2,12 @@ import time
 import sys
 import pid
 import utils
+import arduino
 
 class FollowWallState():
 
     #TODO: get it to use state information instead of arduino input
-    def __init__(arduino, control):
+    def __init__(self, ard, control):
         self.ctl = control
         
         self.a1 = arduino.AnalogInput(ard, 1)  # Create an analog sensor on pin A1
@@ -16,7 +17,7 @@ class FollowWallState():
         self.IRPid1= pid.Pid(0.000, 0.000, 0.000, 50)
         self.IRPid2= pid.Pid(0.004, 0.000, 0.000, 100)
         self.IRPid3= pid.Pid(.002, 0.000, 0.000, 50)
-        self.IRPid=[IRPid1,IRPid2,IRPid3]
+        self.IRPid=[self.IRPid1, self.IRPid2, self.IRPid3]
 
         self.THRESH=[200, 250, 410]
 
@@ -25,14 +26,14 @@ class FollowWallState():
         self.Speed=.2
         self.RotationSpeed=.2
         
-    def getStateName():
+    def getStateName(self):
         return "FOLLOW_WALL"
 
-    def step(data):
+    def step(self, data):
        # Main loop -- check the sensor and update the digital output\
         ir_val = [self.a1.getValue(), self.a2.getValue(), self.a3.getValue()] # Note -- the higher value, the *closer* the dist
         for i in xrange(3):
-              print "IR #" + str(i)+ " " +str(ir_val[i])+ " " + str(ir_val[i]<=THRESH[i])
+              print "IR #" + str(i)+ " " +str(ir_val[i])+ " " + str(ir_val[i]<=self.THRESH[i])
 
         if ir_val[0]!=None and  ir_val [1]!= None and ir_val[2]!=None:
             ir_val = [self.a1.getValue(), self.a2.getValue(), self.a3.getValue()] # Note -- the higher value, the *closer* the dist
@@ -56,7 +57,7 @@ class FollowWallState():
             
         return (None, self.nextState(data))
               
-    def nextState(data):
+    def nextState(self, data):
         objTypes = [i[0] for i in data]
         if "RED_BALL" in objTypes or "GREEN_BALL" in objTypes:
             return "HUNT_BALL"
