@@ -49,8 +49,10 @@ int main() {
     	}
     	cout << endl;
     	while (1) {
-    		run(&raw_display, &hsv_display, &scatter_display,
+    		//cout << "1" << endl;
+    		step(&raw_display, &hsv_display, &scatter_display,
     		    &(test_thresh[i*6]), 1);
+    		//cout << "2" << endl;
     		imshow("raw", *raw_display);
         	imshow("scatter", *scatter_display);
         	char c = waitKey(10);
