@@ -1,4 +1,4 @@
-import sys
+import sys, time
 
 from arduino import Arduino
 from vision_interface import VisionInterface, VisionInterfaceDummy
@@ -44,8 +44,17 @@ def main():
     sm = StateMachine(dc, stateDict)
     #TODO: Register alarm callback
     
+    tLast = time.time()
+    tAvg = 0
+  
     while (True):
         sm.step()
+        
+        tCurr = time.time()
+        tDiff = tCurr - tLast
+        tLast = tCurr
+        tAvg = 0.9*tAvg + 0.1*tDiff
+        print str(1/tAvg) + " FPS"
         print ""
 
 def three_minute_alarm_callback():

@@ -49,7 +49,7 @@ int main() {
     	}
     	cout << endl;
     	while (1) {
-    		run(&raw_display, &hsv_display, &scatter_display,
+    		step(&raw_display, &hsv_display, &scatter_display,
     		    &(test_thresh[i*6]), 1);
     		imshow("raw", *raw_display);
         	imshow("scatter", *scatter_display);
