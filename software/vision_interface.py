@@ -14,7 +14,9 @@ class VisionInterface:
         return out
         
     def __del__(self):
+        print "STOPPING"
         self.bt.stop()
+        print "STOPPED"
         
 
 

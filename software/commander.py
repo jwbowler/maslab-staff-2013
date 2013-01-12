@@ -13,10 +13,11 @@ def main():
 
     simulateCamera = False
     simulateSensors = True
-    simulateActuators = True
+    simulateActuators = False
     
     ard = Arduino()
     
+    global vi
     if simulateCamera:
         vi = VisionInterfaceDummy()
     else:
@@ -46,9 +47,13 @@ def main():
     
     tLast = time.time()
     tAvg = 0
+    
+    if not (simulateSensors and simulateActuators):
+        ard.run()
   
     while (True):
         sm.step()
+        #ctl.drive(20, 127)
         
         tCurr = time.time()
         tDiff = tCurr - tLast
@@ -66,6 +71,10 @@ if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt:
+        global sm
+        sm.halt()
+        global vi
+        del(vi)
         sys.exit(0)
 
 

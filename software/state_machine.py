@@ -18,7 +18,8 @@ class StateMachine:
 
     def halt(self):
         self.currentStateName = "HALT"
-        self.step(self.data)
+        currentState = self.sd[self.currentStateName]
+        currentState.step()
         
         
         
@@ -28,5 +29,5 @@ class HaltState:
         self.ctl = control
         
     def step(self):
-        ctl.drive(0, 0)
+        self.ctl.drive(0, 0)
         return (None, None)

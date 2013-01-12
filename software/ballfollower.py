@@ -1,6 +1,7 @@
 import utils
 import pid
 import time
+import sys
 
 from vision import balltrackingscript
 
@@ -10,100 +11,116 @@ bt = balltrackingscript.BallTracker()
 
 def main():
 
-  global bt
-  global mRight
-  global mLeft
+    global bt
+    global mRight
+    global mLeft
 
-  #vision
-  camAngle = 0
-  camHeight = 6
-  camXFov = 67
-  camYFov = 50
-  imageHeight = 480
-  imageWidth = 640
+    #vision
+    camAngle = 0
+    camHeight = 6
+    camXFov = 67
+    camYFov = 50
+    imageHeight = 480
+    imageWidth = 640
 
-  #arduino
-  ard = arduino.Arduino()
-  mRight = arduino.Motor(ard, 10, 5, 3)
-  mLeft = arduino.Motor(ard, 10, 6, 4)
-  ard.run()
+    #arduino
+    ard = arduino.Arduino()
+    mRight = arduino.Motor(ard, 10, 5, 3)
+    mLeft = arduino.Motor(ard, 10, 6, 4)
+    ard.run()
 
-  #motion
-  rotationSpeed = .2
-  targetSpeed = .1
-  
-  #pid
-  myPid = pid.Pid(.03,.005,.005,100)
+    #motion
+    rotationSpeed = .2
+    targetSpeed = .1
 
-  #state
-  searchState = 0
-  huntState = 1
-  doneState = 2
+    #pid
+    myPid = pid.Pid(.03,.005,.005,100)
 
-  state = 0
+    #state
+    searchState = 0
+    huntState = 1
+    doneState = 2
 
-  bt.start()
-  
-  #fps
-  tLast = time.time()
-  tAvg = 0
+    state = 0
 
-  while True:
-    (r, l) = (0, 0)
-    loc = bt.update()
+    bt.start()
 
-    if state == searchState:
-      print "search"
+    #fps
+    tLast = time.time()
+    tAvg = 0
 
-      (r, l) = utils.getMotorSpeeds(0.0, rotationSpeed)
+    while True:
+        (r, l) = (0, 0)
+        loc = bt.update()
+        if (loc == None):
+            print "Waiting for camera"
+            sleep(1)
+            continue
 
-      if (loc != 0):
-        state = huntState
+        if state == searchState:
+            print "search"
 
-    if state == huntState:
-      print "hunt"
+            (r, l) = utils.getMotorSpeeds(0.0, rotationSpeed)
 
-      y = loc % imageHeight
-      x = loc / imageHeight
-      print (x, y)
+            if (loc != 0):
+                state = huntState
 
-      distance = 0
-      angle = (x - (imageHeight/2.0)) * camXFov / imageWidth
-      print angle
+        if state == huntState:
+            print "hunt"
 
-      if (not myPid.running):
-        myPid.start(angle, 0)
-        continue
+            print loc
+            y = loc % imageHeight
+            x = loc / imageHeight
+            print (x, y)
 
-      print 'running'
-      
-      pidVal = myPid.iterate(angle)
+            distance = 0
+            angle = (x - (imageHeight/2.0)) * camXFov / imageWidth
+            print angle
 
-      print pidVal
+            if (not myPid.running):
+                myPid.start(angle, 0)
+                continue
 
-      (r, l) = utils.getMotorSpeeds(targetSpeed, rotationSpeed * pidVal)
+            print 'running'
 
-      if (loc != None):
-        pass
-        #state = doneState
+            pidVal = myPid.iterate(angle)
 
-    print (r, l)
-    r = int(utils.boundAndScale(r, 0, 1.0, .01, 16, 127))
-    l = int(utils.boundAndScale(l, 0, 1.0, .01, 16, 127))
-    print (r, l)
+            print pidVal
 
-    mRight.setSpeed(-r)
-    mLeft.setSpeed(-l)
-    
-    tCurr = time.time()
-    tDiff = tCurr - tLast
-    tLast = tCurr
-    tAvg = 0.9*tAvg + 0.1*tDiff
-    print 1/tAvg
+            (r, l) = utils.getMotorSpeeds(targetSpeed, rotationSpeed * pidVal)
+
+            if (loc != None):
+                pass
+                #state = doneState
+
+        print (r, l)
+        r = int(utils.boundAndScale(r, 0, 1.0, .01, 16, 127))
+        l = int(utils.boundAndScale(l, 0, 1.0, .01, 16, 127))
+        print (r, l)
+
+        mRight.setSpeed(-r)
+        mLeft.setSpeed(-l)
+
+        tCurr = time.time()
+        tDiff = tCurr - tLast
+        tLast = tCurr
+        tAvg = 0.9*tAvg + 0.1*tDiff
+        print 1/tAvg
     
 def stopRobot():
-  global mRight
-  global mLeft
-  mRight.setSpeed(0)
-  mLeft.setSpeed(0)
+    global mRight
+    global mLrgt
+    mRight.setSpeed(0)
+    mLeft.setSpeed(0)
+  
+
+try:
+    main()
+except KeyboardInterrupt:
+    stopRobot()
+    print "Stopped robot"
+    bt.stop()
+    print "Stopped vision thread"
+    sys.exit(0)
+    print "blah"
    

@@ -27,6 +27,7 @@ class HuntBallState():
             i = objTypes.index("GREEN_BALL")
         
         (ballType, (distance, angle)) = data[i]
+        angle = -angle #this shouldn't be necessary...
         #print angle
 
         if (not self.myPid.running):

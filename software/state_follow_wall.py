@@ -8,7 +8,10 @@ class FollowWallState():
 
     #TODO: get it to use state information instead of arduino input
     def __init__(self, ard, control):
+        
         self.ctl = control
+        
+        '''
         
         self.a1 = arduino.AnalogInput(ard, 1)  # Create an analog sensor on pin A1
         self.a2 = arduino.AnalogInput(ard, 2)  # Create an analog sensor on pin A2
@@ -25,11 +28,13 @@ class FollowWallState():
 
         self.Speed=.2
         self.RotationSpeed=.2
+        '''
         
     def getStateName(self):
         return "FOLLOW_WALL"
 
     def step(self, data):
+        '''
        # Main loop -- check the sensor and update the digital output\
         ir_val = [self.a1.getValue(), self.a2.getValue(), self.a3.getValue()] # Note -- the higher value, the *closer* the dist
         for i in xrange(3):
@@ -46,15 +51,18 @@ class FollowWallState():
             self.PidOut[1]=self.IRPid2.iterate(ir_val[1])
             self.PidOut[2]=self.IRPid3.iterate(ir_val[2])
 
-            (r,l)=utils.getMotorSpeeds(Speed,sum(self.PidOut[1:])*self.RotationSpeed)
+            (r,l)=utils.getMotorSpeeds(self.Speed,sum(self.PidOut[1:])*self.RotationSpeed)
 
             rSpeed = -int(utils.boundAndScale(r, 0, 1.0, .01, 8, 127))
             lSpeed = -int(utils.boundAndScale(l, 0, 1.0, .01, 8, 127))
 
-            ctl.drive(rSpeed, lSpeed)
+            self.ctl.drive(rSpeed, lSpeed)
             print (ir_val, (rSpeed, lSpeed))
             print (self.PidOut, sum(self.PidOut[1:])*self.RotationSpeed)
             
+        return (None, self.nextState(data))
+        '''
+        self.ctl.drive(0, 0)
         return (None, self.nextState(data))
               
     def nextState(self, data):

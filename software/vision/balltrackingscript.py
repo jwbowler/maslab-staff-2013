@@ -1,5 +1,5 @@
 from multiprocessing import Process, Pipe
-import balltracking, time
+import balltracking, time, sys
 
 SIG_STOP = 0
 	
@@ -30,11 +30,14 @@ class BallTracker:
             self.isObject = 0
         self.x = data / 480
         self.y = data % 480
+        print data
+        return data
 	
     def stop(self):
         conn = self.conn_Py2Cv
-        conn.send(SIG_STOP)
+        #conn.send(SIG_STOP)
         conn.close()
+        self.p.terminate()
         self.p.join()
 	
     #The following are incomplete
@@ -51,26 +54,17 @@ class BallTracker:
         return "RED_BALL"
 		
 def f(conn):
-	while (True):
-		if conn.poll():
-			sig = conn.recv()
-			if sig == SIG_STOP:
-				conn.close()
-				return;
-		data = balltracking.step()
-		conn.send(data)
-	
-'''
-bt = BallTracker()
-bt.start()
-for i in range(20):
-	time.sleep(1)
-	print bt.update()
-bt.stop()
-'''
-
-	
-	
-
-    
-    
+    try:
+        while (True):
+            print "Running"
+            #if conn.poll():
+            #    sig = conn.recv()
+            #    if sig == SIG_STOP:
+            #        print "Closing"
+            #        conn.close()
+            #        return;
+            data = balltracking.step()
+            conn.send(data)
+    except KeyboardInterrupt:
+        pass
+        
