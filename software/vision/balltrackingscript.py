@@ -16,7 +16,7 @@ class BallTracker:
         self.conn_Py2Cv, self.conn_Cv2Py = Pipe()
         self.p = Process(target=f, args=(self.conn_Cv2Py,))
         self.p.start()
-        print "Started"
+        print "Vision thread started"
 		
     def update(self):
         conn = self.conn_Py2Cv
@@ -56,7 +56,7 @@ class BallTracker:
 def f(conn):
     try:
         while (True):
-            print "Running"
+            #print "Running"
             #if conn.poll():
             #    sig = conn.recv()
             #    if sig == SIG_STOP:

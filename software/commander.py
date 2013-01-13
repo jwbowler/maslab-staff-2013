@@ -13,7 +13,7 @@ def main():
 
     simulateCamera = False
     simulateSensors = True
-    simulateActuators = False
+    simulateActuators = True
     
     ard = Arduino()
     

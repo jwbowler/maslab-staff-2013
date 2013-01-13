@@ -1,0 +1,150 @@
+#include "balltracking.h"
+
+Mat src;
+Mat ds;
+Mat hsv;
+Mat bw[num_obj];
+Mat colors;
+Mat temp;
+SimpleBlobDetector::Params params;
+cv::Ptr<FeatureDetector> blob_detector;
+vector<KeyPoint> keyPoints;
+
+VideoCapture cap(CAMERA);
+int thresh[num_obj * 6];
+
+int setup() {
+	load_thresh();
+	init_opencv();
+	return 0;
+}
+
+void load_thresh() {
+	string line;
+	ifstream myfile("vision/color.cfg");
+	if (myfile.is_open()) {
+		int obj_count = 0;
+    	while (myfile.good()) {
+    		for (int i = 0; i < 6; i++) {
+      			getline(myfile, line);
+      			if (line == "") {
+      				break;
+      			}
+      			thresh[obj_count*6 + i] = atoi(line.c_str());
+      			cout << thresh[obj_count*6 + i] << " ";
+      		}
+      		cout << endl;
+      		if (line == "") {
+      			break;
+      		}
+      		obj_count++;
+    	}
+    	myfile.close();
+  	} else {
+  		cout << "Unable to open file";
+  	}
+}
+  	
+int init_opencv() {
+	if(!cap.isOpened())  // check if we succeeded
+        return -1;
+    
+    // to initialize colors to the right size:
+    cap >> src;
+    colors.create(src.size(), CV_8U);
+    resize(colors, colors, Size(), downsample_factor, downsample_factor, INTER_NEAREST);
+    
+    params.minDistBetweenBlobs = 0.;
+    params.filterByInertia = false;
+    params.filterByConvexity = false;
+    params.filterByColor = true;
+    params.blobColor = 255;
+    params.filterByCircularity = false;
+    params.filterByArea = true;
+    params.minArea = 100.;
+    params.maxArea = 640.*480;
+    
+    blob_detector = new cv::SimpleBlobDetector(params);
+    blob_detector->create("SimpleBlob");
+    
+    return 0;
+} 
+
+int step(Mat **frame_ptr, Mat **hsv_ptr, Mat **scatter_ptr, int *thr, int num_colors) {
+
+    bool force = false;
+	if (num_colors == 0) {
+		num_colors = num_obj;
+		thr = thresh;
+		force = true;
+	}
+	
+    cap >> src; // get a new frame from camera
+    resize(src, ds, Size(), downsample_factor, downsample_factor, INTER_NEAREST);
+    cvtColor(ds, hsv, CV_BGR2HSV);
+    colors.setTo(Scalar(0));
+    
+    int numDetections = 0;
+    for (int i = 0; i < num_colors; i++) {
+        if (!obj_toggle[i] || force) {
+            continue;
+        }
+        if (numDetections >= maxDetections) {
+            break;
+        }
+        int *t = &(thr[i * 6]);
+        //cout << t[0] << " " << t[1] << endl;
+        if (t[0] >= 0) {
+            inRange(hsv, Scalar(t[0], t[2], t[4]), Scalar(t[1], t[3], t[5]), bw[i]);
+        } else {
+            int t_0 = 180 + t[0];
+            inRange(hsv, Scalar(t_0, t[2], t[4]), Scalar(180, t[3], t[5]), bw[i]);
+            inRange(hsv, Scalar(0, t[2], t[4]), Scalar(t[1], t[3], t[5]), temp);
+            bitwise_or(bw[i], temp, bw[i]);
+        }
+        bitwise_or(colors, bw[i], colors);
+        
+        blob_detector->detect(colors, keyPoints);
+        
+        for (KeyPoint point: keyPoints) {
+            objTypes[numDetections] = obj[i];
+            objXCoords[numDetections] = point.pt.x;
+            objYCoords[numDetections] = point.pt.y;
+            objSizes[numDetections] = point.size;
+            numDetections++;
+            if (numDetections == maxDetections) {
+                break;
+            }
+        }
+    }
+    
+    //erode(colors, colors, iterations=5);
+    
+    //morphologyEx(colors, colors, MORPH_CLOSE,
+    //             getStructuringElement(MORPH_RECT, Size(3, 3)),
+    //             Point(-1,-1), 5);
+    
+    
+    //drawKeypoints(colors, keypoints, colors, Scalar(0, 255, 0));
+    
+    double scale = 1/downsample_factor;
+    //int out = 480 * (m.m10/m.m00) * scale + (m.m01/m.m00) * scale;
+    int out = 0;
+    //cout << keypoints << endl;
+    for (KeyPoint point: keyPoints) {
+        //cout << point.pt.x << " " << point.pt.y << endl;
+    }
+    //cout << endl;
+    
+    if (frame_ptr != NULL) {
+        *frame_ptr = &src;
+    }
+    if (hsv_ptr != NULL) {
+        *hsv_ptr = &hsv;
+    }
+    if (scatter_ptr != NULL) {
+        *scatter_ptr = &colors;
+    }
+    
+    return out;
+}

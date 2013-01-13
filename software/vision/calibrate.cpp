@@ -19,8 +19,9 @@ int main() {
       				break;
       			}
       			test_thresh[obj_count*6 + i] = atoi(line.c_str());
-      			//cout << test_thresh[obj_count*6 + i];
+      			cout << test_thresh[obj_count*6 + i] << " ";
       		}
+      		cout << endl;
       		if (line == "") {
       			break;
       		}
@@ -57,7 +58,7 @@ int main() {
     	
     	    tLast = clock();
     	    
-    		step(&raw_display, &hsv_display, &scatter_display,
+    		int out = step(&raw_display, &hsv_display, &scatter_display,
     		    &(test_thresh[i*6]), 1);
     		    
     		long double tCurr = clock();
@@ -67,8 +68,9 @@ int main() {
     		imshow("raw", *raw_display);
         	imshow("scatter", *scatter_display);
         			
-		    if (i%20 == 0) {
-		        cout << CLOCKS_PER_SEC/tAvg << endl;
+		    if (i%100 == 0) {
+		        //cout << out << endl;
+		        //cout << CLOCKS_PER_SEC/tAvg << endl;
 		    }
 		    k++;
 		    

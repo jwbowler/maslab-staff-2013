@@ -1,7 +1,7 @@
 #ifndef _BALLTRACKING_H
 #define _BALLTRACKING_H
 
-#define CAMERA 0
+#define CAMERA 1
 
 #include "opencv2/opencv.hpp"
 #include <iostream>
@@ -14,6 +14,13 @@ using namespace std;
 const string obj[] = {"RedBall", "GreenBall", "YellowWall", "BlueWall", "PurpleGoal"};
 const bool obj_toggle[] = {true, true, false, false, false};
 const int num_obj = 5;
+const double downsample_factor = 1;
+
+const int maxDetections = 16;
+static string objTypes[maxDetections];
+static int objXCoords[maxDetections];
+static int objYCoords[maxDetections];
+static int objSizes[maxDetections];
 
 int setup();
 void load_thresh();

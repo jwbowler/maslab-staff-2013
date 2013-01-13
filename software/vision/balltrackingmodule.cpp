@@ -2,6 +2,15 @@
 #include <iostream>
 #include "balltracking.h"
 
+#define BUILD_ARGS(x, y, z, w) x[0], y[0], z[0], w[0], x[1], y[1], z[1], w[1], \
+                               x[2], y[2], z[2], w[2], x[3], y[3], z[3], w[3], \
+                               x[4], y[4], z[4], w[4], x[5], y[5], z[5], w[5], \
+                               x[6], y[6], z[6], w[6], x[7], y[7], z[7], w[7], \
+                               x[8], y[8], z[8], w[8], x[9], y[9], z[9], w[9], \
+                               x[10], y[10], z[10], w[10], x[11], y[11], z[11], w[11], \
+                               x[12], y[12], z[12], w[12], x[13], y[13], z[13], w[13], \
+                               x[14], y[14], z[14], w[14], x[15], y[15], z[15], w[15]
+
 using namespace std;
 
 static PyObject *balltracking_setup(PyObject *self, PyObject *args) {
@@ -11,7 +20,11 @@ static PyObject *balltracking_setup(PyObject *self, PyObject *args) {
     if (!PyArg_ParseTuple(args, "", &command))
         return NULL;
     vec = setup();
-    return Py_BuildValue("i", vec);
+    char *format = "(siii)(siii)";
+    return Py_BuildValue(format,
+        objTypes[0].c_str(), objXCoords[0], objYCoords[0], objSizes[0],
+        objTypes[1].c_str(), objXCoords[1], objYCoords[1], objSizes[1]
+        );
 }
 
 static PyObject *balltracking_step(PyObject *self, PyObject *args) {
