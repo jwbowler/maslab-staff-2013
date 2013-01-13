@@ -11,16 +11,12 @@
 using namespace cv;
 using namespace std;
 
-const string obj[] = {"RedBall", "GreenBall", "YellowWall", "BlueWall", "PurpleGoal"};
+const string obj[] = {"RED_BALL", "GREEN_BALL", "YELLOW_WALL", "BLUE_WALL", "PURPLE_GOAL"};
 const bool obj_toggle[] = {true, true, false, false, false};
 const int num_obj = 5;
 const double downsample_factor = 1;
 
 const int maxDetections = 16;
-static string objTypes[maxDetections];
-static int objXCoords[maxDetections];
-static int objYCoords[maxDetections];
-static int objSizes[maxDetections];
 
 int setup();
 void load_thresh();

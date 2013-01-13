@@ -9,7 +9,9 @@ class BallTracker:
     def __init__(self):
         self.x = None
         self.y = None
-        self.isObject = 0
+        #self.isObject = 0
+        self.numObjects = 0
+        self.data = None
 	
     def start(self):
         balltracking.setup()
@@ -23,7 +25,8 @@ class BallTracker:
         data = conn.recv()
         while (conn.poll()):
             data = conn.recv()
-	    
+
+        '''
         if data != 0:
             self.isObject = 1
         else:
@@ -32,6 +35,11 @@ class BallTracker:
         self.y = data % 480
         print data
         return data
+        '''
+       
+        clean = [obj for obj in data if obj[0] != '']
+        self.data = clean
+        self.numObjects = len(self.data)
 	
     def stop(self):
         conn = self.conn_Py2Cv
@@ -42,16 +50,19 @@ class BallTracker:
 	
     #The following are incomplete
     def getNumObj(self):
-        return self.isObject
-	
+        return self.numObjects
+
+    def getType(self, i):
+        return self.data[i][0]
+        
     def getX(self, i):
-        return self.x
+        return self.data[i][1]
 
     def getY(self, i):
-        return self.y
-	
-    def getType(self, i):
-        return "RED_BALL"
+        return self.data[i][2]
+        
+    def getWeight(self, i):
+        return self.data[i][3]
 		
 def f(conn):
     try:

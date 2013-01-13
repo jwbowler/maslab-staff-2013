@@ -1,5 +1,4 @@
 #include <Python.h>
-#include <iostream>
 #include "balltracking.h"
 
 #define BUILD_ARGS(x, y, z, w) x[0], y[0], z[0], w[0], x[1], y[1], z[1], w[1], \
@@ -13,6 +12,11 @@
 
 using namespace std;
 
+string objTypes[16];
+int visObjXCoords[16];
+int objYCoords[16];
+int objSizes[16];
+
 static PyObject *balltracking_setup(PyObject *self, PyObject *args) {
     const char *command;
     int vec;
@@ -20,11 +24,8 @@ static PyObject *balltracking_setup(PyObject *self, PyObject *args) {
     if (!PyArg_ParseTuple(args, "", &command))
         return NULL;
     vec = setup();
-    char *format = "(siii)(siii)";
-    return Py_BuildValue(format,
-        objTypes[0].c_str(), objXCoords[0], objYCoords[0], objSizes[0],
-        objTypes[1].c_str(), objXCoords[1], objYCoords[1], objSizes[1]
-        );
+    
+    return Py_BuildValue("i", vec);
 }
 
 static PyObject *balltracking_step(PyObject *self, PyObject *args) {
@@ -34,7 +35,27 @@ static PyObject *balltracking_step(PyObject *self, PyObject *args) {
     if (!PyArg_ParseTuple(args, "", &command))
         return NULL;
     vec = step(NULL, NULL, NULL, NULL, 0);
-    return Py_BuildValue("i", vec);
+    
+    string format = "(siii)(siii)(siii)(siii)(siii)(siii)(siii)(siii)";
+    
+    /*
+    cout << "HI" << endl;
+    cout << objTypes[0].c_str() << " " << visObjXCoords[0] << " " << objYCoords[0] << " " << objSizes[0] << endl;
+    cout << objTypes[1].c_str() << " " << visObjXCoords[1] << " " << objYCoords[1] << " " << objSizes[1] << endl;
+    */
+    return Py_BuildValue(format.c_str(),
+        objTypes[0].c_str(), visObjXCoords[0], objYCoords[0], objSizes[0],
+        objTypes[1].c_str(), visObjXCoords[1], objYCoords[1], objSizes[1],
+        objTypes[2].c_str(), visObjXCoords[2], objYCoords[2], objSizes[2],
+        objTypes[3].c_str(), visObjXCoords[3], objYCoords[3], objSizes[3],
+        objTypes[4].c_str(), visObjXCoords[4], objYCoords[4], objSizes[4],
+        objTypes[5].c_str(), visObjXCoords[5], objYCoords[5], objSizes[5],
+        objTypes[6].c_str(), visObjXCoords[6], objYCoords[6], objSizes[6],
+        objTypes[7].c_str(), visObjXCoords[7], objYCoords[7], objSizes[7]
+        
+        );
+    
+    //return Py_BuildValue(format.c_str(), "RED_BALL", 10, 10, 100, "YELLOW_WALL", 20, 20, 200);
 }
 
 static PyMethodDef BallTrackingMethods[] = {

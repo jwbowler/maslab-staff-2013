@@ -10,6 +10,11 @@ SimpleBlobDetector::Params params;
 cv::Ptr<FeatureDetector> blob_detector;
 vector<KeyPoint> keyPoints;
 
+extern string objTypes[];
+extern int visObjXCoords[16];
+extern int objYCoords[16];
+extern int objSizes[16];
+
 VideoCapture cap(CAMERA);
 int thresh[num_obj * 6];
 
@@ -72,11 +77,11 @@ int init_opencv() {
 
 int step(Mat **frame_ptr, Mat **hsv_ptr, Mat **scatter_ptr, int *thr, int num_colors) {
 
-    bool force = false;
+    bool force = true;
 	if (num_colors == 0) {
 		num_colors = num_obj;
 		thr = thresh;
-		force = true;
+		force = false;
 	}
 	
     cap >> src; // get a new frame from camera
@@ -85,8 +90,14 @@ int step(Mat **frame_ptr, Mat **hsv_ptr, Mat **scatter_ptr, int *thr, int num_co
     colors.setTo(Scalar(0));
     
     int numDetections = 0;
+    for (int i = 0; i < maxDetections; i++) {
+        objTypes[i] = "";
+        visObjXCoords[i] = 0;
+        objYCoords[i] = 0;
+        objSizes[i] = 0;
+    }
     for (int i = 0; i < num_colors; i++) {
-        if (!obj_toggle[i] || force) {
+        if (!obj_toggle[i] && !force) {
             continue;
         }
         if (numDetections >= maxDetections) {
@@ -104,13 +115,16 @@ int step(Mat **frame_ptr, Mat **hsv_ptr, Mat **scatter_ptr, int *thr, int num_co
         }
         bitwise_or(colors, bw[i], colors);
         
-        blob_detector->detect(colors, keyPoints);
+        //cout << "detecting blobs:" << endl;
+        blob_detector->detect(bw[i], keyPoints);
+        //cout << keyPoints.size() << endl;
         
-        for (KeyPoint point: keyPoints) {
+        for (int j = 0; j < keyPoints.size(); j++) {
+            double scale = 1/downsample_factor;
             objTypes[numDetections] = obj[i];
-            objXCoords[numDetections] = point.pt.x;
-            objYCoords[numDetections] = point.pt.y;
-            objSizes[numDetections] = point.size;
+            visObjXCoords[numDetections] = keyPoints[j].pt.x * scale;
+            objYCoords[numDetections] = keyPoints[j].pt.y * scale;
+            objSizes[numDetections] = keyPoints[j].size;
             numDetections++;
             if (numDetections == maxDetections) {
                 break;
@@ -127,13 +141,10 @@ int step(Mat **frame_ptr, Mat **hsv_ptr, Mat **scatter_ptr, int *thr, int num_co
     
     //drawKeypoints(colors, keypoints, colors, Scalar(0, 255, 0));
     
-    double scale = 1/downsample_factor;
+    
     //int out = 480 * (m.m10/m.m00) * scale + (m.m01/m.m00) * scale;
     int out = 0;
     //cout << keypoints << endl;
-    for (KeyPoint point: keyPoints) {
-        //cout << point.pt.x << " " << point.pt.y << endl;
-    }
     //cout << endl;
     
     if (frame_ptr != NULL) {
