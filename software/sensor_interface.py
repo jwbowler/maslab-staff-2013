@@ -8,7 +8,8 @@ class SensorInterface:
         self.ard = ard
 
         # (arduino pin, angle, radial distance from robot center)
-        self.irList = [(0,-90,1), (1,-45,1), (2,0,1), (3,45,1), (4,90,1)]    
+        #self.irList = [(0,-90,1), (1,-45,1), (2,0,1), (3,45,1), (4,90,1)]    
+        self.irList = [(3, 0, .14)]    
 
         self.irRefs = [arduino.AnalogInput(self.ard, i[0]) \
                         for i in self.irList]

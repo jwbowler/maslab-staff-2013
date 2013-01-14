@@ -52,6 +52,7 @@ def main():
     action_hb = HuntBallAction(ctl)
     action_cb = CaptureBallAction(ctl)
     action_eb = EmergencyReverseAction(ctl)
+    action_ss = SpinSearch(ctl)
     
     actionLookup = {                                      \
                     "ACTION_FOLLOW_WALL": action_fw,      \
@@ -82,27 +83,24 @@ def main():
     signal.alarm(10)
     
     while (True):
-        action_cb.step(True);
-        
         data = dc.get()
         if log:
             print "Data: "
             print data
         
             print "Goal: " + currentGoal.getName()
+
         (nextGoalName, actionName, actionArgs) = currentGoal.step(data)
-        nextGoal = goalLookup[nextGoalName]
-        currentGoal = nextGoal
+        currentGoal = goalLookup[nextGoalName]
         
         if log:
             print "Action: " + actionName
+
         action = actionLookup[actionName]
         if actionArgs == None:
             action.step()
         else:
             action.step(actionArgs)
-        
-        #ctl.drive(20, 127)
         
         tCurr = time.time()
         tDiff = tCurr - tLast

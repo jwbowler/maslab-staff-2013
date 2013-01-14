@@ -5,37 +5,27 @@ import time
 class HuntBallAction():
 
     def __init__(self, control):
-    
         self.ctl = control
-        self.rotationSpeed = .2
-        self.targetSpeed = .1
+        self.rotationSpeed = .3
+        self.targetSpeed = .3
         self.myPid = pid.Pid(.03,.005,.005,100)
         
     def getName(self):
         return "ACTION_HUNT_BALL"
 
     def step(self, (distance, angle)):
-    
-        (r, l) = (0, 0)
-        
-        angle = -angle #this shouldn't be necessary...
-        #print angle
+        angle = -angle
 
         if (not self.myPid.running):
             self.myPid.start(angle, 0)
 
-        #print 'running'
-  
         pidVal = self.myPid.iterate(angle)
 
-        #print pidVal
+        adjustedSpeed = self.targetSpeed * ((90.0-abs(angle))/90.0)
 
-        (r, l) = utils.getMotorSpeeds(self.targetSpeed, self.rotationSpeed * pidVal)
+        (r, l) = utils.getMotorSpeeds(adjustedSpeed, self.rotationSpeed * pidVal)
 
-        #print (r, l)
-        r = int(utils.boundAndScale(r, 0, 1.0, .01, 16, 127))
-        l = int(utils.boundAndScale(l, 0, 1.0, .01, 16, 127))
-        #print (r, l)
+        r = int(utils.boundAndScale(r, 0, 1.0, .01, 8, 127))
+        l = int(utils.boundAndScale(l, 0, 1.0, .01, 8, 127))
 
         self.ctl.drive(r, l)
-   

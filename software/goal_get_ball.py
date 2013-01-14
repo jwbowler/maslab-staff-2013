@@ -1,43 +1,48 @@
-
+import time
 
 class GetBallGoal:
     
     def __init__(self):
-        self.sizeThresh = 25
-        self.distanceThresh = 0.1
-        self.bCapturingBall = False
+        self.distThreshMin = 2
+        self.distanceThresh = 0.25
+
+        self.capturingBall = False
         self.captureIterationCounter = 30
+        self.captureEndTime = 0
+        self.captureTime = 2 #in seconds
         
     def getName(self):
         return "GOAL_GET_BALL"
         
     # Returns: (next_goal_name, action_name, action_arguments)
     def step(self, data):
+        ir = [obj[1] for obj in data if (obj[0] == "IR")]
+        for meas in ir:
+            if meas[0] < 600:
+                return (self.getName(), "ACTION_EMERGENCY_REVERSE", None)
     
-        if self.bCapturingBall == True: # if we're midway through a capture sequence:
-            if self.captureIterationCounter <= 0: # if we've run it for enough iterations:
-                self.bCapturingBall = False # don't continue after this
-                self.captureIterationCounter = 30
+        if self.capturingBall == True:
+            if time.time() > self.captureEndTime:
+                self.capturingBall = False
                 return (self.getName(), "ACTION_CAPTURE_BALL", False) # run with "false" argument to shut off ball collector motor
-            else:
-                self.captureIterationCounter -= 1
-                return (self.getName(), "ACTION_CAPTURE_BALL", True) # continue         
+
+            return (self.getName(), "ACTION_CAPTURE_BALL", True) # continue         
     
         # create filtered list of visible objects: remove non-balls and too small balls
         ball_list = [obj for obj in data
                      if ((obj[0] == "RED_BALL" or obj[0] == "GREEN_BALL")
-                          and obj[2] >= self.sizeThresh)]
+                          and obj[2] >= self.distThreshMin)]
                           
         if ball_list == []: # if all balls have somehow disappeared:
-            return ("GOAL_EXPLORE", "ACTION_FOLLOW_WALL", data) # switch back to "explore" goal
+            return ("GOAL_EXPLORE", "ACTION_ROTATE_IN_PLACE", data)
             
         ball_list.sort(key = lambda obj: obj[1][0]) # sort balls by distance
         target = (ball_list[0][1]) # target = (distance, angle) of best candidate ball
         
-        if target[0] < self.distanceThresh: # if calculated distance is enough:
+        if target[0] < self.distanceThresh: #if calculated distance is enough:
             # capture dat shit
-            self.bCapturingBall = True;
-            self.captureIterationCounter -= 1
+            self.capturingBall = True;
+            self.captureEndTime = time.time() + self.captureTime
             return (self.getName(), "ACTION_CAPTURE_BALL", True)
         else:
             return (self.getName(), "ACTION_HUNT_BALL", target) # else, keep driving towards it

@@ -18,6 +18,9 @@ class Control:
             print "DRIVE: r=" + str(r) + ", l=" + str(l)
         self.motors[0].setSpeed(-r)
         self.motors[1].setSpeed(-l)
+
+    def setBallCapture(self, run):
+        self.motors[2].setSpeed(0)
         
     def ballCaptureOn(self):
         if log:
