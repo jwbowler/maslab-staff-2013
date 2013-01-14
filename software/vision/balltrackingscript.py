@@ -23,6 +23,8 @@ class BallTracker:
 		
     def update(self):
         conn = self.conn_Py2Cv
+        #if (not conn.poll()):
+        #    return
         data = conn.recv()
         while (conn.poll()):
             data = conn.recv()

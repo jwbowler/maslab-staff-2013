@@ -1,16 +1,16 @@
 import arduino
 import pid
 
-log = True
+log = False
 
 class Control:
     def __init__(self, ard):
         self.ard = ard
 
         self.motors = [ \
-                        arduino.Motor(ard, 10, 5, 3), \
-                        arduino.Motor(ard, 10, 6, 4), \
-                        arduino.Motor(ard, 10, 12345, 67890)  \
+                        arduino.Motor(ard, 10, 5, 6),  \
+                        arduino.Motor(ard, 10, 9, 10), \
+                        arduino.Motor(ard, 10, 3, 4)   \
                       ]
     
     def drive(self, r, l):

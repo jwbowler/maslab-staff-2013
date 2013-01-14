@@ -1,16 +1,19 @@
 from vision import balltrackingscript
 
-log = True
+log = False
 
 class VisionInterface:
 
     def __init__(self):
         self.bt = balltrackingscript.BallTracker()
+        self.frameID = -1
         self.bt.start()
     
     # Returns list of (sighted object type, (x pos on screen, y pos on screen))
     def get(self):
         self.bt.update()
+        if self.frameID != self.bt.getFrameID():
+            print self.frameID
         self.frameID = self.bt.getFrameID()
         out = [(self.bt.getType(i), (self.bt.getX(i), self.bt.getY(i)), self.bt.getWeight(i)) \
             for i in range(self.bt.getNumObj())]

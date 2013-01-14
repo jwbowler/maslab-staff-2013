@@ -88,7 +88,7 @@ int init_opencv() {
 
 int step(Mat **frame_ptr, Mat **blob_ptr, Mat **scatter_ptr, int *thr, int num_colors) {
 
-    bool force = true;
+  bool force = true;
 	if (num_colors == 0) {
 		num_colors = num_obj;
 		thr = thresh;
@@ -96,8 +96,10 @@ int step(Mat **frame_ptr, Mat **blob_ptr, Mat **scatter_ptr, int *thr, int num_c
 	}
 	
     cap >> src; // get a new frame from camera
+    //return 0;
     resize(src, ds, Size(), downsample_factor, downsample_factor, INTER_NEAREST);
     cvtColor(ds, hsv, CV_BGR2HSV);
+
     colors.setTo(Scalar(0));
     
     int numDetections = 0;
@@ -130,6 +132,7 @@ int step(Mat **frame_ptr, Mat **blob_ptr, Mat **scatter_ptr, int *thr, int num_c
         blob_detector->detect(bw[i], keyPoints);
         //cout << keyPoints.size() << endl;
         
+        
         for (int j = 0; j < keyPoints.size(); j++) {
             double scale = 1/downsample_factor;
             objTypes[numDetections] = obj[i];
@@ -141,7 +144,9 @@ int step(Mat **frame_ptr, Mat **blob_ptr, Mat **scatter_ptr, int *thr, int num_c
                 break;
             }
         }
+        
     }
+    
     
     //erode(colors, colors, iterations=5);
     

@@ -12,6 +12,8 @@ from action_capture_ball import CaptureBallAction
 from action_emergency_reverse import EmergencyReverseAction
 from control import Control, ControlDummy
 
+log = False
+
 class Alarm(Exception):
     pass
 
@@ -22,7 +24,7 @@ def main():
 
     simulateCamera = False
     simulateSensors = True
-    simulateActuators = True
+    simulateActuators = False
     
     ard = Arduino()
     
@@ -56,6 +58,7 @@ def main():
                     "ACTION_HUNT_BALL": action_hb,        \
                     "ACTION_CAPTURE_BALL": action_cb,     \
                     "ACTION_EMERGENCY_REVERSE": action_eb \
+                    "ACTION_ROTATE_IN_PLACE": action_rp   \
                    }
     
     #goals
@@ -76,19 +79,23 @@ def main():
     currentGoal = goal_ex
     
     signal.signal(signal.SIGALRM, alarm_handler)
-    signal.alarm(3*60)
+    signal.alarm(10)
     
     while (True):
-        data = dc.get()
-        print "Data: "
-        print data
+        action_cb.step(True);
         
-        print "Goal: " + currentGoal.getName()
+        data = dc.get()
+        if log:
+            print "Data: "
+            print data
+        
+            print "Goal: " + currentGoal.getName()
         (nextGoalName, actionName, actionArgs) = currentGoal.step(data)
         nextGoal = goalLookup[nextGoalName]
         currentGoal = nextGoal
         
-        print "Action: " + actionName
+        if log:
+            print "Action: " + actionName
         action = actionLookup[actionName]
         if actionArgs == None:
             action.step()
@@ -110,6 +117,7 @@ def three_minute_alarm_callback():
 def halt():
     global ctl
     ctl.drive(0, 0)
+    ctl.ballCaptureOff()
         
 
 if __name__ == '__main__':
