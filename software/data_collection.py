@@ -1,5 +1,7 @@
 import math
 
+log = False
+
 class DataCollection:
 
     def __init__(self, visionInterface, sensorInterface):
@@ -20,11 +22,13 @@ class DataCollection:
             return (d, a)
             
         visionDataRaw = self.vi.get()
-        print "VISION DATA RAW:"
-        print visionDataRaw
-        visionData = [(t, getPolarFromScreen(loc)) for (t, loc) in visionDataRaw]
+        visionData = [(t, getPolarFromScreen(loc), size) for (t, loc, size) in visionDataRaw]
         sensorData = self.si.get()
-        return visionData + sensorData
+        out = visionData + sensorData
+        if log:
+            print "COLLECTED INPUT DATA:"
+            print out
+        return out
                     
         
 class Camera:

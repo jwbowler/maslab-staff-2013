@@ -12,6 +12,7 @@ class BallTracker:
         #self.isObject = 0
         self.numObjects = 0
         self.data = None
+        self.frameID = -1; #temporary
 	
     def start(self):
         balltracking.setup()
@@ -40,6 +41,8 @@ class BallTracker:
         clean = [obj for obj in data if obj[0] != '']
         self.data = clean
         self.numObjects = len(self.data)
+        #TODO: use to sync python logs with openCV logs. below is temporary
+        self.frameID += 1;
 	
     def stop(self):
         conn = self.conn_Py2Cv
@@ -48,7 +51,9 @@ class BallTracker:
         self.p.terminate()
         self.p.join()
 	
-    #The following are incomplete
+    def getFrameID(self):
+        return self.frameID
+        
     def getNumObj(self):
         return self.numObjects
 

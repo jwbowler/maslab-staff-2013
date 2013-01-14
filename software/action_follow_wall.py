@@ -4,11 +4,10 @@ import pid
 import utils
 import arduino
 
-log = True
+log = False
 
-class FollowWallState():
+class FollowWallAction():
 
-    #TODO: get it to use state information instead of arduino input
     def __init__(self, control):
         
         self.ctl = control
@@ -25,8 +24,8 @@ class FollowWallState():
         self.Speed=.2
         self.RotationSpeed=.2
         
-    def getStateName(self):
-        return "FOLLOW_WALL"
+    def getName(self):
+        return "ACTION_FOLLOW_WALL"
 
     def step(self, data):
         
@@ -56,16 +55,7 @@ class FollowWallState():
                 print (self.PidOut, sum(self.PidOut[1:])*self.RotationSpeed)
             self.ctl.drive(rSpeed, lSpeed)
             
-        return (None, self.nextState(data))
 
         '''
         self.ctl.drive(0, 0)
-        return (None, self.nextState(data))
         '''
-              
-    def nextState(self, data):
-        objTypes = [i[0] for i in data]
-        if "RED_BALL" in objTypes or "GREEN_BALL" in objTypes:
-            return "HUNT_BALL"
-        else:
-            return self.getStateName()

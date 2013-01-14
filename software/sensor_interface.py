@@ -1,5 +1,7 @@
 import arduino
 
+log = False
+
 class SensorInterface:
 
     def __init__(self, ard):
@@ -17,9 +19,13 @@ class SensorInterface:
         def convert(irReading):
             #TODO
             return irReading;
-            
-        return [("IR", (convert(self.irRefs[i].getValue()) + self.irList[i][2], \
+        
+        out = [("IR", (convert(self.irRefs[i].getValue()) + self.irList[i][2], \
                 self.irList[i][1])) for i in range(len(self.irList))]
+        if log:
+            print "SENSOR DATA:"
+            print out
+        return out
 
 
 class SensorInterfaceDummy:
@@ -28,7 +34,10 @@ class SensorInterfaceDummy:
         pass
         
     def get(self):
-        return [("IR", (10, -45)), ("IR", (20, 0)), ("IR", (30, 45))]
-    
+        out =  [("IR", (10, -45)), ("IR", (20, 0)), ("IR", (30, 45))]
+        if log:
+            print "MOCK SENSOR DATA:"
+            print out
+        return out
     
             

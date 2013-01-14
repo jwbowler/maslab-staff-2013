@@ -1,13 +1,21 @@
-import sys, time
+import sys, time, signal
 
 from arduino import Arduino
 from vision_interface import VisionInterface, VisionInterfaceDummy
 from sensor_interface import SensorInterface, SensorInterfaceDummy
 from data_collection import DataCollection
-from state_machine import StateMachine, HaltState
-from state_follow_wall import FollowWallState
-from state_hunt_ball import HuntBallState
+from goal_explore import ExploreGoal
+from goal_get_ball import GetBallGoal
+from action_follow_wall import FollowWallAction
+from action_hunt_ball import HuntBallAction
+from action_capture_ball import CaptureBallAction
 from control import Control, ControlDummy
+
+class Alarm(Exception):
+    pass
+
+def alarm_handler(signum, frame):
+    raise Alarm
 
 def main():
 
@@ -27,7 +35,8 @@ def main():
         si = SensorInterfaceDummy(ard)
     else:
         si = SensorInterface(ard)
-        
+    
+    global ctl
     if simulateActuators:
         ctl = ControlDummy(ard)
     else:
@@ -35,24 +44,56 @@ def main():
     
     dc = DataCollection(vi, si)
     
-    # FollowWallState only takes an Arduino object for now; will take SensorWrapper
-    stateDict = { \
-                 "FOLLOW_WALL": FollowWallState(ard, ctl), \
-                 "HUNT_BALL":   HuntBallState(ctl),        \
-                 "HALT":        HaltState(ctl)             \
-                }
-    global sm
-    sm = StateMachine(dc, stateDict)
-    #TODO: Register alarm callback
+    #actions
+    action_fw = FollowWallAction(ctl)
+    action_hb = HuntBallAction(ctl)
+    action_cb = CaptureBallAction(ctl)
+    action_eb = EmergencyReverseAction(ctl)
+    
+    actionLookup = {                                     \
+                    "ACTION_FOLLOW_WALL": action_fw,     \
+                    "ACTION_HUNT_BALL": action_hb,       \
+                    "ACTION_CAPTURE_BALL": action_cb     \
+                    "ACTION_EMERGENCY_REVERSE": action_eb \
+                   }
+    
+    #goals
+    goal_ex = ExploreGoal()
+    goal_gb = GetBallGoal()
+    
+    goalLookup = {
+                  "GOAL_EXPLORE": goal_ex, \
+                  "GOAL_GET_BALL": goal_gb \
+                 }
     
     tLast = time.time()
     tAvg = 0
     
     if not (simulateSensors and simulateActuators):
         ard.run()
-  
+        
+    currentGoal = goal_ex
+    
+    signal.signal(signal.SIGALRM, alarm_handler)
+    signal.alarm(3*60)
+    
     while (True):
-        sm.step()
+        data = dc.get()
+        print "Data: "
+        print data
+        
+        print "Goal: " + currentGoal.getName()
+        (nextGoalName, actionName, actionArgs) = currentGoal.step(data)
+        nextGoal = goalLookup[nextGoalName]
+        currentGoal = nextGoal
+        
+        print "Action: " + actionName
+        action = actionLookup[actionName]
+        if actionArgs == None:
+            action.step()
+        else:
+            action.step(actionArgs)
+        
         #ctl.drive(20, 127)
         
         tCurr = time.time()
@@ -63,16 +104,18 @@ def main():
         print ""
 
 def three_minute_alarm_callback():
-    global sm
-    sm.halt()
+    halt()
+    
+def halt():
+    global ctl
+    ctl.drive(0, 0)
         
 
 if __name__ == '__main__':
     try:
         main()
-    except KeyboardInterrupt:
-        global sm
-        sm.halt()
+    except (KeyboardInterrupt, Alarm):
+        halt()
         global vi
         del(vi)
         sys.exit(0)
