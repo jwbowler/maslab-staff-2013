@@ -9,6 +9,7 @@ from goal_get_ball import GetBallGoal
 from action_follow_wall import FollowWallAction
 from action_hunt_ball import HuntBallAction
 from action_capture_ball import CaptureBallAction
+from action_emergency_reverse import EmergencyReverseAction
 from control import Control, ControlDummy
 
 class Alarm(Exception):
@@ -50,10 +51,10 @@ def main():
     action_cb = CaptureBallAction(ctl)
     action_eb = EmergencyReverseAction(ctl)
     
-    actionLookup = {                                     \
-                    "ACTION_FOLLOW_WALL": action_fw,     \
-                    "ACTION_HUNT_BALL": action_hb,       \
-                    "ACTION_CAPTURE_BALL": action_cb     \
+    actionLookup = {                                      \
+                    "ACTION_FOLLOW_WALL": action_fw,      \
+                    "ACTION_HUNT_BALL": action_hb,        \
+                    "ACTION_CAPTURE_BALL": action_cb,     \
                     "ACTION_EMERGENCY_REVERSE": action_eb \
                    }
     

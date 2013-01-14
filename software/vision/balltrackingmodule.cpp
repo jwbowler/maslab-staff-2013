@@ -16,6 +16,7 @@ extern string objTypes[16];
 extern int objXCoords[16];
 extern int objYCoords[16];
 extern int objSizes[16];
+extern int frameCount;
 
 static PyObject *balltracking_setup(PyObject *self, PyObject *args) {
     const char *command;
@@ -36,14 +37,14 @@ static PyObject *balltracking_step(PyObject *self, PyObject *args) {
         return NULL;
     vec = step(NULL, NULL, NULL, NULL, 0);
     
-    string format = "(siii)(siii)(siii)(siii)(siii)(siii)(siii)(siii)";
+    string format = "i(siii)(siii)(siii)(siii)(siii)(siii)(siii)(siii)";
     
     /*
     cout << "HI" << endl;
     cout << objTypes[0].c_str() << " " << objXCoords[0] << " " << objYCoords[0] << " " << objSizes[0] << endl;
     cout << objTypes[1].c_str() << " " << objXCoords[1] << " " << objYCoords[1] << " " << objSizes[1] << endl;
     */
-    return Py_BuildValue(format.c_str(),
+    return Py_BuildValue(format.c_str(), frameCount,
         objTypes[0].c_str(), objXCoords[0], objYCoords[0], objSizes[0],
         objTypes[1].c_str(), objXCoords[1], objYCoords[1], objSizes[1],
         objTypes[2].c_str(), objXCoords[2], objYCoords[2], objSizes[2],

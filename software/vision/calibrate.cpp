@@ -41,7 +41,7 @@ int main() {
 	}
 	namedWindow("raw",1);
 	namedWindow("blobs",1);
-    namedWindow("scatter",1);
+    //namedWindow("scatter",1);
     
     long double tLast;
     long double tAvg = 0;
@@ -68,7 +68,7 @@ int main() {
 		    
     		imshow("raw", *raw_display);
     		imshow("blobs", *hsv_display);
-        	imshow("scatter", *scatter_display);
+            //imshow("scatter", *scatter_display);
         			
 		    if (i%100 == 0) {
 		        //cout << out << endl;

@@ -5,10 +5,13 @@ Mat ds;
 Mat hsv;
 Mat bw[num_obj];
 Mat colors;
+Mat colors3c;
 Mat temp;
 SimpleBlobDetector::Params params;
 cv::Ptr<FeatureDetector> blob_detector;
 vector<KeyPoint> keyPoints;
+
+int frameCount = 0;
 
 string objTypes[16];
 int objXCoords[16];
@@ -16,7 +19,15 @@ int objYCoords[16];
 int objSizes[16];
 
 VideoCapture cap(CAMERA);
+VideoWriter rgbRecord("recordedRGB.mpeg", CV_FOURCC('P', 'I', 'M', '1'), 30, Size(640, 480));
+VideoWriter blobRecord("recordedBlobs.mpeg", CV_FOURCC('P', 'I', 'M', '1'), 30, Size(640, 480));
 int thresh[num_obj * 6];
+
+string convertInt(int number) {
+   stringstream ss;
+   ss << number;
+   return ss.str();
+}
 
 int setup() {
 	load_thresh();
@@ -75,7 +86,7 @@ int init_opencv() {
     return 0;
 } 
 
-int step(Mat **frame_ptr, Mat **hsv_ptr, Mat **scatter_ptr, int *thr, int num_colors) {
+int step(Mat **frame_ptr, Mat **blob_ptr, Mat **scatter_ptr, int *thr, int num_colors) {
 
     bool force = true;
 	if (num_colors == 0) {
@@ -139,7 +150,7 @@ int step(Mat **frame_ptr, Mat **hsv_ptr, Mat **scatter_ptr, int *thr, int num_co
     //             Point(-1,-1), 5);
     
     //cout << objSizes[0] << " " << objSizes[1] << " " << objSizes[2] << endl;
-    drawKeypoints(colors, keyPoints, hsv, Scalar(0, 255, 0));
+    //drawKeypoints(colors, keyPoints, hsv, Scalar(0, 255, 0));
     
     
     //int out = 480 * (m.m10/m.m00) * scale + (m.m01/m.m00) * scale;
@@ -147,15 +158,27 @@ int step(Mat **frame_ptr, Mat **hsv_ptr, Mat **scatter_ptr, int *thr, int num_co
     //cout << keypoints << endl;
     //cout << endl;
     
+    cvtColor(colors, colors3c, CV_GRAY2BGR);
+    string frameCountStr = convertInt(frameCount);
+    putText(colors3c, frameCountStr, cvPoint(5,15),
+            FONT_HERSHEY_COMPLEX_SMALL, 0.8, Scalar(0,255,0));
+    putText(src, frameCountStr, cvPoint(5,15),
+            FONT_HERSHEY_COMPLEX_SMALL, 0.8, Scalar(0,255,0));
+    
     if (frame_ptr != NULL) {
         *frame_ptr = &src;
     }
-    if (hsv_ptr != NULL) {
-        *hsv_ptr = &hsv;
+    if (blob_ptr != NULL) {
+        *blob_ptr = &colors3c;
     }
     if (scatter_ptr != NULL) {
         *scatter_ptr = &colors;
     }
+    
+    rgbRecord << src;
+    blobRecord << colors3c;
+    
+    frameCount++;
     
     return out;
 }

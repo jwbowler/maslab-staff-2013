@@ -1,6 +1,6 @@
 from vision import balltrackingscript
 
-log = False
+log = True
 
 class VisionInterface:
 

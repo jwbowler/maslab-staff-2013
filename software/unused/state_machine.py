@@ -1,4 +1,4 @@
-
+log = True
 
 class StateMachine:
     
@@ -10,9 +10,8 @@ class StateMachine:
     def step(self):
         self.data = self.dc.get()
         currentState = self.sd[self.currentStateName]
-        print "STATE: " + self.currentStateName
-        print "DATA:"
-        print self.data
+        if log:
+            print "STATE: " + self.currentStateName
         (output, newStateName) = currentState.step(self.data)
         self.currentStateName = newStateName
 
