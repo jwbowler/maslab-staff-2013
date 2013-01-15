@@ -70,26 +70,26 @@ class Camera(Sensor):
 class IR(Sensor):
 
     # analog pin and position relative bot center
-    def __init__(self, pin, angle, distance):
+    def __init__(self, pin, distance, angle):
         pass
 
     def run(self):
         pass
 
-    # returns (angle, distance) from center of bot, None if failing
+    # returns (distance, angle) from center of bot, None if failing
     def getPosition(self):
         pass
 
 class Ultrasonic(Sensor):
 
     # analog pin and position relative bot center
-    def __init__(self, pin, angle, distance):
+    def __init__(self, pin, distance, angle):
         pass
 
     def run(self):
         pass
 
-    # returns (angle, distance) from center of bot, None if failing
+    # returns (distance, angle) from center of bot, None if failing
     def getPosition(self):
         pass
 

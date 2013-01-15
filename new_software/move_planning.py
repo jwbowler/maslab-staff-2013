@@ -10,36 +10,49 @@ class MovePlanning:
     AVOID_WALL = 6
     
     def __init__(self):
+        self.move = ROTATE_IN_PLACE
     
     # Gets gaal from GoalPlanning, calculates current move,
     # and calls Control to actuate motors
     def run(self):
-        
-        goal = Goal.getGoal()
-        target = Goal.getTarget()
         
         # TODO: Calculate self.move
         
         if self.move == WALL_FOLLOW:
             pass
             
-        if self.move == MOVE_TO_OPEN:
+        elif self.move == MOVE_TO_OPEN:
             pass
             
-        if self.move == ROTATE_IN_PLACE:
+        elif self.move == ROTATE_IN_PLACE:
             pass
             
-        if self.move == APPROACH_TARGET:
+        elif self.move == APPROACH_TARGET:
+            approachTarget()
+            
+        elif self.move == CAPTURE_BALL:
             pass
             
-        if self.move == CAPTURE_BALL:
+        elif self.move == ALIGN:
             pass
             
-        if self.move == ALIGN:
+        elif self.move == AVOID_WALL:
             pass
-            
-        if self.move == AVOID_WALL:
-            pass
-            
+
+    def approachTarget(self):
+        goal = Goal.getGoal()
+        target = Goal.getTarget()
         
-    
+        if target == None:
+          if goal == Goal.FIND_BALLS
+              self.move = ROTATE_IN_PLACE
+            
+class ApproachTarget:
+    def __init__(self, target):
+        self.myPid.start(target[1], 0)
+
+    def run(target):
+        angle = -target[1]angle
+        pidVal = self.myPid.iterate(angle)
+        adjustedSpeed = self.targetSpeed * ((90.0-abs(angle))/90.0)
+        ctrl.setMovement(adjustedSpeed, self.rotationSpeed * pidVal)
