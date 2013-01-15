@@ -3,8 +3,8 @@ import time
 from Commander import *
 
 class MovePlanning:
-
     # List of moves
+    #wall
     WALL_FOLLOW = 0
     MOVE_TO_OPEN = 1
     ROTATE_IN_PLACE = 2
@@ -14,45 +14,109 @@ class MovePlanning:
     AVOID_WALL = 6
     
     def __init__(self):
-        self.move = ROTATE_IN_PLACE
         self.moveObject = RotateInPlace()
     
-    # Gets gaal from GoalPlanning, calculates current move,
-    # and calls Control to actuate motors
     def run(self):
-        
-        if self.move == WALL_FOLLOW:
-            pass
-            
-        elif self.move == MOVE_TO_OPEN:
-            pass
-            
-        elif self.move == ROTATE_IN_PLACE:
-            if (self.moveObject == None)
-                self.moveObject = new RotateInPlace()
-            
-        elif self.move == APPROACH_TARGET:
-            if (self.moveObject == None)
-                self.moveObject = new ApproachTarget()
-            
-        elif self.move == CAPTURE_BALL:
-            pass
-            
-        elif self.move == ALIGN:
-            pass
-            
-        elif self.move == AVOID_WALL:
-            pass
+        self.moveObject = self.moveObject.run()
 
-        self.moveObject.run()
-
-class RotateInPlace:
-    def __init__(self):
-        self.rotateBeginAngle = STATE.getAbsoluteAngle()
+class Movement():
+    self.stopped = False
+    self.avoidWalls = True
 
     def run(self):
-        self.transition()
+
+        if (self.stopped):
+            self.stopped = False
+            self.resume()
+
         self.move()
+        next = self.transition()
+        if next == None: next = self
+
+        if (avoidWalls and STATE.collisionDistance() < .1):
+            next.stop()
+            return AvoidWall(next)
+
+        return next
+
+    def stop(self):
+        self.stopped = True
+        pause()
+
+    # setters
+    def setAvoidWalls(enable):
+        self.avoidWalls = enable
+
+    # functions for subclasses to implement
+    def move(self):
+        pass
+    def transition():
+        pass
+    def pause(self):
+        pass
+    def resume(self):
+        pass 
+
+
+class WallFollow(Movement):
+    def __init__(self):
+        pass
+
+    def transition(self):
+        goal = GOAL.getGoal()
+        target = GOAL.getTarget()
+
+    def move(self):
+        pass
+
+class MoveToOpen(Movement):
+    def __init__(self):
+        pass
+
+    def transition(self):
+        goal = GOAL.getGoal()
+        target = GOAL.getTarget()
+
+    def move(self):
+        pass
+
+class CaptureBall(Movement):
+    def __init__(self):
+        setAvoidWalls(False)
+        self.startTime = time.time()
+
+    def transition(self):
+        goal = GOAL.getGoal()
+        target = GOAL.getTarget()
+
+        if self.startTime + 2 < time.time():
+            CTRL.setRoller(False)
+            
+            if goal == GOAL.FIND_BALLS:
+                if target == None:
+                    return RotateInPlace()
+                else
+                    return ApproachTarget()
+                
+
+    def move(self):
+        CTRL.setMove(.5, 0)
+        CTRL.setRoller(True)
+
+class Align(Movement):
+    def __init__(self):
+        pass
+
+    def transition(self):
+        goal = GOAL.getGoal()
+        target = GOAL.getTarget()
+
+    def move(self):
+        pass
+
+class RotateInPlace(Movement):
+    def __init__(self):
+        self.startAngle = STATE.getAbsoluteAngle()
 
     def transition(self):
         goal = GOAL.getGoal()
@@ -60,36 +124,57 @@ class RotateInPlace:
 
         if goal == GOAL.FIND_BALLS:
             if goal.target != None:
-                return MovePlanning.ApproachTarget
+                return ApproachTarget()
 
     def move(self):
-        ctrl(setMovement(0, .5))
-        
+        CTRL.setMovement(0, .5)
 
-class ApproachTarget:
+class ApproachTarget(Movement):
     def __init__(self):
         self.targetSpeed = .5
-        self.approachBeginTime = time.time()
-        self.myPid = Pid(.03, .005, .005, 100)
-
-    def run(self):
-        self.transition()
-        self.move()
+        self.startTime = time.time()
+        self.pid = Pid(.03, .005, .005, 100)
 
     def transition(self):
         goal = GOAL.getGoal()
         target = GOAL.getTarget()
         
-        if target == None:
-          if goal == GOAL.FIND_BALLS
-              return MovePlanning.ROTATE_IN_PLACE
+        if goal == GOAL.FIND_BALLS
+            if target == None:
+                return RotateInPlace()
+            if target[0] < 15 and target[1] < .18
+                return CaptureBall()
 
     def move(self):
         (angle, distance) GOAL.getTarget()
 
-        if (not self.myPid.running):
-            self.myPid.start(angle, 0)
+        if (not self.pid.running):
+            self.pid.start(angle, 0)
 
-        pidVal = self.myPid.iterate(angle)
-        adjustedSpeed = self.targetSpeed * ((90.0-abs(angle))/90.0)
-        ctrl.setMovement(adjustedSpeed, self.rotationSpeed * pidVal)
+        pidVal = self.pid.iterate(angle)
+
+        #slowdown when close, slowdown when off-angle 
+        adjustedSpeed = self.targetSpeed if distance > .33 else self.targetSpeed*distance*3
+        adjustedSpeed *= ((90.0-abs(angle))/90.0)
+
+        CTRL.setMovement(adjustedSpeed, self.rotationSpeed * pidVal)
+
+    def pause(self):
+        self.pid.stop()
+
+    def resume(self):
+        self.startTime = time.time()
+
+class AvoidWall(Movement):
+    def __init__(prevMovement):
+        self.prevMovement = prevMovement
+
+    def transition(self):
+        goal = GOAL.getGoal()
+        target = GOAL.getTarget()
+
+        if STATE.collisionDistance() > .1:
+            return self.prevMovement
+
+    def move(self):
+        CTRL.setMovement(-.5, 0)
