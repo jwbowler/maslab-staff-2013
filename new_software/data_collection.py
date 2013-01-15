@@ -2,6 +2,7 @@ from vision import vision_wrapper
 from commander import *
 import math
 import arduino
+import config
 
 class DataCollection:
     
@@ -16,8 +17,8 @@ class DataCollection:
         self.encoders = Encoders()
         
         pin = Global.IR_PINS
-        dist = [p[0] for p in Global.IR_POSITIONS]
-        angle = [p[1] for p in Global.IR_POSITIONS]
+        dist = [p[0] for p in config.IR_POSITIONS]
+        angle = [p[1] for p in config.IR_POSITIONS]
         self.IR = [IR(pin[i]), IR[dist(i)], IR[angle(i)]
                     for i in range(len(pin))]
         
@@ -54,6 +55,10 @@ class DataCollection:
     def getEncodersPair(self):
         return self.encoders
         
+    # halts OpenCV thread
+    def stopVisionThread(self):
+        self.camera.stopThread()
+        
         
 
 class Sensor:
@@ -87,9 +92,8 @@ class Camera(Sensor):
         self.hfov = self.ar * self.vfov
     
     # stops OpenCV thread
-    def __del__(self):
+    def stopThread(self):
         self.vision.stop()
-        super(Camera, self).__del__()
 
     # attempts to capture new frame, if vision is not ready: pass
     def run(self):
@@ -100,7 +104,7 @@ class Camera(Sensor):
 
     # returns (dist, angle) for all my balls
     def getMyBalls(self):
-        if Config.MY_BALLS_ARE_RED:
+        if config.MY_BALLS_ARE_RED:
             myBallIndices = getIndexesByType("RED_BALL")
         else:
             myBallIndices = getIndexesByType("GREEN_BALL")
@@ -111,7 +115,7 @@ class Camera(Sensor):
 
     # returns (dist, angle) to all opponent balls
     def getOpponentBalls(self):
-        if Config.MY_BALLS_ARE_RED:
+        if config.MY_BALLS_ARE_RED:
             theirBallIndices = getIndicesByType("GREEN_BALL")
         else:
             theirBallIndices = getIndicesByType("RED_BALL")
