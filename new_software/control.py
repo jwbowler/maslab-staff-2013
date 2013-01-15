@@ -3,7 +3,7 @@ import sys
 import pid
 import arduino
 import utils
-import * from config
+from * import config
 
 Class Control():
 
