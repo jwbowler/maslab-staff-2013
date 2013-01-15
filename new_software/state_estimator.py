@@ -9,11 +9,20 @@ class StateEstimator:
         
     # Returns set of ball distances and angles:
     # ((distance, angle), (distance, angle), ...)
-    def getBalls(self):
+    def getMyBalls(self):
         pass
         
     # Returns (distance, angle) of nearest ball
-    def getNearestBall(self):
+    def getMyNearestBall(self):
+        pass
+
+    # Returns set of ball distances and angles:
+    # ((distance, angle), (distance, angle), ...)
+    def getOpponentBalls(self):
+        pass
+        
+    # Returns (distance, angle) of nearest ball
+    def getOpponentNearestBall(self):
         pass
     
     # Returns set of wall distances ond angles from all sensors:
