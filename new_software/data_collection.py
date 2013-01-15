@@ -1,6 +1,7 @@
 from vision import vision_wrapper
 from commander import *
 import math
+import arduino
 
 class DataCollection:
     
@@ -18,22 +19,22 @@ class DataCollection:
         self.IR = (ir1, ir2, ir3)
         
         self.ultrasonic = None
-        self.gyro = None
+        self.imu = None
         self.encoders = None
 
     # calls run on all of its sensors
     def run(self):
         self.camera.run()
         self.ir.run()
-        self.ultrasonic.run()
-        self.gyro.run()
-        self.encoders.run()
+        #self.ultrasonic.run()
+        #self.imu.run()
+        #self.encoders.run()
 
     # return camera object
     def getCamera(self):
         return self.camera
 
-    # return ir object at given index or all ir objects
+    # return IR object at given index or all IR objects
     # Input: index (0 be the leftmost)
     def getIR(self, index = -1):
         return self.ir if index == -1 else self.ir[index]
@@ -43,9 +44,9 @@ class DataCollection:
     def getUltrasonic(self, index = -1):
         return self.ultrasonic if index == -1 else self.ultrasonic[index]
 
-    # returns gyro object
-    def getGyro(self):
-        return self.gyro
+    # returns IMU object
+    def getIMU(self):
+        return self.imu
 
     # returns encoders object (represents both encoders)
     def getEncodersPair(self):
@@ -74,6 +75,14 @@ class Camera(Sensor):
         super(Camera, self).__init__()
         self.vision = vision_wrapper.VisionWrapper()
         self.vision.start()
+        
+        self.elev = 0.1
+        self.angle = 60. # 0 == pointing down; 90 = pointing forward
+        self.imWidth = 640
+        self.imHeight = 480
+        self.ar = 1. * self.imWidth / self.imHeight
+        self.vfov = 50.
+        self.hfov = self.ar * self.vfov
     
     # stops OpenCV thread
     def __del__(self):
@@ -93,7 +102,7 @@ class Camera(Sensor):
             myBallIndices = getIndexesByType("RED_BALL")
         else:
             myBallIndices = getIndexesByType("GREEN_BALL")
-        myBalls = [(vision.getX(i), vision.getY(i))
+        myBalls = [(vision.getX(i), vision.getY(i)) \
                    for i in myBallIndices]
         myBallsConverted = [convCoords(coords) for coords in myBalls]
         return myBallsConverted
@@ -104,14 +113,14 @@ class Camera(Sensor):
             theirBallIndices = getIndicesByType("GREEN_BALL")
         else:
             theirBallIndices = getIndicesByType("RED_BALL")
-        theirBalls = [(vision.getX(i), vision.getY(i))
+        theirBalls = [(vision.getX(i), vision.getY(i)) \
                       for i in theirBallIndices]
         theirBallsConverted = [convCoords(coords) for coords in theirBalls]
         return theirBallsConverted
     
     # returns (dist, angle) given x and y pixel coordinates (from upper left)
     def convCoords(x, y)
-        angle2obj = (self.angle + self.vfov/2
+        angle2obj = (self.angle + self.vfov/2   \
                      - self.vfov*(1.0 * y / self.imHeight))
         d = self.elev * math.tan((math.pi/180) * angle2obj)
         if d < 0:
@@ -123,7 +132,7 @@ class IR(Sensor):
 
     # analog pin and position relative bot center
     def __init__(self, pin, distance, angle):
-        self.ardRef = Commander.ARD.analogInput(pin)
+        self.ardRef = arduino.analogInput(Commander.ARD, pin)
         self.angle = angle
 
     def run(self):
@@ -142,7 +151,7 @@ class Ultrasonic(Sensor):
 
     # analog pin and position relative bot center
     def __init__(self, pin, distance, angle):
-        self.ardRef = Commander.ARD
+        self.ardRef = arduino.analogInput(Commander.ARD, pin)
 
     def run(self):
         rawValue = self.ardRef.getValue()
@@ -156,18 +165,23 @@ class Ultrasonic(Sensor):
     def convertValue(value):
         raise NotImplementedError
 
-class Gyro(Sensor):
+class IMU(Sensor):
 
     # analog pin
-    def __init__(self, pin):
-        pass
+    def __init__(self):
+        self.imu = arduino.IMU(Commander.ARD)
 
     def run(self):
-        pass
+        (comp0, comp1, self.accelX, self.accelY, self.accelZ) \
+            = imu.getRawValues()
+        self.compassHeading = comp1 * 256 + comp0
 
-    # returns current angle degrees
-    def getAngle(self):
-        pass
+    # returns current compass heading
+    def getCompassHeading(self):
+        return self.compassHeading
+        
+    def getAccelData(self):
+        return (self.accelX, self.accelY, self.accelZ)
 
 class Encoders(Sensor):
 
