@@ -1,3 +1,6 @@
+from vision import vision_wrapper
+import math
+
 class DataCollection:
     
     # creates data object
@@ -43,29 +46,63 @@ class Sensor:
 
     # return timestamp of last run
     def getTimestamp(self):
-        pass
+        return self.timestamp
 
     # return time between timestamp and now
     def timeSinceRun(self):
-        pass
+        return time.time() - self.timestamp
 
 class Camera(Sensor):
     
-    # creates camera
+    # creates camera object and starts OpenCV thread
     def __init__(self):
-        pass
+        super(Camera, self).__init__()
+        self.vision = vision_wrapper.VisionWrapper()
+        self.vision.start()
+    
+    # stops OpenCV thread
+    def __del__(self):
+        self.vision.stop()
+        super(Camera, self).__del__()
 
     # attempts to capture new frame, if vision is not ready: pass
     def run(self):
-        pass
+        isNewFrame = self.vision.update()
+        if not isNewFrame:
+            return
+        self.timestamp = self.vision.getTimestamp()
 
-    # returns (angle, dist) for all my balls
+    # returns (dist, angle) for all my balls
     def getMyBalls(self):
-        pass
+        if Config.MY_BALLS_ARE_RED:
+            myBallIndices = getIndexesByType("RED_BALL")
+        else:
+            myBallIndices = getIndexesByType("GREEN_BALL")
+        myBalls = [(vision.getX(i), vision.getY(i))
+                   for i in myBallIndices]
+        myBallsConverted = [convCoords(coords) for coords in myBalls]
+        return myBallsConverted
 
-    # returns (angle, dist) to all opponent balls
+    # returns (dist, angle) to all opponent balls
     def getOpponentBalls(self):
-        pass
+        if Config.MY_BALLS_ARE_RED:
+            theirBallIndices = getIndicesByType("GREEN_BALL")
+        else:
+            theirBallIndices = getIndicesByType("RED_BALL")
+        theirBalls = [(vision.getX(i), vision.getY(i))
+                      for i in theirBallIndices]
+        theirBallsConverted = [convCoords(coords) for coords in theirBalls]
+        return theirBallsConverted
+    
+    # returns (dist, angle) given x and y pixel coordinates (from upper left)
+    def convCoords(x, y)
+        angle2obj = (self.angle + self.vfov/2
+                     - self.vfov*(1.0 * y / self.imHeight))
+        d = self.elev * math.tan((math.pi/180) * angle2obj)
+        if d < 0:
+            d = math.isInf()
+        a = (x - (self.imHeight/2.)) * self.hfov / self.imWidth
+        return (d, a)
 
 class IR(Sensor):
 

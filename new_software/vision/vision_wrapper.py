@@ -1,7 +1,14 @@
 from multiprocessing import Process, Pipe
 import maslab_vision, time, sys
 
-class VisionModule:
+class VisionWrapper:
+
+    # possible types (see getType()):
+    # RED_BALL
+    # GREEN_BALL
+    # YELLOW_WALL
+    # BLUE_WALL
+    # PURPLE_GOAL
 
     def __init__(self):
         self.x = None
@@ -30,8 +37,7 @@ class VisionModule:
         return True
 	
     def stop(self):
-        conn = self.conn_Py2Cv
-        conn.close()
+        self.conn_Py2Cv.close()
         self.p.terminate()
         self.p.join()
 	
@@ -46,6 +52,12 @@ class VisionModule:
 
     def getType(self, i):
         return self.data[i][0]
+        
+        # returns list of integer indices of objects in received data
+        # for which the object's type is <typeName>
+    def getIndicesByType(self, typeName)
+        return [i for i in xrange(self.numObjects)
+                if self.data[i][0] == typeName]
         
     def getX(self, i):
         return self.data[i][1]
