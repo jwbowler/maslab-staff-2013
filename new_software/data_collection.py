@@ -1,7 +1,5 @@
 from vision import vision_wrapper
-
-from Commander import *
-
+from commander import *
 import math
 
 class DataCollection:
@@ -12,11 +10,24 @@ class DataCollection:
 
     # initializes all the sensors
     def initSensors(self):
-        pass
+        self.camera = Camera()
+        
+        ir1 = IR(123, 1.4, 0)
+        ir2 = IR(456, 1.4, -45)
+        ir3 = IR(789, 1.4, -90)
+        self.IR = (ir1, ir2, ir3)
+        
+        self.ultrasonic = None
+        self.gyro = None
+        self.encoders = None
 
     # calls run on all of its sensors
     def run(self):
-        pass
+        self.camera.run()
+        self.ir.run()
+        self.ultrasonic.run()
+        self.gyro.run()
+        self.encoders.run()
 
     # return camera object
     def getCamera(self):
@@ -25,12 +36,12 @@ class DataCollection:
     # return ir object at given index or all ir objects
     # Input: index (0 be the leftmost)
     def getIR(self, index = -1):
-        return self.IR if index == -1 else self.IR[index]
+        return self.ir if index == -1 else self.ir[index]
         
     # return ultrasonic object at given index or all ultrasonic objects
     # Input: index (0 be the leftmost)
     def getUltrasonic(self, index = -1):
-        return self.IR if index == -1 else self.IR[index]
+        return self.ultrasonic if index == -1 else self.ultrasonic[index]
 
     # returns gyro object
     def getGyro(self):
@@ -38,6 +49,7 @@ class DataCollection:
 
     # returns encoders object (represents both encoders)
     def getEncodersPair(self):
+        return self.encoders
         
         
 
@@ -45,7 +57,7 @@ class Sensor:
 
     # updates the timestamp if a measurement was taken
     def run(self):
-        pass
+        raise NotImplementedError
 
     # return timestamp of last run
     def getTimestamp(self):
@@ -111,27 +123,38 @@ class IR(Sensor):
 
     # analog pin and position relative bot center
     def __init__(self, pin, distance, angle):
-        pass
+        self.ardRef = Commander.ARD.analogInput(pin)
+        self.angle = angle
 
     def run(self):
-        pass
+        rawValue = self.ardRef.getValue()
+        self.distance = convertValue(rawValue)
 
     # returns (distance, angle) from center of bot, None if failing
     def getPosition(self):
-        pass
+        return (self.distance, self.angle)
+        
+    # takes value from pin and converts it into a distance
+    def convertValue(value):
+        raise NotImplementedError
 
 class Ultrasonic(Sensor):
 
     # analog pin and position relative bot center
     def __init__(self, pin, distance, angle):
-        pass
+        self.ardRef = Commander.ARD
 
     def run(self):
-        pass
+        rawValue = self.ardRef.getValue()
+        self.distance = convertValue(rawValue)
 
     # returns (distance, angle) from center of bot, None if failing
     def getPosition(self):
-        pass
+        return (self.distance, self.angle)
+        
+    # takes value from pin and converts it into a distance
+    def convertValue(value):
+        raise NotImplementedError
 
 class Gyro(Sensor):
 
