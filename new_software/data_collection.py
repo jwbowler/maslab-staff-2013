@@ -1,10 +1,13 @@
 from vision import vision_wrapper
+
+from Commander import *
+
 import math
 
 class DataCollection:
     
     # creates data object
-    def __init__(self, ard):
+    def __init__(self):
         pass
 
     # initializes all the sensors

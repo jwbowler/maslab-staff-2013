@@ -3,21 +3,20 @@ import sys
 import pid
 import arduino
 import utils
-from * import config
+from Config import *
+from Commander import *
 
 Class Control():
 
-    # The init takes an arduino object
-    def __init__(self, arduino):
-        self.ard = arduino
-        self.roller = arduino.Motor(ard, ROLLER_PINS[0], ROLLER_PINS[1], ROLLER_PINS[2])
-        self.rightMotor = arduino.Motor(ard, RIGHT_MOTOR_PINS[0], RIGHT_MOTOR_PINS[2])
-        self.leftMotor = arduino.Motor(ard, LEFT_MOTOR_PINS[0], LEFT_MOTOR_PINS[1], LEFT_MOTOR_PINS[2])
-        self.helix = arduino.Motor(ard,HELIX_PINS[0], HELIX_PINS[1], HELIX_PINS[2])
-        self.ramp = arduino.DigitalOutput(ard, RAMP_SERVO_PIN)
-        self.scorer = arduino.DigitalOutput(ard, SCORER_PIN)
+    # The init BLAM
+    def __init__(self):
+        self.roller = ARD.Motor(ard, ROLLER_PINS[0], ROLLER_PINS[1], ROLLER_PINS[2])
+        self.rightMotor = ARD.Motor(ard, RIGHT_MOTOR_PINS[0], RIGHT_MOTOR_PINS[2])
+        self.leftMotor = ARD.Motor(ard, LEFT_MOTOR_PINS[0], LEFT_MOTOR_PINS[1], LEFT_MOTOR_PINS[2])
+        self.helix = ARD.Motor(ard,HELIX_PINS[0], HELIX_PINS[1], HELIX_PINS[2])
+        self.ramp = ARD.DigitalOutput(ard, RAMP_SERVO_PIN)
+        self.scorer = ARD.DigitalOutput(ard, SCORER_PIN)
 
-        
     # This method turns on and off the roller motor
     # Input:Boolean
     def setRoller(self,switch):

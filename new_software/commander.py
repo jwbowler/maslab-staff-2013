@@ -1,12 +1,14 @@
-ard = Arduino()
-data = DataCollection(ard)
-state = StateEstimator(data)
-goal = GoalPlanning(state)
-move = MovementPlanning(state, goal, ctrl)
-ctrl = Control(ard)
+class Commander:
+    ARD = Arduino()
+    DATA = DataCollection()
+    STATE = StateEstimator()
+    GOAL = GoalPlanning()
+    MOVE = MovementPlanning()
+    CTRL = Control()
 
-while True:
-    data.run()
-    state.run()
-    goal.run()
-    move.run()
+    def go(self):
+      while True:
+          DATA.run()
+          STATE.run()
+          GOAL.run()
+          MOVE.run()
