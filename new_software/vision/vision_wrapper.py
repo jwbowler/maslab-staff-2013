@@ -1,5 +1,5 @@
 from multiprocessing import Process, Pipe
-import maslab_vision, time, sys
+import time, sys
 
 class VisionWrapper:
 
@@ -55,7 +55,7 @@ class VisionWrapper:
         
         # returns list of integer indices of objects in received data
         # for which the object's type is <typeName>
-    def getIndicesByType(self, typeName)
+    def getIndicesByType(self, typeName):
         return [i for i in xrange(self.numObjects)
                 if self.data[i][0] == typeName]
         

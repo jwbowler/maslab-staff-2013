@@ -60,10 +60,13 @@ class StateEstimator:
         diagCollisionDist = diagDist * math.sqrt(2) \
                             - Config.ROBOT_RADIUS / math.sqrt(2) 
         return min(headOnDist, diagCollisionDist)
+
+    def nearCollision(self):
+        return (getCollisionDistance < .1)
     
     # Returns landmarks like QR codes and the goal tower:
     # ((type, ID, distance, angle), ...)
-    def getLandmarks(self)
+    def getLandmarks(self):
         pass
 
 if name == "__main__":

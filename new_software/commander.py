@@ -2,7 +2,7 @@ from arduino import Arduino
 from data_collection import DataCollection
 from state_estimator import StateEstimator
 from goal_planning import GoalPlanning
-from movement_planning import MovementPlanning
+from move_planning import MovePlanning
 from control import Control
 import config
 import signal
@@ -19,7 +19,7 @@ class Commander:
     DATA = DataCollection()
     STATE = StateEstimator()
     GOAL = GoalPlanning()
-    MOVE = MovementPlanning()
+    MOVE = MovePlanning()
     CTRL = Control()
 
     def go(self):

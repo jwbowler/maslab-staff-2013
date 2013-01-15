@@ -2,36 +2,50 @@ from vision import vision_wrapper
 from commander import *
 import math
 import arduino
-import config
+
+from config import *
 
 class DataCollection:
     
     # creates data object
     def __init__(self):
-        pass
+        self.initSensors()
 
     # initializes all the sensors
     def initSensors(self):
-        self.camera = Camera()
+        #self.camera = Camera()
         self.imu = IMU()
-        self.encoders = Encoders()
+        self.encoderPair = encoderPair()
+        self.irs = [Ir(IR_PINS[i], IR_POSITIONS[i]) for i in xrange(len(IR_PINS))]
+        self.ultrasonics = [Ultrasonic(ULTRASONIC_PINS[i], ULTRASONIC_POSITIONS[i]) for i in xrange(len(ULTRASONIC_PINS))]
+
+        sensors = [self.imu, self.encoderPair, self.irs, self.ultrasonics]
+        self.allSensors = [sensor for type in sensors for sensor in type]
         
-        pin = Global.IR_PINS
-        dist = [p[0] for p in config.IR_POSITIONS]
-        angle = [p[1] for p in config.IR_POSITIONS]
-        self.IR = [IR(pin[i]), IR[dist(i)], IR[angle(i)]
-                    for i in range(len(pin))]
-        
-        pin = Global.ULTRASONIC_PINS
-        self.ultrasonic = [Ultrasonic(p) for p in pin]
 
     # calls run on all of its sensors
     def run(self):
-        self.camera.run()
-        self.ir.run()
-        self.ultrasonic.run()
-        self.imu.run()
-        self.encoders.run()
+        for sensor in self.allSensors:
+            sensor.run()
+
+    def log(self):
+        print "~~~DATA~~~"
+        #print self.camera
+        #print "mine: " + str(self.camera.getMyBalls()) + "theirs: " + str(self.camera.getOpponentBalls())
+
+        print self.imu
+
+        print self.encoderPair + " tics: " + self.encoderPair.getTics()
+
+        for ir in self.irs:
+            print ir + " position: " + ir.getPosition()
+
+        for us in self.ultrasonics:
+            print us + " position: " + us.getPosition()
+
+        print "~~~DATA~~~\n"
+
+
 
     # return camera object
     def getCamera(self):
@@ -39,7 +53,7 @@ class DataCollection:
 
     # return IR object at given index or all IR objects
     # Input: index (0 be the leftmost)
-    def getIR(self, index = -1):
+    def getIr(self, index = -1):
         return self.ir if index == -1 else self.ir[index]
         
     # return ultrasonic object at given index or all ultrasonic objects
@@ -51,9 +65,9 @@ class DataCollection:
     def getIMU(self):
         return self.imu
 
-    # returns encoders object (represents both encoders)
-    def getEncodersPair(self):
-        return self.encoders
+    # returns encoderPair object (represents both encoders)
+    def getEncoderPair(self):
+        return self.encoderPair
         
     # halts OpenCV thread
     def stopVisionThread(self):
@@ -75,6 +89,9 @@ class Sensor:
     def timeSinceRun(self):
         return time.time() - self.timestamp
 
+    def __str__(self):
+        print self.__class__.__name__ + " at " + self.timestamp
+
 class Camera(Sensor):
     
     # creates camera object and starts OpenCV thread
@@ -90,10 +107,17 @@ class Camera(Sensor):
         self.ar = 1. * self.imWidth / self.imHeight
         self.vfov = 50.
         self.hfov = self.ar * self.vfov
-    
+
     # stops OpenCV thread
     def stopThread(self):
         self.vision.stop()
+
+        if config.MY_BALLS_ARE_RED:
+            self.myBallColor = "RED_BALL"
+            self.opponentBallColor = "GREEN_BALL"
+        else:
+            self.myBallColor = "RED_BALL"
+            self.opponentBallColor = "GREEN_BALL"
 
     # attempts to capture new frame, if vision is not ready: pass
     def run(self):
@@ -104,10 +128,7 @@ class Camera(Sensor):
 
     # returns (dist, angle) for all my balls
     def getMyBalls(self):
-        if config.MY_BALLS_ARE_RED:
-            myBallIndices = getIndexesByType("RED_BALL")
-        else:
-            myBallIndices = getIndexesByType("GREEN_BALL")
+        theirBallIndices = getIndicesByType(self.myBallColor)
         myBalls = [(vision.getX(i), vision.getY(i)) \
                    for i in myBallIndices]
         myBallsConverted = [convCoords(coords) for coords in myBalls]
@@ -115,17 +136,14 @@ class Camera(Sensor):
 
     # returns (dist, angle) to all opponent balls
     def getOpponentBalls(self):
-        if config.MY_BALLS_ARE_RED:
-            theirBallIndices = getIndicesByType("GREEN_BALL")
-        else:
-            theirBallIndices = getIndicesByType("RED_BALL")
+        theirBallIndices = getIndicesByType(self.opponentBallColor)
         theirBalls = [(vision.getX(i), vision.getY(i)) \
                       for i in theirBallIndices]
         theirBallsConverted = [convCoords(coords) for coords in theirBalls]
         return theirBallsConverted
-    
+
     # returns (dist, angle) given x and y pixel coordinates (from upper left)
-    def convCoords(x, y)
+    def convCoords(x, y):
         angle2obj = (self.angle + self.vfov/2   \
                      - self.vfov*(1.0 * y / self.imHeight))
         d = self.elev * math.tan((math.pi/180) * angle2obj)
@@ -134,12 +152,12 @@ class Camera(Sensor):
         a = (x - (self.imHeight/2.)) * self.hfov / self.imWidth
         return (d, a)
 
-class IR(Sensor):
+class Ir(Sensor):
 
     # analog pin and position relative bot center
-    def __init__(self, pin, distance, angle):
+    def __init__(self, pin, position):
         self.ardRef = arduino.analogInput(Commander.ARD, pin)
-        self.angle = angle
+        (self.radius, self.angle) = position
 
     def run(self):
         rawValue = self.ardRef.getValue()
@@ -147,7 +165,7 @@ class IR(Sensor):
 
     # returns (distance, angle) from center of bot, None if failing
     def getPosition(self):
-        return (self.distance, self.angle)
+        return (self.radius+self.distance, self.angle)
         
     # takes value from pin and converts it into a distance
     def convertValue(value):
@@ -156,8 +174,9 @@ class IR(Sensor):
 class Ultrasonic(Sensor):
 
     # analog pin and position relative bot center
-    def __init__(self, pin, distance, angle):
+    def __init__(self, pin, position):
         self.ardRef = arduino.analogInput(Commander.ARD, pin)
+        (self.radius, self.angle) = position
 
     def run(self):
         rawValue = self.ardRef.getValue()
@@ -165,7 +184,7 @@ class Ultrasonic(Sensor):
 
     # returns (distance, angle) from center of bot, None if failing
     def getPosition(self):
-        return (self.distance, self.angle)
+        return (self.radius+self.distance, self.angle)
         
     # takes value from pin and converts it into a distance
     def convertValue(value):
@@ -189,7 +208,7 @@ class IMU(Sensor):
     def getAccelData(self):
         return (self.accelX, self.accelY, self.accelZ)
 
-class Encoders(Sensor):
+class EncoderPair(Sensor):
 
     # encoder pins
     def __init__(leftPin, rightPin):
@@ -198,6 +217,14 @@ class Encoders(Sensor):
     def run(self):
         pass
 
-    # returns totals steps taken (left, right)
-    def getSteps():
+    # returns totals tics taken (left, right)
+    def getTics():
         pass
+
+if __name__ == "__main__":
+    commander = Commander()
+
+    while True:
+        DATA.run()
+        DATA.log()
+        time.sleep(.1)

@@ -40,15 +40,3 @@ class Pid:
         self.prevValue = value
 
         return (p*self.kp + d*self.kd + self.i*self.ki)
-
-if __name__ == '__main__':
-    myPid = Pid(.1,.05,.05,100)
-
-    v = 100
-    myPid.start(0, v)
-
-    while(True):
-        o = myPid.iterate(v)
-        v += o
-        print (v, o)
-        time.sleep(.1)

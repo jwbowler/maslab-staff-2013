@@ -3,7 +3,7 @@ MY_BALLS_ARE_RED = True
 TIME_BEFORE_HALT = -1 # value <= 0 --> never stops
 
 # Robot properties
-ROBOT_RADIUS
+ROBOT_RADIUS = .17
 
 # Sensors
 IR_PINS = (0,0,0,0,0)

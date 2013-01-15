@@ -1,6 +1,6 @@
 import time
 
-from Commander import *
+from commander import *
 
 class MovePlanning:
     # List of moves
@@ -20,8 +20,8 @@ class MovePlanning:
         self.moveObject = self.moveObject.run()
 
 class Movement():
-    self.stopped = False
-    self.avoidWalls = True
+    stopped = False
+    avoidWalls = True
 
     def run(self):
 
@@ -33,7 +33,7 @@ class Movement():
         next = self.transition()
         if next == None: next = self
 
-        if (avoidWalls and STATE.collisionDistance() < .1):
+        if (avoidWalls and STATE.nearCollision()):
             next.stop()
             return AvoidWall(next)
 
@@ -56,7 +56,6 @@ class Movement():
         pass
     def resume(self):
         pass 
-
 
 class WallFollow(Movement):
     def __init__(self):
@@ -95,7 +94,7 @@ class CaptureBall(Movement):
             if goal == GOAL.FIND_BALLS:
                 if target == None:
                     return RotateInPlace()
-                else
+                else:
                     return ApproachTarget()
                 
 
@@ -139,14 +138,14 @@ class ApproachTarget(Movement):
         goal = GOAL.getGoal()
         target = GOAL.getTarget()
         
-        if goal == GOAL.FIND_BALLS
+        if goal == GOAL.FIND_BALLS:
             if target == None:
                 return RotateInPlace()
-            if target[0] < 15 and target[1] < .18
+            if target[0] < 15 and target[1] < .18:
                 return CaptureBall()
 
     def move(self):
-        (angle, distance) GOAL.getTarget()
+        (angle, distance) = GOAL.getTarget()
 
         if (not self.pid.running):
             self.pid.start(angle, 0)
@@ -173,7 +172,7 @@ class AvoidWall(Movement):
         goal = GOAL.getGoal()
         target = GOAL.getTarget()
 
-        if STATE.collisionDistance() > .1:
+        if STATE.nearCollision():
             return self.prevMovement
 
     def move(self):
