@@ -1,7 +1,8 @@
 class StateEstimator:
 
-    def __init__(self):
-        pass
+    # takes data object
+    def __init__(self, data):
+        self.data = data
     
     # Updates estimated state according to data in Data class
     def run(self):

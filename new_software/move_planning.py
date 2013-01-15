@@ -1,3 +1,7 @@
+import time
+
+import 
+
 class MovePlanning:
 
     # List of moves
@@ -9,8 +13,9 @@ class MovePlanning:
     ALIGN = 5
     AVOID_WALL = 6
     
-    def __init__(self):
+    def __init__(self, state, goal, ctrl):
         self.move = ROTATE_IN_PLACE
+        self.moveObject = RotateInPlace()
     
     # Gets gaal from GoalPlanning, calculates current move,
     # and calls Control to actuate motors
@@ -25,10 +30,12 @@ class MovePlanning:
             pass
             
         elif self.move == ROTATE_IN_PLACE:
-            pass
+            rotateInPlace()
             
         elif self.move == APPROACH_TARGET:
-            approachTarget()
+            if (self.moveObject == None)
+                self.moveObject = new ApproachTarget()
+            self.moveObject.run()
             
         elif self.move == CAPTURE_BALL:
             pass
@@ -39,19 +46,26 @@ class MovePlanning:
         elif self.move == AVOID_WALL:
             pass
 
-    def approachTarget(self):
-        goal = Goal.getGoal()
-        target = Goal.getTarget()
+class RotateInPlace:
+    def __init__(self):
+        self.rotateBeginAngle = 
+
+class ApproachTarget:
+    def __init__(self):
+        self.approachBeginTime = time.time()
+        self.myPid = Pid(.03, .005, .005, 100)
+
+    def run(self):
+        goal = GOAL.getGoal()
+        target = GOAL.getTarget()
         
         if target == None:
-          if goal == Goal.FIND_BALLS
-              self.move = ROTATE_IN_PLACE
-            
-class ApproachTarget:
-    def __init__(self, target):
-        self.myPid.start(target[1], 0)
+          if goal == GOAL.FIND_BALLS
+              return MovePlanning.ROTATE_IN_PLACE
 
-    def run(target):
+        if (not self.myPid.running):
+            self.myPid.start(angle, 0)
+
         angle = -target[1]angle
         pidVal = self.myPid.iterate(angle)
         adjustedSpeed = self.targetSpeed * ((90.0-abs(angle))/90.0)

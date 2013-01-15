@@ -10,7 +10,8 @@ class GoalPlanning:
     START_GOAL = FIND_BALLS
     START_TARGET = None
     
-    def __init__(self):
+    def __init__(self, state):
+        self.state = state
         self.goal = START_GOAL
         self.target = START_TARGET
     
