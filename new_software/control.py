@@ -10,22 +10,22 @@ Class Control():
 
     # The init BLAM
     def __init__(self):
-        self.roller = ARD.Motor(ard, ROLLER_PINS[0], ROLLER_PINS[1], ROLLER_PINS[2])
-        self.rightMotor = ARD.Motor(ard, RIGHT_MOTOR_PINS[0], RIGHT_MOTOR_PINS[2])
-        self.leftMotor = ARD.Motor(ard, LEFT_MOTOR_PINS[0], LEFT_MOTOR_PINS[1], LEFT_MOTOR_PINS[2])
-        self.helix = ARD.Motor(ard,HELIX_PINS[0], HELIX_PINS[1], HELIX_PINS[2])
-        self.ramp = ARD.DigitalOutput(ard, RAMP_SERVO_PIN)
-        self.scorer = ARD.DigitalOutput(ard, SCORER_PIN)
+        self.roller = arduino.Motor(ARD, ROLLER_PINS[0], ROLLER_PINS[1], ROLLER_PINS[2])
+        self.rightMotor = arduino.Motor(ARD, RIGHT_MOTOR_PINS[0], RIGHT_MOTOR_PINS[2])
+        self.leftMotor = arduino.Motor(ARD, LEFT_MOTOR_PINS[0], LEFT_MOTOR_PINS[1], LEFT_MOTOR_PINS[2])
+        self.helix = arduino.Motor(ARD,HELIX_PINS[0], HELIX_PINS[1], HELIX_PINS[2])
+        self.ramp = arduino.DigitalOutput(ARD, RAMP_SERVO_PIN)
+        self.scorer = arduino.DigitalOutput(ARD, SCORER_PIN)
 
     # This method turns on and off the roller motor
     # Input:Boolean
     def setRoller(self,switch):
-        self.roller.setSpeed(ROLLER_SPEED) 
+        self.roller.setSpeed(ROLLER_SPEED*switch) 
 
     # This method turns on and off the helix motor
     # Input:Boolean
     def setHelix(self,switch):
-        self.helix.setSpeed(HELIX_SPEED)
+        self.helix.setSpeed(HELIX_SPEED*switch)
 
     # This method controls the motor that releases the balls
     # Input:Boolean (True when ready to score)
@@ -34,19 +34,21 @@ Class Control():
         self.scorer.setValue(value) 
 
     # This method actuates the scoring ramp
-    #input: angle in degrees from horizontal
+    #input: angle in degrees from vertical
     def setRamp(self,angle):
-        value= 127*(angle/360)
+        value= 127*(angle/180)
         self.ramp.setValue(value)
 
     # This method sets the speed of the left motor
     # Input: int from -1 to 1 inclusive
     def setLeftMotor(self,speed):
+        speed = bound(speed, -1, 1)
         self.leftMotor.setSpeed(speed)
 
     # This method sets the speed of the right motor
     # Input: int from -1 to 1 inclusive
     def setRightMotor(self,speed):
+        speed = bound(speed, -1, 1)
         self.rightMotor.setSpeed(speed)
     
 
@@ -62,32 +64,32 @@ Class Control():
 
     # This method bounds an input to low and high
     # Input: input value, low and high limits
-    def bound(input, low, high):
-        if input > high:
+    def bound(value, low, high):
+        if value > high:
            return high;
-        elif input < low:
+        elif value < low:
            return low
-        return input
+        return value
 
 
     # This method rescales an input from 0 to 1 to the oMin and oMax
     # while maintaining sign
     # Input: input and output min and max (absolute)
-    def boundAndScale(input, oMin, oMax):
+    def boundAndScale(value, oMin, oMax):
         iMin = 0
         iMax = 1
         thres = .01
 
-        sign = -1 if input < 0 else 1
-        input *= sign
-        input -= iMin
+        sign = -1 if value < 0 else 1
+        value *= sign
+        value -= iMin
   
-        input *= (oMax-oMin)/(iMax-iMin)
-        if input > thresh:
-           input += oMin
+        value *= (oMax-oMin)/(iMax-iMin)
+        if value > thresh:
+           value += oMin
 
-        input *= sign
-        return input
+        value *= sign
+        return value
 
     # This method computes motor speeds given speed and rotation
     # Input: velocity and rotation from -1 to 1
@@ -102,3 +104,37 @@ Class Control():
             l /= m;
 
         return (l,r);
+
+if __name__=="__main__":
+    control= Control()
+    
+    print "Testing Left Motor"
+    control.setLeftMotor(.3)
+    time.sleep(5)
+    control.setLeftMotor(0)
+
+    print "Testing Right Motor"
+    control.setRightMotor(.3)
+    time.sleep(5)
+    control.setRightMotor(0)
+
+    print "Testing Helix"
+    control.setHelix(True)
+    time.sleep(5)
+    control.setHelix(False)
+
+    print "Testing Roller"
+    control.setRoller(True)
+    time.sleep(5)
+    control.setRoller(False)
+
+    print "Testing Ramp"
+    control.setRamp(90)
+    time.sleep(5)
+    control.setRamp(0)
+
+    print "Testing Scorer"
+    control.setScorer(True)
+    time.sleep(5)
+    control.setScorer(False)
+
