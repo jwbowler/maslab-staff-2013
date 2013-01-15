@@ -17,10 +17,12 @@ class DataCollection:
         return self.camera
 
     # return ir object at given index or all ir objects
+    # Input: index (0 be the leftmost)
     def getIR(self, index = -1):
         return self.IR if index == -1 else self.IR[index]
         
     # return ultrasonic object at given index or all ultrasonic objects
+    # Input: index (0 be the leftmost)
     def getUltrasonic(self, index = -1):
         return self.IR if index == -1 else self.IR[index]
 
@@ -29,7 +31,7 @@ class DataCollection:
         return self.gyro
 
     # returns encoders object (represents both encoders)
-    def getEncoders(self):
+    def getEncodersPair(self):
         
         
 
