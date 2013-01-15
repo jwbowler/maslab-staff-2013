@@ -12,23 +12,25 @@ class DataCollection:
     # initializes all the sensors
     def initSensors(self):
         self.camera = Camera()
+        self.imu = IMU()
+        self.encoders = Encoders()
         
-        ir1 = IR(123, 1.4, 0)
-        ir2 = IR(456, 1.4, -45)
-        ir3 = IR(789, 1.4, -90)
-        self.IR = (ir1, ir2, ir3)
+        pin = Global.IR_PINS
+        dist = [p[0] for p in Global.IR_POSITIONS]
+        angle = [p[1] for p in Global.IR_POSITIONS]
+        self.IR = [IR(pin[i]), IR[dist(i)], IR[angle(i)]
+                    for i in range(len(pin))]
         
-        self.ultrasonic = None
-        self.imu = None
-        self.encoders = None
+        pin = Global.ULTRASONIC_PINS
+        self.ultrasonic = [Ultrasonic(p) for p in pin]
 
     # calls run on all of its sensors
     def run(self):
         self.camera.run()
         self.ir.run()
-        #self.ultrasonic.run()
-        #self.imu.run()
-        #self.encoders.run()
+        self.ultrasonic.run()
+        self.imu.run()
+        self.encoders.run()
 
     # return camera object
     def getCamera(self):
