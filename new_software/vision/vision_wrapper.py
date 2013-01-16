@@ -1,5 +1,5 @@
 from multiprocessing import Process, Pipe
-import time, sys
+import time, sys, vision
 
 class VisionWrapper:
 
@@ -19,7 +19,7 @@ class VisionWrapper:
         self.timestamp = None
 	
     def start(self):
-        balltracking.setup()
+        vision.setup()
         self.conn_Py2Cv, self.conn_Cv2Py = Pipe()
         self.p = Process(target=f, args=(self.conn_Cv2Py,))
         self.p.start()
@@ -71,9 +71,15 @@ class VisionWrapper:
 def f(conn):
     try:
         while (True):
-            data = balltracking.step()
+            data = vision.step()
             timestamp = time.time()
             conn.send((time, data))
     except KeyboardInterrupt:
         pass
+        
+if __name__ == '__main__':
+    # test
+    vw = VisionWrapper()
+    vw.start()
+    vw.stop()
         
