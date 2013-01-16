@@ -5,8 +5,8 @@ import time
 import arduino
 
 ard = arduino.Arduino()
-m0 = arduino.Motor(ard, 0, 2, 3)
-m1 = arduino.Motor(ard, 0, 2, 4)
+m0 = arduino.Motor(ard, 11, 5, 6)
+m1 = arduino.Motor(ard, 11, 9, 10)
 led = arduino.DigitalOutput(ard, 13)
 ard.run()  # Start the Arduino communication thread
 

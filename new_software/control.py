@@ -9,10 +9,10 @@ import commander as c
 
 class Control():
 
-    # The init BLAM
+    # The init
     def __init__(self):
         self.roller = arduino.Motor(c.ARD(), ROLLER_PINS[0], ROLLER_PINS[1], ROLLER_PINS[2])
-        self.rightMotor = arduino.Motor(c.ARD(), RIGHT_MOTOR_PINS[0], RIGHT_MOTOR_PINS[2])
+        self.rightMotor = arduino.Motor(c.ARD(), RIGHT_MOTOR_PINS[0], RIGHT_MOTOR_PINS[1], RIGHT_MOTOR_PINS[2])
         self.leftMotor = arduino.Motor(c.ARD(), LEFT_MOTOR_PINS[0], LEFT_MOTOR_PINS[1], LEFT_MOTOR_PINS[2])
         self.helix = arduino.Motor(c.ARD(),HELIX_PINS[0], HELIX_PINS[1], HELIX_PINS[2])
         self.ramp = arduino.DigitalOutput(c.ARD(), RAMP_SERVO_PIN)
@@ -43,13 +43,13 @@ class Control():
     # This method sets the speed of the left motor
     # Input: int from -1 to 1 inclusive
     def setLeftMotor(self,speed):
-        speed = bound(speed, -1, 1)
+        speed = boundAndScale(speed, 8, 127)
         self.leftMotor.setSpeed(speed)
 
     # This method sets the speed of the right motor
     # Input: int from -1 to 1 inclusive
     def setRightMotor(self,speed):
-        speed = bound(speed, -1, 1)
+        speed = boundAndScale(speed, 8, 127)
         self.rightMotor.setSpeed(speed)
     
 
@@ -57,85 +57,86 @@ class Control():
     # Input: speed form -1 to 1 and rotation from -1 to 1(clockwise)
     def setMovement(self,speed, rotation):
         (r,l) = getMotorSpeed(speed,rotation)
-        r = boundAndScale(r, -127, 127)
-        l = boundAndScale(l, -127, 127)
+        r = boundAndScale(r, 8, 127)
+        l = boundAndScale(l, 8, 127)
         self.setRightMotor(r)
         self.setLeftMotor(l)
 
 
-    # This method bounds an input to low and high
-    # Input: input value, low and high limits
-    def bound(value, low, high):
-        if value > high:
-           return high;
-        elif value < low:
-           return low
-        return value
+# This method bounds an input to low and high
+# Input: input value, low and high limits
+def bound(value, low, high):
+    if value > high:
+       return high;
+    elif value < low:
+       return low
+    return value
 
 
-    # This method rescales an input from 0 to 1 to the oMin and oMax
-    # while maintaining sign
-    # Input: input and output min and max (absolute)
-    def boundAndScale(value, oMin, oMax):
-        iMin = 0
-        iMax = 1
-        thres = .01
+# This method rescales an input from 0 to 1 to the oMin and oMax
+# while maintaining sign
+# Input: input and output min and max (absolute)
+def boundAndScale(value, oMin, oMax):
+    iMin = 0
+    iMax = 1
+    thresh = .01
 
-        sign = -1 if value < 0 else 1
-        value *= sign
-        value -= iMin
-  
-        value *= (oMax-oMin)/(iMax-iMin)
-        if value > thresh:
-           value += oMin
+    sign = -1 if value < 0 else 1
+    value *= sign
+    value -= iMin
 
-        value *= sign
-        return value
+    value *= (oMax-oMin)/(iMax-iMin)
+    if value > thresh:
+       value += oMin
 
-    # This method computes motor speeds given speed and rotation
-    # Input: velocity and rotation from -1 to 1
-    # Return: left and right motor speeds from -1 to 1
-    def getMotorSpeeds(vel, rot):
-        r = vel-rot;
-        l = vel+rot;
+    value *= sign
+    return int(value)
 
-        m = max(abs(r), abs(l))
-        if (m > 1):
-            r /= m;
-            l /= m;
+# This method computes motor speeds given speed and rotation
+# Input: velocity and rotation from -1 to 1
+# Return: left and right motor speeds from -1 to 1
+def getMotorSpeeds(vel, rot):
+    r = vel-rot;
+    l = vel+rot;
 
-        return (l,r);
+    m = max(abs(r), abs(l))
+    if (m > 1):
+        r /= m;
+        l /= m;
+
+    return (l,r);
 
 if __name__=="__main__":
-    control= Control()
+    c.ARD()
+    c.CTRL()
+    c.ARD().run()
     
     print "Testing Left Motor"
-    control.setLeftMotor(.3)
-    time.sleep(5)
-    control.setLeftMotor(0)
+    c.CTRL().setLeftMotor(.3)
+    time.sleep(3)
+    c.CTRL().setLeftMotor(0)
 
     print "Testing Right Motor"
-    control.setRightMotor(.3)
-    time.sleep(5)
-    control.setRightMotor(0)
+    c.CTRL().setRightMotor(.3)
+    time.sleep(3)
+    c.CTRL().setRightMotor(0)
 
     print "Testing Helix"
-    control.setHelix(True)
-    time.sleep(5)
-    control.setHelix(False)
+    c.CTRL().setHelix(True)
+    time.sleep(3)
+    c.CTRL().setHelix(False)
 
     print "Testing Roller"
-    control.setRoller(True)
-    time.sleep(5)
-    control.setRoller(False)
+    c.CTRL().setRoller(True)
+    time.sleep(3)
+    c.CTRL().setRoller(False)
 
     print "Testing Ramp"
-    control.setRamp(90)
-    time.sleep(5)
-    control.setRamp(0)
+    c.CTRL().setRamp(90)
+    time.sleep(3)
+    c.CTRL().setRamp(0)
 
     print "Testing Scorer"
-    control.setScorer(True)
-    time.sleep(5)
-    control.setScorer(False)
-
+    c.CTRL().setScorer(True)
+    time.sleep(3)
+    c.CTRL().setScorer(False)

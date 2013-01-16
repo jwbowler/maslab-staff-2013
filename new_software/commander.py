@@ -27,7 +27,6 @@ class Commander:
 def ARD():
     if Commander.ard == None:
         Commander.ard = Arduino()
-        Commander.ard.run()
     return Commander.ard
 
 def DATA():

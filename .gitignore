@@ -40,3 +40,7 @@ nosetests.xml
 # Vim created files
 .swp
 *.swp
+
+#videos
+.mpeg
+*.mpeg

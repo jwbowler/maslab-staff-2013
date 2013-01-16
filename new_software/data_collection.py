@@ -15,15 +15,14 @@ class DataCollection:
 
     # initializes all the sensors
     def initSensors(self):
-        #self.camera = Camera()
+        self.camera = Camera()
         #self.imu = Imu()
-        self.encoderPair = EncoderPair(0,0)
+        #self.encoderPair = EncoderPair(0,0)
         self.irs = [Ir(IR_PINS[i], IR_POSITIONS[i]) for i in xrange(len(IR_PINS))]
-        self.ultrasonics = [Ultrasonic(ULTRASONIC_PINS[i], ULTRASONIC_POSITIONS[i]) for i in xrange(len(ULTRASONIC_PINS))]
+        #self.ultrasonics = [Ultrasonic(ULTRASONIC_PINS[i], ULTRASONIC_POSITIONS[i]) for i in xrange(len(ULTRASONIC_PINS))]
 
-        self.allSensors = [self.encoderPair]
+        self.allSensors = [self.camera]
         self.allSensors.extend(self.irs)
-        self.allSensors.extend(self.ultrasonics)
         
         
 
@@ -34,12 +33,12 @@ class DataCollection:
 
     def log(self):
         print "~~~DATA~~~"
-        #print self.camera
+        print self.camera
         #print "mine: " + str(self.camera.getMyBalls()) + "theirs: " + str(self.camera.getOpponentBalls())
 
         #print self.imu
 
-        print "ENC - tics: " + str(self.encoderPair.getTics())
+        #print "ENC - tics: " + str(self.encoderPair.getTics())
 
         for ir in self.irs:
             print "IR - position: " + str(ir.getPosition())
@@ -100,7 +99,6 @@ class Camera(Sensor):
     
     # creates camera object and starts OpenCV thread
     def __init__(self):
-        super(Camera, self).__init__()
         self.vision = vision_wrapper.VisionWrapper()
         self.vision.start()
         
@@ -226,6 +224,10 @@ class EncoderPair(Sensor):
         pass
 
 if __name__ == "__main__":
+    c.ARD()
+    c.DATA()
+    c.ARD().run()
+
     while True:
         c.DATA().run()
         c.DATA().log()
