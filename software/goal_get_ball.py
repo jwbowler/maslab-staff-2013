@@ -3,8 +3,8 @@ import time
 class GetBallGoal:
     
     def __init__(self):
-        self.distThreshMin = 2
-        self.distanceThresh = 0.25
+        self.distThreshMin = 5
+        self.distanceThresh = 0.17
 
         self.capturingBall = False
         self.captureIterationCounter = 30
@@ -16,10 +16,7 @@ class GetBallGoal:
         
     # Returns: (next_goal_name, action_name, action_arguments)
     def step(self, data):
-        ir = [obj[1] for obj in data if (obj[0] == "IR")]
-        for meas in ir:
-            if meas[0] < 600:
-                return (self.getName(), "ACTION_EMERGENCY_REVERSE", None)
+        
     
         if self.capturingBall == True:
             if time.time() > self.captureEndTime:
@@ -28,13 +25,18 @@ class GetBallGoal:
 
             return (self.getName(), "ACTION_CAPTURE_BALL", True) # continue         
     
+        ir = [obj[1] for obj in data if (obj[0] == "IR")]
+        for meas in ir:
+            if meas[0] > 400:
+                return (self.getName(), "ACTION_EMERGENCY_REVERSE", None)
+                
         # create filtered list of visible objects: remove non-balls and too small balls
         ball_list = [obj for obj in data
                      if ((obj[0] == "RED_BALL" or obj[0] == "GREEN_BALL")
                           and obj[2] >= self.distThreshMin)]
                           
         if ball_list == []: # if all balls have somehow disappeared:
-            return ("GOAL_EXPLORE", "ACTION_ROTATE_IN_PLACE", data)
+            return ("GOAL_EXPLORE", "ACTION_ROTATE_IN_PLACE", -1)
             
         ball_list.sort(key = lambda obj: obj[1][0]) # sort balls by distance
         target = (ball_list[0][1]) # target = (distance, angle) of best candidate ball

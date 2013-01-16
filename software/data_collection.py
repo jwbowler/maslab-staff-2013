@@ -17,7 +17,7 @@ class DataCollection:
             angle2obj = (cam.angle + cam.vfov/2 - cam.vfov*(1.0 * y / cam.imHeight))
             d = cam.elev * math.tan((math.pi/180) * angle2obj)
             if d < 0:
-                d = math.isInf()
+                d = 1000000
             a = (x - (cam.imHeight/2.)) * cam.hfov / cam.imWidth
             return (d, a)
             
@@ -33,7 +33,7 @@ class DataCollection:
         
 class Camera:
     def __init__(self):
-        self.elev = 0.1
+        self.elev = 0.2
         self.angle = 60. # 0 == pointing down; 90 = pointing forward
         self.imWidth = 640
         self.imHeight = 480

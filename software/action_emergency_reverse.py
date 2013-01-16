@@ -6,4 +6,4 @@ class EmergencyReverseAction():
         return "ACTION_EMERGENCY_REVERSE"
 
     def step(self):
-        self.ctl.drive(-32, -32)
+        self.ctl.drive(-48, -48)

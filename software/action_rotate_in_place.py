@@ -5,5 +5,5 @@ class RotateInPlaceAction():
     def getName(self):
         return "ACTION_ROTATE_IN_PLACE"
 
-    def step(self):
-        self.ctl.drive(16, -16)
+    def step(self, dir):
+        self.ctl.drive(48*dir, -48*dir)

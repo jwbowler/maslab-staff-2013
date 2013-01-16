@@ -6,8 +6,8 @@ class HuntBallAction():
 
     def __init__(self, control):
         self.ctl = control
-        self.rotationSpeed = .3
-        self.targetSpeed = .3
+        self.rotationSpeed = .35
+        self.targetSpeed = .5
         self.myPid = pid.Pid(.03,.005,.005,100)
         
     def getName(self):

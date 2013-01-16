@@ -6,7 +6,7 @@ class CaptureBallAction():
         return "ACTION_CAPTURE_BALL"
 
     def step(self, runRoller):
-        self.ctl.drive(32, 32)
+        self.ctl.drive(80, 80)
         if not runRoller:
             self.ctl.ballCaptureOff()
         else:

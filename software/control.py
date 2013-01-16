@@ -1,7 +1,7 @@
 import arduino
 import pid
 
-log = False
+log = True
 
 class Control:
     def __init__(self, ard):
@@ -16,8 +16,8 @@ class Control:
     def drive(self, r, l):
         if log:
             print "DRIVE: r=" + str(r) + ", l=" + str(l)
-        self.motors[0].setSpeed(-r)
-        self.motors[1].setSpeed(-l)
+        self.motors[0].setSpeed(r)
+        self.motors[1].setSpeed(l)
 
     def setBallCapture(self, run):
         self.motors[2].setSpeed(0)
@@ -30,8 +30,8 @@ class Control:
     def ballCaptureOff(self):
         if log:
             print "CAPTURE MOTOR OFF"
-        self.motors[2].setSpeed(0)
-        
+        #self.motors[2].setSpeed(0)
+        self.motors[2].setSpeed(-127)
 
 class ControlDummy:
     

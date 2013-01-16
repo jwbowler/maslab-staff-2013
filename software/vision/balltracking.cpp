@@ -77,7 +77,7 @@ int init_opencv() {
     params.blobColor = 255;
     params.filterByCircularity = false;
     params.filterByArea = true;
-    params.minArea = 100.;
+    params.minArea = 5.;
     params.maxArea = 640.*480;
     
     blob_detector = new cv::SimpleBlobDetector(params);
@@ -147,6 +147,7 @@ int step(Mat **frame_ptr, Mat **blob_ptr, Mat **scatter_ptr, int *thr, int num_c
         
     }
     
+    //cout << objSizes[0] << " " << objSizes[1] << " " << objSizes[2] << endl; 
     
     //erode(colors, colors, iterations=5);
     
