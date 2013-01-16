@@ -21,7 +21,7 @@ class MovePlanning:
 
     def log(self):
         print "~~~MOVE~~~"
-        print 
+        print self.moveObject
         print "~~~MOVE~~~"
 
 class Movement():
@@ -38,7 +38,7 @@ class Movement():
         next = self.transition()
         if next == None: next = self
 
-        if (avoidWalls and c.STATE().nearCollision()):
+        if (self.avoidWalls and c.STATE().nearCollision()):
             next.stop()
             return AvoidWall(next)
 
@@ -46,7 +46,10 @@ class Movement():
 
     def stop(self):
         self.stopped = True
-        pause()
+        self.pause()
+
+    def __str__(self):
+        return self.__class__.__name__
 
     # setters
     def setAvoidWalls(enable):
@@ -67,8 +70,8 @@ class WallFollow(Movement):
         pass
 
     def transition(self):
-        goal = GOAL.getGoal()
-        target = GOAL.getTarget()
+        goal = c.GOAL().getGoal()
+        target = c.GOAL().getTarget()
 
     def move(self):
         pass
@@ -78,8 +81,8 @@ class MoveToOpen(Movement):
         pass
 
     def transition(self):
-        goal = GOAL.getGoal()
-        target = GOAL.getTarget()
+        goal = c.GOAL().getGoal()
+        target = c.GOAL().getTarget()
 
     def move(self):
         pass
@@ -90,13 +93,13 @@ class CaptureBall(Movement):
         self.startTime = time.time()
 
     def transition(self):
-        goal = GOAL.getGoal()
-        target = GOAL.getTarget()
+        goal = c.GOAL().getGoal()
+        target = c.GOAL().getTarget()
 
         if self.startTime + 2 < time.time():
             c.CTRL().setRoller(False)
             
-            if goal == GOAL.FIND_BALLS:
+            if goal == c.GOAL().FIND_BALLS:
                 if target == None:
                     return RotateInPlace()
                 else:
@@ -112,8 +115,8 @@ class Align(Movement):
         pass
 
     def transition(self):
-        goal = GOAL.getGoal()
-        target = GOAL.getTarget()
+        goal = c.GOAL().getGoal()
+        target = c.GOAL().getTarget()
 
     def move(self):
         pass
@@ -123,11 +126,11 @@ class RotateInPlace(Movement):
         self.startAngle = c.STATE().getAbsoluteAngle()
 
     def transition(self):
-        goal = GOAL.getGoal()
-        target = GOAL.getTarget()
+        goal = c.GOAL().getGoal()
+        target = c.GOAL().getTarget()
 
-        if goal == GOAL.FIND_BALLS:
-            if goal.target != None:
+        if goal == c.GOAL().FIND_BALLS:
+            if target != None:
                 return ApproachTarget()
 
     def move(self):
@@ -140,17 +143,17 @@ class ApproachTarget(Movement):
         self.pid = Pid(.03, .005, .005, 100)
 
     def transition(self):
-        goal = GOAL.getGoal()
-        target = GOAL.getTarget()
+        goal = c.GOAL().getGoal()
+        target = c.GOAL().getTarget()
         
-        if goal == GOAL.FIND_BALLS:
+        if goal == c.GOAL().FIND_BALLS:
             if target == None:
                 return RotateInPlace()
             if target[0] < 15 and target[1] < .18:
                 return CaptureBall()
 
     def move(self):
-        (angle, distance) = GOAL.getTarget()
+        (angle, distance) = c.GOAL().getTarget()
 
         if (not self.pid.running):
             self.pid.start(angle, 0)
@@ -170,15 +173,34 @@ class ApproachTarget(Movement):
         self.startTime = time.time()
 
 class AvoidWall(Movement):
-    def __init__(prevMovement):
+    def __init__(self, prevMovement):
         self.prevMovement = prevMovement
 
     def transition(self):
-        goal = GOAL.getGoal()
-        target = GOAL.getTarget()
-
-        if c.STATE().nearCollision():
+        if not c.STATE().nearCollision():
             return self.prevMovement
 
     def move(self):
         c.CTRL().setMovement(-.5, 0)
+
+if __name__ == "__main__":
+    c.ARD()
+    c.DATA()
+    c.STATE()
+    c.GOAL()
+    c.MOVE()
+    c.CTRL()
+    c.ARD().run()
+
+    while True:
+        c.DATA().run()
+
+        c.STATE().run()
+        c.STATE().log()
+
+        c.GOAL().run()
+
+        c.MOVE().run()
+        c.MOVE().log()
+
+        time.sleep(.5)

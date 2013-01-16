@@ -1,4 +1,5 @@
 import commander as c
+import time
 
 class GoalPlanning:
 
@@ -10,12 +11,9 @@ class GoalPlanning:
     WAIT_AT_WALL = 4
     goalNames = ["FIND_BALLS", "SCORE_TOWER", "PRESS_BUTTON", "SCORE_WALL", "WAIT_AT_WALL"]
     
-    START_GOAL = FIND_BALLS
-    START_TARGET = None
-    
     def __init__(self):
-        self.goal = START_GOAL
-        self.target = START_TARGET
+        self.goal = GoalPlanning.FIND_BALLS
+        self.target = None
     
     # Updates current goal according to estimated state
     def run(self):
@@ -36,12 +34,18 @@ class GoalPlanning:
         return self.target
 
 if __name__ == "__main__":
-   while True:
-      c.DATA().run()
-      c.DATA().log()
+    c.ARD()
+    c.DATA()
+    c.STATE()
+    c.GOAL()
+    c.ARD().run()
 
-      c.STATE().run()
-      c.STATE().log()
+    while True:
+        c.DATA().run()
 
-      c.GOAL.run()
-      c.GOAL.log()
+        c.STATE().run()
+        c.STATE().log()
+
+        c.GOAL().run()
+        c.GOAL().log()
+        time.sleep(.5)

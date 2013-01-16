@@ -20,6 +20,7 @@ class VisionWrapper:
 	
     def start(self):
         vision.setup()
+        vision
         self.conn_Py2Cv, self.conn_Cv2Py = Pipe()
         self.p = Process(target=f, args=(self.conn_Cv2Py,))
         self.p.start()

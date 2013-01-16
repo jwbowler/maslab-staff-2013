@@ -1,4 +1,7 @@
 import commander as c
+import time
+import math
+from config import *
 
 class StateEstimator:
 
@@ -9,9 +12,9 @@ class StateEstimator:
     # Updates estimated state according to data in Data class
     def run(self):
         self.myBalls = self.data.getCamera().getMyBalls()
-        self.myBalls = sorted(myBalls, lambda ball: ball[0])
+        self.myBalls = sorted(self.myBalls, lambda ball: ball[0])
         self.opponentBalls = self.data.getCamera().getOpponentBalls()
-        self.opponentBalls = sorted(myBalls, lambda ball: ball[0])
+        self.opponentBalls = sorted(self.opponentBalls, lambda ball: ball[0])
 
     def log(self):
         print "~~~State Log~~~"
@@ -24,6 +27,9 @@ class StateEstimator:
 
         print "Wall Distances"
         print self.getWallDistances()
+
+        print "Collision Distance"
+        print self.getCollisionDistance()
 
         print "Landmarks"
         print self.getLandmarks()
@@ -52,29 +58,38 @@ class StateEstimator:
     # Returns set of wall distances ond angles from all sensors:
     # ((distance, angle), (distance, angle), ...)
     def getWallDistances(self):
-        return [ir.getPosition for ir in self.data.getIR()]
+        return [ir.getPosition() for ir in self.data.getIr()]
         
     # Returns the forward distance that the robot can travel
     # before it hits a wall
     def getCollisionDistance(self):
-        headOnDist = self.data.getIR(0) - Config.ROBOT_RADIUS
-        diagDist = self.data.getIR(1) - Config.ROBOT_RADIUS
-        diagCollisionDist = diagDist * math.sqrt(2) \
-                            - Config.ROBOT_RADIUS / math.sqrt(2) 
-        return min(headOnDist, diagCollisionDist)
+        dist = [ir.getPosition() for ir in self.data.getIr()]
+        dist = [p[0]/math.cos(math.radians(p[1])) - ROBOT_RADIUS for p in dist]
+        return min(dist)
+
 
     def nearCollision(self):
-        return (getCollisionDistance < .1)
+        return (self.getCollisionDistance() < .05)
     
     # Returns landmarks like QR codes and the goal tower:
     # ((type, ID, distance, angle), ...)
     def getLandmarks(self):
         pass
 
-if __name__ == "__main__":
-   while True:
-      c.DATA().run()
-      c.DATA().log()
+    def getAbsoluteAngle(self):
+        return 0.0
 
-      c.STATE().run()
-      c.STATE().log()
+if __name__ == "__main__":
+    c.ARD()
+    c.DATA()
+    c.STATE()
+    c.ARD().run()
+
+    while True:
+        c.DATA().run()
+        c.DATA().log()
+
+        c.STATE().run()
+        c.STATE().log()
+
+        time.sleep(.5)

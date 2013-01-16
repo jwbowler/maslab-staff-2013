@@ -1,5 +1,6 @@
-from vision import vision_wrapper
+from vislib import vision_wrapper
 import math
+import time
 import arduino
 
 from config import *
@@ -19,7 +20,7 @@ class DataCollection:
         #self.imu = Imu()
         #self.encoderPair = EncoderPair(0,0)
         self.irs = [Ir(IR_PINS[i], IR_POSITIONS[i]) for i in xrange(len(IR_PINS))]
-        #self.ultrasonics = [Ultrasonic(ULTRASONIC_PINS[i], ULTRASONIC_POSITIONS[i]) for i in xrange(len(ULTRASONIC_PINS))]
+        self.ultrasonics = [Ultrasonic(ULTRASONIC_PINS[i], ULTRASONIC_POSITIONS[i]) for i in xrange(len(ULTRASONIC_PINS))]
 
         self.allSensors = [self.camera]
         self.allSensors.extend(self.irs)
@@ -33,15 +34,15 @@ class DataCollection:
 
     def log(self):
         print "~~~DATA~~~"
-        print self.camera
-        #print "mine: " + str(self.camera.getMyBalls()) + "theirs: " + str(self.camera.getOpponentBalls())
+        print "Camera"
+        print "mine: " + str(self.camera.getMyBalls()) + "theirs: " + str(self.camera.getOpponentBalls())
 
         #print self.imu
 
         #print "ENC - tics: " + str(self.encoderPair.getTics())
 
         for ir in self.irs:
-            print "IR - position: " + str(ir.getPosition())
+            print "IR - position: " + str(ir.getPosition()) + " raw: " + str(ir.rawValue)
 
         for us in self.ultrasonics:
             print "US - position: " + str(us.getPosition())
@@ -57,7 +58,7 @@ class DataCollection:
     # return IR object at given index or all IR objects
     # Input: index (0 be the leftmost)
     def getIr(self, index = -1):
-        return self.ir if index == -1 else self.ir[index]
+        return self.irs if index == -1 else self.irs[index]
         
     # return ultrasonic object at given index or all ultrasonic objects
     # Input: index (0 be the leftmost)
@@ -110,16 +111,16 @@ class Camera(Sensor):
         self.vfov = 50.
         self.hfov = self.ar * self.vfov
 
-    # stops OpenCV thread
-    def stopThread(self):
-        self.vision.stop()
-
-        if config.MY_BALLS_ARE_RED:
+        if MY_BALLS_ARE_RED:
             self.myBallColor = "RED_BALL"
             self.opponentBallColor = "GREEN_BALL"
         else:
             self.myBallColor = "RED_BALL"
             self.opponentBallColor = "GREEN_BALL"
+
+    # stops OpenCV thread
+    def stopThread(self):
+        self.vision.stop()
 
     # attempts to capture new frame, if vision is not ready: pass
     def run(self):
@@ -130,7 +131,7 @@ class Camera(Sensor):
 
     # returns (dist, angle) for all my balls
     def getMyBalls(self):
-        theirBallIndices = getIndicesByType(self.myBallColor)
+        myBallIndices = self.vision.getIndicesByType(self.myBallColor)
         myBalls = [(vision.getX(i), vision.getY(i)) \
                    for i in myBallIndices]
         myBallsConverted = [convCoords(coords) for coords in myBalls]
@@ -138,7 +139,7 @@ class Camera(Sensor):
 
     # returns (dist, angle) to all opponent balls
     def getOpponentBalls(self):
-        theirBallIndices = getIndicesByType(self.opponentBallColor)
+        theirBallIndices = self.vision.getIndicesByType(self.opponentBallColor)
         theirBalls = [(vision.getX(i), vision.getY(i)) \
                       for i in theirBallIndices]
         theirBallsConverted = [convCoords(coords) for coords in theirBalls]
@@ -162,8 +163,8 @@ class Ir(Sensor):
         (self.radius, self.angle) = position
 
     def run(self):
-        rawValue = self.ardRef.getValue()
-        self.distance = self.convertValue(rawValue)
+        self.rawValue = self.ardRef.getValue()
+        self.distance = self.convertValue(self.rawValue)
 
     # returns (distance, angle) from center of bot, None if failing
     def getPosition(self):
@@ -171,7 +172,14 @@ class Ir(Sensor):
         
     # takes value from pin and converts it into a distance
     def convertValue(self, value):
-        return 0
+        if value == None:
+            return 0
+
+        #yay excel
+        return 359.92*(value-150)**-1.317
+
+
+
 
 class Ultrasonic(Sensor):
 
@@ -231,3 +239,4 @@ if __name__ == "__main__":
     while True:
         c.DATA().run()
         c.DATA().log()
+        time.sleep(.5)

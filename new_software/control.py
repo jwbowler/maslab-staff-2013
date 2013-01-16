@@ -56,7 +56,7 @@ class Control():
     # This methods calculates motors speeds from a vector
     # Input: speed form -1 to 1 and rotation from -1 to 1(clockwise)
     def setMovement(self,speed, rotation):
-        (r,l) = getMotorSpeed(speed,rotation)
+        (r,l) = getMotorSpeeds(speed,rotation)
         r = boundAndScale(r, 8, 127)
         l = boundAndScale(l, 8, 127)
         self.setRightMotor(r)
