@@ -1,26 +1,30 @@
 from vision import vision_wrapper
-from commander import *
 import math
 import arduino
 
 from config import *
 
+import commander as c
+
 class DataCollection:
     
     # creates data object
     def __init__(self):
+        print c.ARD()
         self.initSensors()
 
     # initializes all the sensors
     def initSensors(self):
         #self.camera = Camera()
-        self.imu = IMU()
-        self.encoderPair = encoderPair()
+        #self.imu = Imu()
+        self.encoderPair = EncoderPair(0,0)
         self.irs = [Ir(IR_PINS[i], IR_POSITIONS[i]) for i in xrange(len(IR_PINS))]
         self.ultrasonics = [Ultrasonic(ULTRASONIC_PINS[i], ULTRASONIC_POSITIONS[i]) for i in xrange(len(ULTRASONIC_PINS))]
 
-        sensors = [self.imu, self.encoderPair, self.irs, self.ultrasonics]
-        self.allSensors = [sensor for type in sensors for sensor in type]
+        self.allSensors = [self.encoderPair]
+        self.allSensors.extend(self.irs)
+        self.allSensors.extend(self.ultrasonics)
+        
         
 
     # calls run on all of its sensors
@@ -33,15 +37,15 @@ class DataCollection:
         #print self.camera
         #print "mine: " + str(self.camera.getMyBalls()) + "theirs: " + str(self.camera.getOpponentBalls())
 
-        print self.imu
+        #print self.imu
 
-        print self.encoderPair + " tics: " + self.encoderPair.getTics()
+        print "ENC - tics: " + str(self.encoderPair.getTics())
 
         for ir in self.irs:
-            print ir + " position: " + ir.getPosition()
+            print "IR - position: " + str(ir.getPosition())
 
         for us in self.ultrasonics:
-            print us + " position: " + us.getPosition()
+            print "US - position: " + str(us.getPosition())
 
         print "~~~DATA~~~\n"
 
@@ -156,49 +160,49 @@ class Ir(Sensor):
 
     # analog pin and position relative bot center
     def __init__(self, pin, position):
-        self.ardRef = arduino.analogInput(Commander.ARD, pin)
+        self.ardRef = arduino.AnalogInput(c.ARD(), pin)
         (self.radius, self.angle) = position
 
     def run(self):
         rawValue = self.ardRef.getValue()
-        self.distance = convertValue(rawValue)
+        self.distance = self.convertValue(rawValue)
 
     # returns (distance, angle) from center of bot, None if failing
     def getPosition(self):
         return (self.radius+self.distance, self.angle)
         
     # takes value from pin and converts it into a distance
-    def convertValue(value):
-        raise NotImplementedError
+    def convertValue(self, value):
+        return 0
 
 class Ultrasonic(Sensor):
 
     # analog pin and position relative bot center
     def __init__(self, pin, position):
-        self.ardRef = arduino.analogInput(Commander.ARD, pin)
+        self.ardRef = arduino.AnalogInput(c.ARD(), pin)
         (self.radius, self.angle) = position
 
     def run(self):
         rawValue = self.ardRef.getValue()
-        self.distance = convertValue(rawValue)
+        self.distance = self.convertValue(rawValue)
 
     # returns (distance, angle) from center of bot, None if failing
     def getPosition(self):
         return (self.radius+self.distance, self.angle)
         
     # takes value from pin and converts it into a distance
-    def convertValue(value):
-        raise NotImplementedError
+    def convertValue(self, value):
+        return 0
 
-class IMU(Sensor):
+class Imu(Sensor):
 
     # analog pin
     def __init__(self):
-        self.imu = arduino.IMU(Commander.ARD)
+        self.imu = arduino.IMU(c.ARD())
 
     def run(self):
         (comp0, comp1, self.accelX, self.accelY, self.accelZ) \
-            = imu.getRawValues()
+            = self.imu.getRawValues()
         self.compassHeading = comp1 * 256 + comp0
 
     # returns current compass heading
@@ -211,20 +215,17 @@ class IMU(Sensor):
 class EncoderPair(Sensor):
 
     # encoder pins
-    def __init__(leftPin, rightPin):
+    def __init__(self, leftPin, rightPin):
         pass
 
     def run(self):
         pass
 
     # returns totals tics taken (left, right)
-    def getTics():
+    def getTics(self):
         pass
 
 if __name__ == "__main__":
-    commander = Commander()
-
     while True:
-        DATA.run()
-        DATA.log()
-        time.sleep(.1)
+        c.DATA().run()
+        c.DATA().log()

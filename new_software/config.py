@@ -7,10 +7,13 @@ ROBOT_RADIUS = .17
 
 # Sensors
 IR_PINS = (0,0,0,0,0)
-# (distance from center, angle from front)
 IR_POSITIONS = ((0,0),(0,0),(0,0),(0,0),(0,0))
+
 ULTRASONIC_PINS =(0,0,0)
+ULTRASONIC_POSITIONS = ((0,0),(0,0),(0,0))
+
 MOTOR_CURRENT_PINS = (0,0,0,0)
+
 BALL_IN_SENSOR_PIN = 0
 BALL_OUT_SENSOR_PIN = 0
 

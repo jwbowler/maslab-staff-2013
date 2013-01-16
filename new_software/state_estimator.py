@@ -1,8 +1,10 @@
+import commander as c
+
 class StateEstimator:
 
     # takes data object
     def __init__(self):
-        self.data = Commander.DATA
+        self.data = c.DATA()
     
     # Updates estimated state according to data in Data class
     def run(self):
@@ -69,12 +71,10 @@ class StateEstimator:
     def getLandmarks(self):
         pass
 
-if name == "__main__":
-   commmander = Commander()
-
+if __name__ == "__main__":
    while True:
-      DATA.run()
-      DATA.log()
+      c.DATA().run()
+      c.DATA().log()
 
-      STATE.run()
-      STATE.log()
+      c.STATE().run()
+      c.STATE().log()

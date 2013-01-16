@@ -1,3 +1,5 @@
+import commander as c
+
 class GoalPlanning:
 
     # List of goals
@@ -6,6 +8,7 @@ class GoalPlanning:
     PRESS_BUTTON = 2
     SCORE_WALL = 3
     WAIT_AT_WALL = 4
+    goalNames = ["FIND_BALLS", "SCORE_TOWER", "PRESS_BUTTON", "SCORE_WALL", "WAIT_AT_WALL"]
     
     START_GOAL = FIND_BALLS
     START_TARGET = None
@@ -17,6 +20,12 @@ class GoalPlanning:
     # Updates current goal according to estimated state
     def run(self):
         pass
+
+    def log(self):
+        print "~~~GOAL~~~"
+        print "Goal: " + self.goalNames[self.getGoal()]
+        print "Target: " + str(self.getTarget())
+        print "~~~GOAL~~~"
         
     # Returns current goal
     def getGoal(self):
@@ -25,3 +34,14 @@ class GoalPlanning:
     # Returns (distance, angle) if applicable to goal, or None if not applicable
     def getTarget(self):
         return self.target
+
+if __name__ == "__main__":
+   while True:
+      c.DATA().run()
+      c.DATA().log()
+
+      c.STATE().run()
+      c.STATE().log()
+
+      c.GOAL.run()
+      c.GOAL.log()

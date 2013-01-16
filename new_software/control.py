@@ -2,20 +2,21 @@ import time
 import sys
 import pid
 import arduino
-import utils
-from Config import *
-from Commander import *
+from config import *
 
-Class Control():
+import commander as c
+
+
+class Control():
 
     # The init BLAM
     def __init__(self):
-        self.roller = arduino.Motor(ARD, ROLLER_PINS[0], ROLLER_PINS[1], ROLLER_PINS[2])
-        self.rightMotor = arduino.Motor(ARD, RIGHT_MOTOR_PINS[0], RIGHT_MOTOR_PINS[2])
-        self.leftMotor = arduino.Motor(ARD, LEFT_MOTOR_PINS[0], LEFT_MOTOR_PINS[1], LEFT_MOTOR_PINS[2])
-        self.helix = arduino.Motor(ARD,HELIX_PINS[0], HELIX_PINS[1], HELIX_PINS[2])
-        self.ramp = arduino.DigitalOutput(ARD, RAMP_SERVO_PIN)
-        self.scorer = arduino.DigitalOutput(ARD, SCORER_PIN)
+        self.roller = arduino.Motor(c.ARD(), ROLLER_PINS[0], ROLLER_PINS[1], ROLLER_PINS[2])
+        self.rightMotor = arduino.Motor(c.ARD(), RIGHT_MOTOR_PINS[0], RIGHT_MOTOR_PINS[2])
+        self.leftMotor = arduino.Motor(c.ARD(), LEFT_MOTOR_PINS[0], LEFT_MOTOR_PINS[1], LEFT_MOTOR_PINS[2])
+        self.helix = arduino.Motor(c.ARD(),HELIX_PINS[0], HELIX_PINS[1], HELIX_PINS[2])
+        self.ramp = arduino.DigitalOutput(c.ARD(), RAMP_SERVO_PIN)
+        self.scorer = arduino.DigitalOutput(c.ARD(), SCORER_PIN)
 
     # This method turns on and off the roller motor
     # Input:Boolean

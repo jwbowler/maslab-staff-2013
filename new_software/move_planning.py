@@ -1,6 +1,6 @@
 import time
 
-from commander import *
+import commander as c
 
 class MovePlanning:
     # List of moves
@@ -19,6 +19,11 @@ class MovePlanning:
     def run(self):
         self.moveObject = self.moveObject.run()
 
+    def log(self):
+        print "~~~MOVE~~~"
+        print 
+        print "~~~MOVE~~~"
+
 class Movement():
     stopped = False
     avoidWalls = True
@@ -33,7 +38,7 @@ class Movement():
         next = self.transition()
         if next == None: next = self
 
-        if (avoidWalls and STATE.nearCollision()):
+        if (avoidWalls and c.STATE().nearCollision()):
             next.stop()
             return AvoidWall(next)
 
@@ -89,7 +94,7 @@ class CaptureBall(Movement):
         target = GOAL.getTarget()
 
         if self.startTime + 2 < time.time():
-            CTRL.setRoller(False)
+            c.CTRL().setRoller(False)
             
             if goal == GOAL.FIND_BALLS:
                 if target == None:
@@ -99,8 +104,8 @@ class CaptureBall(Movement):
                 
 
     def move(self):
-        CTRL.setMove(.5, 0)
-        CTRL.setRoller(True)
+        c.CTRL().setMove(.5, 0)
+        c.CTRL().setRoller(True)
 
 class Align(Movement):
     def __init__(self):
@@ -115,7 +120,7 @@ class Align(Movement):
 
 class RotateInPlace(Movement):
     def __init__(self):
-        self.startAngle = STATE.getAbsoluteAngle()
+        self.startAngle = c.STATE().getAbsoluteAngle()
 
     def transition(self):
         goal = GOAL.getGoal()
@@ -126,7 +131,7 @@ class RotateInPlace(Movement):
                 return ApproachTarget()
 
     def move(self):
-        CTRL.setMovement(0, .5)
+        c.CTRL().setMovement(0, .5)
 
 class ApproachTarget(Movement):
     def __init__(self):
@@ -156,7 +161,7 @@ class ApproachTarget(Movement):
         adjustedSpeed = self.targetSpeed if distance > .33 else self.targetSpeed*distance*3
         adjustedSpeed *= ((90.0-abs(angle))/90.0)
 
-        CTRL.setMovement(adjustedSpeed, self.rotationSpeed * pidVal)
+        c.CTRL().setMovement(adjustedSpeed, self.rotationSpeed * pidVal)
 
     def pause(self):
         self.pid.stop()
@@ -172,8 +177,8 @@ class AvoidWall(Movement):
         goal = GOAL.getGoal()
         target = GOAL.getTarget()
 
-        if STATE.nearCollision():
+        if c.STATE().nearCollision():
             return self.prevMovement
 
     def move(self):
-        CTRL.setMovement(-.5, 0)
+        c.CTRL().setMovement(-.5, 0)
