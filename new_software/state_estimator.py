@@ -10,6 +10,24 @@ class StateEstimator:
         self.myBalls = sorted(myBalls, lambda ball: ball[0])
         self.opponentBalls = self.data.getCamera().getOpponentBalls()
         self.opponentBalls = sorted(myBalls, lambda ball: ball[0])
+
+    def log(self):
+        print "~~~State Log~~~"
+
+        print "My Balls"
+        print self.getMyBalls()
+
+        print "Opponent Balls"
+        print self.getOpponentBalls()
+
+        print "Wall Distances"
+        print self.getWallDistances()
+
+        print "Landmarks"
+        print self.getLandmarks()
+
+        print "~~~State Log done~~~"
+
         
     # Returns set of ball distances and angles:
     # ((distance, angle), (distance, angle), ...)
@@ -47,3 +65,13 @@ class StateEstimator:
     # ((type, ID, distance, angle), ...)
     def getLandmarks(self)
         pass
+
+if name == "__main__":
+   commmander = Commander()
+
+   while True:
+      DATA.run()
+      DATA.log()
+
+      STATE.run()
+      STATE.log()
