@@ -20,6 +20,7 @@ class Arduino(threading.Thread):
     stepperSteps = []
     servoAngles = []
     imuVals = []
+    ultVals = []
 
     # Arrays for keeping track of ports
     digitalInputPorts = []
@@ -30,6 +31,7 @@ class Arduino(threading.Thread):
     stepperPorts = []
     servoPorts = []
     imus = []
+    ults = []
 
     # Initialize the thread and variables
     def __init__(self):
@@ -154,6 +156,13 @@ class Arduino(threading.Thread):
                 y = ord(self.serialRead())
                 z = ord(self.serialRead())
                 self.imuVals[0] = (compass, x, y, z)
+            # ULTs
+            elif (mode == 'J'):
+                length = ord(self.serialRead())
+                # Fill the ultSensors array with incoming data
+                for i in range(length):
+                    self.ultVals[i] = ord(self.serialRead())
+                
             # End of packet
             elif (mode == ';'):
                 done = True
@@ -231,6 +240,13 @@ class Arduino(threading.Thread):
         # IMU component of initializing
         if len(self.imus) > 0:
             output += "U"
+        # Ult component of initializing
+        output += "J"
+        numUlts = len(self.ultPorts)
+        output += chr(numUlts)
+        for (trig, echo) in self.ultPorts:
+            output += chr(trig)
+            output += chr(echo)
         # Terminate the command packet
         output += ";"
 
@@ -301,6 +317,8 @@ class Arduino(threading.Thread):
         return self.analogInputs[index]
     def getIMUVals(self, index):
         return self.imuVals[index]
+    def getUltVals(self, index):
+        return self.ultVals[index]
 
     # Functions to set up the components (these are called through the classes
     # below, don't call these yourself!)
@@ -341,6 +359,10 @@ class Arduino(threading.Thread):
             self.imus = [True]
             self.imuVals = [(0, 0, 0, 0)]
             return 0
+    def addUlt(self, trigPort, echoPort):
+        self.ultPorts.append((trigPort,echoPort))
+        self.ultVals.append(None)
+        return len(self.ultPorts) - 1
 
 # Class to interact with a servo
 class Servo:
@@ -422,3 +444,12 @@ class IMU:
         self.index = self.arduino.addIMU()
     def getRawValues(self):
         return self.arduino.getIMUVals(self.index)
+
+# Class to interat with Ultrasonic Sensor
+class Ult:
+    def __init__ (self, arduino, trigPort, echoPort):
+        self.arduino = arduino
+        self.index = self.arduino.addUlt()
+    def getRawValues(self):
+        return self.arduino.getUltVal(self.index)
+        
