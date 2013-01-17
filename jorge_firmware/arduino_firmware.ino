@@ -13,6 +13,7 @@
 #define inputChar 'I' // For digital/analog input vs. output (init only)
 #define outputChar 'O' // For digital/analog input vs. output (init only)
 #define imuChar 'U'
+#define ultChar 'J'
 #define initChar 'I'
 #define doneChar ';'
 
@@ -40,41 +41,6 @@ class Stepper
       digitalWrite(enablePin, HIGH);
     }
 };
-
-//Defines a class that manages a the ults
-class Ult
-{
-  private:
-  int trigPin, echoPin;
-  
-  public:
-    Ult(int tPin, int ePin)
-    {
-      trigPin = tPin; // Pin to trigger the ultrasound sensor
-      echoPin = ePin; // Pin to read the distance
-      pinMode(trigPin, OUTPUT);
-      pinMode(echoPin, INPUT);
-    }
-    unsigned long trigger()
-    {
-      // The PING))) is triggered by a HIGH pulse of 2 or more microseconds.
-      // Give a short LOW pulse beforehand to ensure a clean HIGH pulse:
-      pinMode(trigPin, OUTPUT);// attach pin 3 to Trig
-      digitalWrite(trigPin, LOW);
-      delayMicroseconds(2);
-      digitalWrite(trigPin, HIGH);
-      delayMicroseconds(5);
-      digitalWrite(trigPin, LOW); 
-
-      // The same pin is used to read the signal from the PING))): a HIGH
-      // pulse whose duration is the time (in microseconds) from the sending
-      // of the ping to the reception of its echo off of an object.
-      pinMode (echoPin, INPUT);//attach pin 4 to Echo
-      (unsigned long)duration = pulseIn(echoPin, HIGH);
-      return duration
-    }
-
-}
 
 // Define a class that manages a motor (through the
 // Dagu 4-channel motor controller board)
@@ -114,8 +80,6 @@ Stepper** steppers;
 // Dynamic array of all the servo ports
 Servo** servos;
 // Dynamic array of all the digital ports
-Ult** ults;
-// Dynamic array of all the ultrasound sensors
 int* digitalInputPorts;
 int* digitalOutputPorts;
 // Dynamic array of all the analog ports
@@ -137,7 +101,6 @@ int numDigitalOutput = 0;
 int numAnalogInput = 0;
 int numAnalogOutput = 0;
 int numImus = 0;
-int numUlts = 0;
 
 int resetCounter = 0;
 
@@ -150,34 +113,6 @@ char serialRead()
   return in;
 }
 
-// Handles ultrasonic sensor initialization
-void ultInit()
-{
-  int tPin, ePin;
-  Ult* tempUlt;
-
-  // Free up any allocated memory from before
-  for (int i = 0 ; i < numUlts; i++)
-  {
-    free(ults[i])
-  }
-  free(ults);
-
-  // Read in the new numUlts
-  numUlts = (int) serialRead();
-  // Reallocate the array
-  ults = (Ult**) malloc(sizeof(Ult*) * numUlts);
-  for (int = i; i < numUlts; i++)
-  {
-    // Create the Ult object and store
-    // it in the array
-    tPin = (int)serialRead();
-    ePin = (int)serialRead();
-    tempUlt = new Ult(tPin, ePin);
-    ults[i] = tempUlt;
-  }
-}
-  
 // Handles the motor component of initialization
 void motorInit()
 {
@@ -383,6 +318,9 @@ void initAll()
       case imuChar:
         imuInit();
         break;
+      case ultChar:
+        ultInit();
+        break;
     }
   }
 }
@@ -437,11 +375,11 @@ void loop()
           moveMotors();
           break;
 
-        case stepperChar:
-          // Process the next charaters and use them to set stepper
-          // steps
-          stepSteppers();
-          break;
+	case stepperChar:
+	  // Process the next charaters and use them to set stepper
+	  // steps
+	  stepSteppers();
+	  break;
   
         case servoChar:
           // Process the next characters and use them to set servo
@@ -450,12 +388,12 @@ void loop()
           break;
 
         case digitalChar:
-          digitalOutput();
-          break;
+	  digitalOutput();
+	  break;
 
         case analogChar:
-          analogOutput();
-          break;
+	  analogOutput();
+	  break;
   
         case doneChar:
           // We're done reading in input from python
@@ -511,35 +449,6 @@ void loop()
       Serial.write(byte1);
     }
     
-    // Write Ults data
-    // Add our mode character
-    Serial.write(ultChar)
-    // Add the number of sensors
-    // Add 1 because the 0 terminates the string
-    Serial.write((char)numUlts);
-    // Add all the sensor data
-    for (int i = 0; i < numUlts; i++)
-    {
-       // Analog read the ith ult and decompose into two bytes
-      int analogVal = analogRead(analogInputPorts[i]);
-      unsigned char byte0 = analogVal % 256;
-      unsigned char byte1 = analogVal / 256;
-      // Do a little tweaking to make sure we don't send a null byte
-      // by accident. We possibly lose a little bit of accuracy
-      // here.
-      if (byte0 != 255)
-      {
-        byte0++;
-      }
-      if (byte1 != 255)
-      {
-        byte1++;
-      }
-
-      // Write the two bytes to the retVal, byte0 first
-      Serial.write(byte0);
-      Serial.write(byte1); 
-    }
     // Write IMU data
     if (numImus > 0)
     {
@@ -566,6 +475,30 @@ void loop()
       Serial.write((char)min((int)(fZg*256), 255));
     }
 
+    if(numUlt > 0)
+    {
+    //Add mode character
+    serial.write(ultChar);
+    digitalWrite(2, HIGH);
+    // establish variables for duration of the ping,
+    // and the distance result in inches and centimeters:
+    long duration, inches, cm;
+
+    // The PING))) is triggered by a HIGH pulse of 2 or more microseconds.
+    // Give a short LOW pulse beforehand to ensure a clean HIGH pulse:
+    pinMode(3, OUTPUT);// attach pin 3 to Trig
+    digitalWrite(3, LOW);
+    delayMicroseconds(2);
+    digitalWrite(3, HIGH);
+    delayMicroseconds(5);
+    digitalWrite(3, LOW);
+
+    // The same pin is used to read the signal from the PING))): a HIGH
+    // pulse whose duration is the time (in microseconds) from the sending
+    // of the ping to the reception of its echo off of an object.
+    pinMode (4, INPUT);//attach pin 4 to Echo
+    duration = pulseIn(4, HIGH);
+    }
     // Terminate the packet
     Serial.write(';');
   }
