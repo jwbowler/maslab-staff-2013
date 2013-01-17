@@ -13,6 +13,7 @@
 #define inputChar 'I' // For digital/analog input vs. output (init only)
 #define outputChar 'O' // For digital/analog input vs. output (init only)
 #define imuChar 'U'
+#define ultChar 'J'
 #define initChar 'I'
 #define doneChar ';'
 
@@ -57,6 +58,7 @@ class Ult
     }
     unsigned long trigger()
     {
+      unsigned long duration;
       // The PING))) is triggered by a HIGH pulse of 2 or more microseconds.
       // Give a short LOW pulse beforehand to ensure a clean HIGH pulse:
       pinMode(trigPin, OUTPUT);// attach pin 3 to Trig
@@ -70,11 +72,11 @@ class Ult
       // pulse whose duration is the time (in microseconds) from the sending
       // of the ping to the reception of its echo off of an object.
       pinMode (echoPin, INPUT);//attach pin 4 to Echo
-      (unsigned long)duration = pulseIn(echoPin, HIGH);
-      return duration
+      duration = pulseIn(echoPin, HIGH);
+      return duration;
     }
 
-}
+};
 
 // Define a class that manages a motor (through the
 // Dagu 4-channel motor controller board)
@@ -159,7 +161,7 @@ void ultInit()
   // Free up any allocated memory from before
   for (int i = 0 ; i < numUlts; i++)
   {
-    free(ults[i])
+    free(ults[i]);
   }
   free(ults);
 
@@ -167,7 +169,7 @@ void ultInit()
   numUlts = (int) serialRead();
   // Reallocate the array
   ults = (Ult**) malloc(sizeof(Ult*) * numUlts);
-  for (int = i; i < numUlts; i++)
+  for (int i = 0; i < numUlts; i++)
   {
     // Create the Ult object and store
     // it in the array
@@ -513,7 +515,7 @@ void loop()
     
     // Write Ults data
     // Add our mode character
-    Serial.write(ultChar)
+    Serial.write(ultChar);
     // Add the number of sensors
     // Add 1 because the 0 terminates the string
     Serial.write((char)numUlts);
@@ -521,9 +523,11 @@ void loop()
     for (int i = 0; i < numUlts; i++)
     {
        // Analog read the ith ult and decompose into two bytes
-      int analogVal = analogRead(analogInputPorts[i]);
-      unsigned char byte0 = analogVal % 256;
-      unsigned char byte1 = analogVal / 256;
+      unsigned long duration = ults[i]->trigger();
+      unsigned char byte0 = duration % 256;
+      unsigned char byte1 = (duration/256)%256;
+      unsigned char byte2 = (duration/256)%256;
+      unsigned char byte3 = (duration/256)%256;
       // Do a little tweaking to make sure we don't send a null byte
       // by accident. We possibly lose a little bit of accuracy
       // here.
@@ -535,10 +539,19 @@ void loop()
       {
         byte1++;
       }
-
+      if (byte2 != 255)
+      {
+        byte2++;
+      }
+      if (byte3 != 255)
+      {
+        byte3++;
+      }
       // Write the two bytes to the retVal, byte0 first
       Serial.write(byte0);
-      Serial.write(byte1); 
+      Serial.write(byte1);
+      Serial.write(byte2);
+      Serial.write(byte3);
     }
     // Write IMU data
     if (numImus > 0)

@@ -161,7 +161,12 @@ class Arduino(threading.Thread):
                 length = ord(self.serialRead())
                 # Fill the ultSensors array with incoming data
                 for i in range(length):
-                    self.ultVals[i] = ord(self.serialRead())
+                    byte0 = ord(self.serialRead())
+                    byte1 = ord(self.serialRead())
+                    byte2 = ord(self.serialRead())
+                    byte3 = ord(self.serialRead())
+                    duration = (256**3)*byte3 + (256**2)*byte2 +256*byte1 +byte0
+                    self.ultVals[i] = ord(duration)
                 
             # End of packet
             elif (mode == ';'):
@@ -241,12 +246,13 @@ class Arduino(threading.Thread):
         if len(self.imus) > 0:
             output += "U"
         # Ult component of initializing
-        output += "J"
-        numUlts = len(self.ultPorts)
-        output += chr(numUlts)
-        for (trig, echo) in self.ultPorts:
-            output += chr(trig)
-            output += chr(echo)
+        if len(self.ults) > 0:
+            output += "J"
+            numUlts = len(self.ultPorts)
+            output += chr(numUlts)
+            for (trig, echo) in self.ultPorts:
+                output += chr(trig)
+                output += chr(echo)
         # Terminate the command packet
         output += ";"
 
