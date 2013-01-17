@@ -61,17 +61,14 @@ class Ult
       unsigned long duration;
       // The PING))) is triggered by a HIGH pulse of 2 or more microseconds.
       // Give a short LOW pulse beforehand to ensure a clean HIGH pulse:
-      pinMode(trigPin, OUTPUT);// attach pin 3 to Trig
       digitalWrite(trigPin, LOW);
       delayMicroseconds(2);
       digitalWrite(trigPin, HIGH);
       delayMicroseconds(5);
       digitalWrite(trigPin, LOW); 
 
-      // The same pin is used to read the signal from the PING))): a HIGH
       // pulse whose duration is the time (in microseconds) from the sending
       // of the ping to the reception of its echo off of an object.
-      pinMode (echoPin, INPUT);//attach pin 4 to Echo
       duration = pulseIn(echoPin, HIGH);
       return duration;
     }

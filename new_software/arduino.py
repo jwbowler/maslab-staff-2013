@@ -31,7 +31,7 @@ class Arduino(threading.Thread):
     stepperPorts = []
     servoPorts = []
     imus = []
-    ults = []
+    ultPorts = []
 
     # Initialize the thread and variables
     def __init__(self):
@@ -127,7 +127,8 @@ class Arduino(threading.Thread):
             if (mode == chr(0)):
                 print "Timeout"
                 break
-            #print "Got:", mode
+
+            print "Got:", mode
 
             # Process arguments based on mode
             # Digital
@@ -160,13 +161,17 @@ class Arduino(threading.Thread):
             elif (mode == 'J'):
                 length = ord(self.serialRead())
                 # Fill the ultSensors array with incoming data
+                print "got ult msg"
                 for i in range(length):
+                    print "ult " + str(i)
                     byte0 = ord(self.serialRead())
                     byte1 = ord(self.serialRead())
                     byte2 = ord(self.serialRead())
                     byte3 = ord(self.serialRead())
+                    print (byte0, byte1, byte2, byte3)
                     duration = (256**3)*byte3 + (256**2)*byte2 +256*byte1 +byte0
-                    self.ultVals[i] = ord(duration)
+                    print duration
+                    self.ultVals[i] = duration
                 
             # End of packet
             elif (mode == ';'):
@@ -246,7 +251,7 @@ class Arduino(threading.Thread):
         if len(self.imus) > 0:
             output += "U"
         # Ult component of initializing
-        if len(self.ults) > 0:
+        if len(self.ultPorts) > 0:
             output += "J"
             numUlts = len(self.ultPorts)
             output += chr(numUlts)
@@ -259,7 +264,7 @@ class Arduino(threading.Thread):
         self.port.write(output)
         self.port.flush()
 
-        print "Init", output
+        print "Init", output, len(output)
 
     # Build a packet that stops all motors and actuators and
     # flush it. This is called when the arduino thread is
@@ -323,7 +328,9 @@ class Arduino(threading.Thread):
         return self.analogInputs[index]
     def getIMUVals(self, index):
         return self.imuVals[index]
-    def getUltVals(self, index):
+    def getUltVal(self, index):
+        print "getUltVal array"
+        print self.ultVals
         return self.ultVals[index]
 
     # Functions to set up the components (these are called through the classes
@@ -455,7 +462,7 @@ class IMU:
 class Ult:
     def __init__ (self, arduino, trigPort, echoPort):
         self.arduino = arduino
-        self.index = self.arduino.addUlt()
+        self.index = self.arduino.addUlt(trigPort,echoPort)
     def getRawValues(self):
         return self.arduino.getUltVal(self.index)
         

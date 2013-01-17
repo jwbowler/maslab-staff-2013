@@ -8,4 +8,4 @@ ard.run()
 
 while True:
   print str(ult.getRawValues())
-  time.sleep(0.1)
+  time.sleep(1.0)
