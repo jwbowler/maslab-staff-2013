@@ -11,6 +11,7 @@ class StateEstimator:
     
     # Updates estimated state according to data in Data class
     def run(self):
+        self.computeRelativeAngle()
         self.myBalls = self.data.getCamera().getMyBalls()
         self.myBalls = sorted(self.myBalls, lambda ball: ball[0])
         self.opponentBalls = self.data.getCamera().getOpponentBalls()

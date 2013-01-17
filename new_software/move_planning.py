@@ -25,13 +25,16 @@ class MovePlanning:
         print "~~~MOVE~~~"
 
 class Movement():
-    stopped = False
-    avoidWalls = True
+    def __init__(self):
+        self.stopped = False
+        self.avoidWalls = False
+        self.startTime = time.time()
 
     def run(self):
 
         if (self.stopped):
             self.stopped = False
+            self.startTime = time.time()
             self.resume()
 
         self.move()
@@ -67,30 +70,81 @@ class Movement():
 
 class WallFollow(Movement):
     def __init__(self):
-        pass
+        Movement.__init__(self)
+        self.startAngle = c.STATE().getRelativeAngle()
 
     def transition(self):
         goal = c.GOAL().getGoal()
         target = c.GOAL().getTarget()
 
+        if goal == c.GOAL().FIND_BALLS:
+            if target != None:
+                return ApproachTarget()
+
     def move(self):
+        if (not self.pid.running):
+            self.pid.start(angle, self.target[0])
+
+        pidVal = self.pid.iterate(angle)
+
+        #slowdown when close, slowdown when off-angle 
+        adjustedSpeed = self.targetSpeed if distance > .33 else self.targetSpeed*distance*3
+        adjustedSpeed = 0 if angle > 15 else ((30.0-abs(angle))/30.0)
+
+        c.CTRL().setMovement(adjustedSpeed, self.rotationSpeed * pidVal)
         pass
 
 class MoveToOpen(Movement):
     def __init__(self):
-        pass
+        Movement.__init__(self)
+        self.startAngle = c.STATE().getRelativeAngle()
+        self.angleMap = []
+        self.target = None
+
+        self.pid = Pid(.03, .005, .005, 100)
+        self.targetSpeed = .5
 
     def transition(self):
         goal = c.GOAL().getGoal()
         target = c.GOAL().getTarget()
+        distance = c.STATE().getCollisionDistance()
+
+        if goal == c.GOAL().FIND_BALLS:
+            if target != None:
+                return ApproachTarget()
+            else:
+                if distance < .25
+                    return WallFollow()
 
     def move(self):
-        pass
+        angle = c.STATE().getRelativeAngle()
+        distance = c.STATE().getCollisionDistance()
+
+        if self.target != None: #go in most open direction
+            if (not self.pid.running):
+                self.pid.start(angle, self.target[0])
+
+            pidVal = self.pid.iterate(angle)
+
+            #slowdown when close, slowdown when off-angle 
+            adjustedSpeed = self.targetSpeed if distance > .33 else self.targetSpeed*distance*3
+            adjustedSpeed = 0 if angle > 15 else ((30.0-abs(angle))/30.0)
+
+            c.CTRL().setMovement(adjustedSpeed, self.rotationSpeed * pidVal)
+        else:
+            if abs(angle-self.startAngle) < 360: #rotate to find openning
+                self.angleMap[] = (angle, distance)
+                c.CTRL().setMove(0, .5)
+            else #choose most open angle
+                self.target= (0,0)
+                for (angle, dist) in self.angleMap:
+                    if self.target[1] < dist:
+                        self.target = (angle, dist)
 
 class CaptureBall(Movement):
     def __init__(self):
+        Movement.__init__(self)
         setAvoidWalls(False)
-        self.startTime = time.time()
 
     def transition(self):
         goal = c.GOAL().getGoal()
@@ -112,7 +166,7 @@ class CaptureBall(Movement):
 
 class Align(Movement):
     def __init__(self):
-        pass
+        Movement.__init__(self)
 
     def transition(self):
         goal = c.GOAL().getGoal()
@@ -123,7 +177,8 @@ class Align(Movement):
 
 class RotateInPlace(Movement):
     def __init__(self):
-        self.startAngle = c.STATE().getAbsoluteAngle()
+        Movement.__init__(self)
+        self.startAngle = c.STATE().getRelativeAngle()
 
     def transition(self):
         goal = c.GOAL().getGoal()
@@ -138,8 +193,8 @@ class RotateInPlace(Movement):
 
 class ApproachTarget(Movement):
     def __init__(self):
+        Movement.__init__(self)
         self.targetSpeed = .5
-        self.startTime = time.time()
         self.pid = Pid(.03, .005, .005, 100)
 
     def transition(self):
@@ -169,8 +224,6 @@ class ApproachTarget(Movement):
     def pause(self):
         self.pid.stop()
 
-    def resume(self):
-        self.startTime = time.time()
 
 class AvoidWall(Movement):
     def __init__(self, prevMovement):

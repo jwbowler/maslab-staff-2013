@@ -65,6 +65,7 @@ def go():
     GOAL()
     MOVE()
     CTRL()
+    ARD.run()
 
     while True:
         DATA().run()
