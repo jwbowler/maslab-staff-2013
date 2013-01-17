@@ -33,8 +33,11 @@ class VisionWrapper:
         while (conn.poll()):
             (self.timestamp, data) = conn.recv()
         self.frameID = data[0]
-        data = [obj for obj in data[1:] if obj[0] != '']
-        self.numObjects = len(self.data)
+        self.data = [obj for obj in data[1:] if obj[0] != '']
+        if self.data == None:
+            self.numObjects = 0
+        else:
+            self.numObjects = len(self.data)
         return True
 	
     def stop(self):
@@ -74,7 +77,7 @@ def f(conn):
         while (True):
             data = vision.step()
             timestamp = time.time()
-            conn.send((time, data))
+            conn.send((timestamp, data))
     except KeyboardInterrupt:
         pass
         
@@ -82,5 +85,15 @@ if __name__ == '__main__':
     # test
     vw = VisionWrapper()
     vw.start()
+    startTime = time.time()
+    avgTime = 0
+    while True:
+        if not vw.update():
+            continue
+        endTime = time.time()
+        duration = endTime - startTime
+        startTime = endTime
+        avgTime = 0.9*avgTime + 0.1*duration
+        print 1/avgTime
     vw.stop()
         
