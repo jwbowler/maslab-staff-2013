@@ -13,14 +13,14 @@ class StateEstimator:
     
     # Updates estimated state according to data in Data class
     def run(self):
-        self.computeRelativeAngle()
+        #self.computeRelativeAngle()
 
         if c.DATA().getCamera().hasNewFrame():
             self.myBalls = sorted(self.data.getCamera().getMyBalls())
             self.opBalls = sorted(self.data.getCamera().getOpBalls())
 
             self.angleAtLastFrame = self.relativeAngle
-        else:
+        elif False:
             shift = self.relativeAngle - self.angleAtLastFrame
             self.myBalls = [(b[0], b[1]+shift) for b in self.myBalls]
             self.opBalls = [(b[0], b[1]+shift) for b in self.opBalls]
@@ -102,6 +102,9 @@ class StateEstimator:
         pass
 
     def getAbsoluteAngle(self):
+        return 0.0
+
+    def getRelativeAngle(self):
         return 0.0
 
 if __name__ == "__main__":

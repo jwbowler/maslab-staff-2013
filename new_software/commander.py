@@ -1,5 +1,6 @@
 from arduino import Arduino
-from data_collection import DataCollection
+#from data_collection import DataCollection
+import data_collection as d
 from state_estimator import StateEstimator
 from goal_planning import GoalPlanning
 from move_planning import MovePlanning
@@ -31,7 +32,7 @@ def ARD():
 
 def DATA():
     if Commander.data == None:
-        Commander.data = DataCollection()
+        Commander.data = d.DataCollection()
     return Commander.data
 
 def STATE():
@@ -65,7 +66,7 @@ def go():
     GOAL()
     MOVE()
     CTRL()
-    ARD.run()
+    ARD().run()
 
     while True:
         DATA().run()

@@ -121,6 +121,8 @@ class Camera(Sensor):
             self.myBallColor = "RED_BALL"
             self.opBallColor = "GREEN_BALL"
 
+        self.isNewFrame = False
+
     # stops OpenCV thread
     def stopThread(self):
         self.vision.stop()
