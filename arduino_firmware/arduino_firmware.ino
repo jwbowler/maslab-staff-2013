@@ -175,6 +175,7 @@ void ultInit()
     tempUlt = new Ult(tPin, ePin);
     ults[i] = tempUlt;
   }
+  
 }
   
 // Handles the motor component of initialization
@@ -382,6 +383,9 @@ void initAll()
       case imuChar:
         imuInit();
         break;
+      case ultChar:
+        ultInit();
+        break;
     }
   }
 }
@@ -521,34 +525,17 @@ void loop()
     {
        // Analog read the ith ult and decompose into two bytes
       unsigned long duration = ults[i]->trigger();
-      unsigned char byte0 = duration % 256;
-      unsigned char byte1 = (duration/256)%256;
-      unsigned char byte2 = (duration/256)%256;
-      unsigned char byte3 = (duration/256)%256;
-      // Do a little tweaking to make sure we don't send a null byte
-      // by accident. We possibly lose a little bit of accuracy
-      // here.
-      if (byte0 != 255)
-      {
-        byte0++;
-      }
-      if (byte1 != 255)
-      {
-        byte1++;
-      }
-      if (byte2 != 255)
-      {
-        byte2++;
-      }
-      if (byte3 != 255)
-      {
-        byte3++;
-      }
+      char durBuf[4];
+      durBuf[0] = (char)((duration >> 24) & 0xFF) ;
+      durBuf[1] = (char)((duration >> 16) & 0xFF) ;
+      durBuf[2] = (char)((duration >> 8) & 0XFF);
+      durBuf[3] = (char)((duration & 0XFF));
+
       // Write the two bytes to the retVal, byte0 first
-      Serial.write(byte0);
-      Serial.write(byte1);
-      Serial.write(byte2);
-      Serial.write(byte3);
+      Serial.write(durBuf[0]);
+      Serial.write(durBuf[1]);
+      Serial.write(durBuf[2]);
+      Serial.write(durBuf[3]);
     }
     // Write IMU data
     if (numImus > 0)
