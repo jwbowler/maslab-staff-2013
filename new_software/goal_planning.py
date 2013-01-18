@@ -17,7 +17,8 @@ class GoalPlanning:
     
     # Updates current goal according to estimated state
     def run(self):
-        pass
+        if self.goal == GoalPlanning.FIND_BALLS:
+            self.target = c.STATE().getMyNearestBall()
 
     def log(self):
         print "~~~GOAL~~~"

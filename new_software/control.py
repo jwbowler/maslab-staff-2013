@@ -43,22 +43,22 @@ class Control():
     # This method sets the speed of the left motor
     # Input: int from -1 to 1 inclusive
     def setLeftMotor(self,speed):
-        speed = boundAndScale(speed, 8, 127)
+        speed = boundAndScale(speed, 34, 127)
         self.leftMotor.setSpeed(speed)
+        print "LEFT MOTOR: " + str(speed)
 
     # This method sets the speed of the right motor
     # Input: int from -1 to 1 inclusive
     def setRightMotor(self,speed):
-        speed = boundAndScale(speed, 8, 127)
+        speed = boundAndScale(speed, 31, 124)
         self.rightMotor.setSpeed(speed)
+        print "RIGHT MOTOR: " + str(speed)
     
 
     # This methods calculates motors speeds from a vector
     # Input: speed form -1 to 1 and rotation from -1 to 1(clockwise)
     def setMovement(self,speed, rotation):
         (r,l) = getMotorSpeeds(speed,rotation)
-        r = boundAndScale(r, 8, 127)
-        l = boundAndScale(l, 8, 127)
         self.setRightMotor(r)
         self.setLeftMotor(l)
 
@@ -93,7 +93,10 @@ def boundAndScale(value, oMin, oMax):
 
     value *= (oMax-oMin)/(iMax-iMin)
     if value > thresh:
-       value += oMin
+        value += oMin
+
+    if value > oMax:
+        value = oMax
 
     value *= sign
     return int(value)
@@ -119,6 +122,11 @@ if __name__=="__main__":
 
     time.sleep(1)
 
+    print "Testing Roller"
+    c.CTRL().setRoller(True)
+    time.sleep(2)
+    c.CTRL().setRoller(False)
+    
     print "Ramping left"
     #.25
     for i in xrange(20):
@@ -139,10 +147,6 @@ if __name__=="__main__":
 
     c.CTRL().setRightMotor(0)
 
-    print "Testing Roller"
-    c.CTRL().setRoller(True)
-    time.sleep(3)
-    c.CTRL().setRoller(False)
     
     print "Testing Left Motor"
     c.CTRL().setLeftMotor(.5)

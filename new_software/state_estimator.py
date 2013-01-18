@@ -10,6 +10,8 @@ class StateEstimator:
         self.data = c.DATA()
         self.relativeAngle = None
         self.lastImageStamp = None
+        self.myBalls = []
+        self.opBalls = []
     
     # Updates estimated state according to data in Data class
     def run(self):
@@ -40,6 +42,9 @@ class StateEstimator:
         print "Collision Distance"
         print self.getCollisionDistance()
 
+        print "Near Collision?"
+        print self.nearCollision()
+
         print "Landmarks"
         print self.getLandmarks()
 
@@ -69,6 +74,8 @@ class StateEstimator:
         
     # Returns (distance, angle) of nearest ball
     def getMyNearestBall(self):
+        if len(self.myBalls) == 0:
+            return None
         return self.myBalls[0]
 
     # Returns set of ball distances and angles:
@@ -78,6 +85,8 @@ class StateEstimator:
         
     # Returns (distance, angle) of nearest ball
     def getOpBall(self):
+        if len(self.opBalls) == 0:
+            return None
         return self.opBalls[0]
     
     # Returns set of wall distances ond angles from all sensors:
@@ -89,12 +98,13 @@ class StateEstimator:
     # before it hits a wall
     def getCollisionDistance(self):
         dist = [ir.getPosition() for ir in self.data.getIr()]
+        dist.extend([ult.getPosition() for ult in self.data.getUlt()])
         dist = [p[0]/math.cos(math.radians(p[1])) - ROBOT_RADIUS for p in dist]
         return min(dist)
 
 
     def nearCollision(self):
-        return (self.getCollisionDistance() < .05)
+        return (self.getCollisionDistance() < .07)
     
     # Returns landmarks like QR codes and the goal tower:
     # ((type, ID, distance, angle), ...)

@@ -65,7 +65,7 @@ class DataCollection:
     # return ultobject at given index or all ultobjects
     # Input: index (0 be the leftmost)
     def getUlt(self, index = -1):
-        return self.ult if index == -1 else self.ult[index]
+        return self.ults if index == -1 else self.ults[index]
 
     # returns IMU object
     def getIMU(self):
@@ -139,21 +139,21 @@ class Camera(Sensor):
     # returns (dist, angle) for all my balls
     def getMyBalls(self):
         myBallIndices = self.vision.getIndicesByType(self.myBallColor)
-        myBalls = [(vision.getX(i), vision.getY(i)) \
+        myBalls = [(self.vision.getX(i), self.vision.getY(i)) \
                    for i in myBallIndices]
-        myBallsConverted = [convCoords(coords) for coords in myBalls]
+        myBallsConverted = [self.convCoords(coords) for coords in myBalls]
         return myBallsConverted
 
     # returns (dist, angle) to all opponent balls
     def getOpBalls(self):
         theirBallIndices = self.vision.getIndicesByType(self.opBallColor)
-        theirBalls = [(vision.getX(i), vision.getY(i)) \
+        theirBalls = [(self.vision.getX(i), self.vision.getY(i)) \
                       for i in theirBallIndices]
-        theirBallsConverted = [convCoords(coords) for coords in theirBalls]
+        theirBallsConverted = [self.convCoords(coords) for coords in theirBalls]
         return theirBallsConverted
 
     # returns (dist, angle) given x and y pixel coordinates (from upper left)
-    def convCoords(x, y):
+    def convCoords(self, (x, y)):
         angle2obj = (self.angle + self.vfov/2   \
                      - self.vfov*(1.0 * y / self.imHeight))
         d = self.elev * math.tan((math.pi/180) * angle2obj)
