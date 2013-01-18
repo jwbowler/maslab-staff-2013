@@ -118,8 +118,8 @@ class Camera(Sensor):
             self.myBallColor = "RED_BALL"
             self.opBallColor = "GREEN_BALL"
         else:
-            self.myBallColor = "RED_BALL"
-            self.opBallColor = "GREEN_BALL"
+            self.myBallColor = "GREEN_BALL"
+            self.opBallColor = "RED_BALL"
 
         self.isNewFrame = False
 
@@ -160,6 +160,7 @@ class Camera(Sensor):
         if d < 0:
             d = math.isInf()
         a = (x - (self.imHeight/2.)) * self.hfov / self.imWidth
+        a -= 10  # fudge factor
         return (d, a)
 
 class Ir(Sensor):
@@ -168,6 +169,7 @@ class Ir(Sensor):
     def __init__(self, pin, position):
         self.ardRef = arduino.AnalogInput(c.ARD(), pin)
         (self.radius, self.angle) = position
+        self.distance = -1
 
     def run(self):
         self.rawValue = self.ardRef.getValue()
@@ -180,7 +182,7 @@ class Ir(Sensor):
     # takes value from pin and converts it into a distance
     def convertValue(self, value):
         if value == None:
-            return 0
+            return 1000
 
         #yay excel
         return 359.92*(value-150)**-1.317
@@ -194,6 +196,7 @@ class Ult(Sensor):
     def __init__(self, (trig, echo), position):
         self.ardRef = arduino.Ult(c.ARD(), trig, echo)
         (self.radius, self.angle) = position
+        self.distance = -1
 
     def run(self):
         self.distance = self.ardRef.getValMeters()

@@ -1,5 +1,5 @@
 # Game variables
-MY_BALLS_ARE_RED = True
+MY_BALLS_ARE_RED = False 
 TIME_BEFORE_HALT = -1 # value <= 0 --> never stops
 
 # Robot properties
@@ -18,10 +18,10 @@ BALL_IN_SENSOR_PIN = 0
 BALL_OUT_SENSOR_PIN = 0
 
 # Motors (current, dir, pwm)
-ROLLER_PINS = (11,3,4)
-RIGHT_MOTOR_PINS = (11,5,6)
-LEFT_MOTOR_PINS = (11,9,10)
-HELIX_PINS = (11,7,8)
+ROLLER_PINS = (8,11,12)
+RIGHT_MOTOR_PINS = (8,5,6)
+LEFT_MOTOR_PINS = (8,9,10)
+HELIX_PINS = (8, 3, 4)
 RAMP_SERVO_PIN = 0
 SCORER_PIN=0
 
@@ -33,5 +33,5 @@ LEFT_MOTOR_MIN = 8
 LEFT_MOTOR_MAX = 127
 
 ROLLER_SPEED=-80
-HELIX_SPEED=0
+HELIX_SPEED=60
 

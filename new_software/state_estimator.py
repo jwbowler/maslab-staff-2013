@@ -92,19 +92,20 @@ class StateEstimator:
     # Returns set of wall distances ond angles from all sensors:
     # ((distance, angle), (distance, angle), ...)
     def getWallDistances(self):
-        return [ir.getPosition() for ir in self.data.getIr()]
+        dist = [ir.getPosition() for ir in self.data.getIr()]
+        dist.extend([ult.getPosition() for ult in self.data.getUlt()])
+        return dist
         
     # Returns the forward distance that the robot can travel
     # before it hits a wall
     def getCollisionDistance(self):
-        dist = [ir.getPosition() for ir in self.data.getIr()]
-        dist.extend([ult.getPosition() for ult in self.data.getUlt()])
+        dist = self.getWallDistances()
         dist = [p[0]/math.cos(math.radians(p[1])) - ROBOT_RADIUS for p in dist]
         return min(dist)
 
 
     def nearCollision(self):
-        return (self.getCollisionDistance() < .07)
+        return (self.getCollisionDistance() < .12)
     
     # Returns landmarks like QR codes and the goal tower:
     # ((type, ID, distance, angle), ...)

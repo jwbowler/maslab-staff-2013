@@ -1,7 +1,7 @@
 #ifndef _VISION_H
 #define _VISION_H
 
-#define CAMERA 1
+#define CAMERA 0
 
 #include "opencv2/opencv.hpp"
 #include <iostream>
@@ -12,7 +12,7 @@ using namespace cv;
 using namespace std;
 
 const string obj[] = {"RED_BALL", "GREEN_BALL", "YELLOW_WALL", "BLUE_WALL", "PURPLE_GOAL", "BLACK BUTTON"};
-const bool obj_toggle[] = {true, true, true, false, false, true};
+const bool obj_toggle[] = {true, true, false, false, false, false};
 const int num_obj = 6;
 const double downsample_factor = 0.2;
 

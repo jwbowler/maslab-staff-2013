@@ -7,6 +7,7 @@ from move_planning import MovePlanning
 from control import Control
 import config
 import signal
+import sys
 
 
 class Alarm(Exception):
@@ -71,8 +72,11 @@ def go():
     while True:
         DATA().run()
         STATE().run()
+        STATE().log()
         GOAL().run()
+        GOAL().log()
         MOVE().run()
+        MOVE().log()
 
 def stop():
     DATA().stopVisionThread()

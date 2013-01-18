@@ -21,9 +21,9 @@ class MovePlanning:
         self.moveObject = self.moveObject.run()
 
     def log(self):
-        print "~~~MOVE~~~"
+        #print "~~~MOVE~~~"
         print self.moveObject
-        print "~~~MOVE~~~"
+        #print "~~~MOVE~~~"
 
 class Movement():
     def __init__(self):
@@ -162,7 +162,7 @@ class CaptureBall(Movement):
                 
 
     def move(self):
-        c.CTRL().setMovement(.5, 0)
+        c.CTRL().setMovement(.6, 0)
         c.CTRL().setRoller(True)
 
 class Align(Movement):
@@ -190,13 +190,13 @@ class RotateInPlace(Movement):
                 return ApproachTarget()
 
     def move(self):
-        c.CTRL().setMovement(0, .5)
+        c.CTRL().setMovement(0, .4)
 
 class ApproachTarget(Movement):
     def __init__(self):
         Movement.__init__(self)
         self.targetSpeed = .5
-        self.rotationSpeed = .3
+        self.rotationSpeed = .25
         self.pid = pid.Pid(.03, .005, .005, 100)
 
     def transition(self):
@@ -241,7 +241,7 @@ class AvoidWall(Movement):
             return self.prevMovement
 
     def move(self):
-        c.CTRL().setMovement(-.5, 0)
+        c.CTRL().setMovement(-.6, .4)
 
 if __name__ == "__main__":
     c.ARD()
@@ -252,16 +252,26 @@ if __name__ == "__main__":
     c.CTRL()
     c.ARD().run()
 
+    nextTime = time.time() + .5
+
+    startTime = time.time()
+
     while True:
         c.DATA().run()
 
         c.STATE().run()
-        c.STATE().log()
 
         c.GOAL().run()
-        c.GOAL().log()
 
         c.MOVE().run()
-        c.MOVE().log()
 
-        time.sleep(.5)
+        timeElapsed = time.time() - startTime 
+        if time.time() > nextTime:
+            c.STATE().log()
+            c.GOAL().log()
+            c.MOVE().log()
+            nextTime = time.time() + .5
+            print timeElapsed
+        if timeElapsed >= 180:
+            c.CTRL().halt()
+            break

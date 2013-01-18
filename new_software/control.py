@@ -21,7 +21,7 @@ class Control():
     # This method turns on and off the roller motor
     # Input:Boolean
     def setRoller(self,switch):
-        self.roller.setSpeed(ROLLER_SPEED*switch) 
+        self.roller.setSpeed(-1*ROLLER_SPEED*switch) 
 
     # This method turns on and off the helix motor
     # Input:Boolean
@@ -43,16 +43,14 @@ class Control():
     # This method sets the speed of the left motor
     # Input: int from -1 to 1 inclusive
     def setLeftMotor(self,speed):
-        speed = boundAndScale(speed, 34, 127)
+        speed = boundAndScale(speed, 42, 127)
         self.leftMotor.setSpeed(speed)
-        print "LEFT MOTOR: " + str(speed)
 
     # This method sets the speed of the right motor
     # Input: int from -1 to 1 inclusive
     def setRightMotor(self,speed):
-        speed = boundAndScale(speed, 31, 124)
+        speed = boundAndScale(speed, 39, 124)
         self.rightMotor.setSpeed(speed)
-        print "RIGHT MOTOR: " + str(speed)
     
 
     # This methods calculates motors speeds from a vector
@@ -124,8 +122,10 @@ if __name__=="__main__":
 
     print "Testing Roller"
     c.CTRL().setRoller(True)
-    time.sleep(2)
+    c.CTRL().setHelix(True)
+    time.sleep(30)
     c.CTRL().setRoller(False)
+    c.CTRL().setHelix(True)
     
     print "Ramping left"
     #.25
