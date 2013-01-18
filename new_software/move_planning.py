@@ -2,6 +2,7 @@ import time
 import pid
 
 import commander as c
+from config import *
 
 class MovePlanning:
     # List of moves
@@ -162,7 +163,7 @@ class CaptureBall(Movement):
                 
 
     def move(self):
-        c.CTRL().setMovement(.6, 0)
+        c.CTRL().setMovement(CPTRBL_TRANSLATE_SPEED, CPTRBL_ROTATE_SPEED)
         c.CTRL().setRoller(True)
 
 class Align(Movement):
@@ -190,13 +191,13 @@ class RotateInPlace(Movement):
                 return ApproachTarget()
 
     def move(self):
-        c.CTRL().setMovement(0, .4)
+        c.CTRL().setMovement(ROTINPL_TRANSLATE_SPEED, ROTINPL_ROTATE_SPEED)
 
 class ApproachTarget(Movement):
     def __init__(self):
         Movement.__init__(self)
-        self.targetSpeed = .5
-        self.rotationSpeed = .25
+        self.targetSpeed = APPTGT_TRANSLATE_SPEED
+        self.rotationSpeed = APPTGT_ROTATE_SPEED
         self.pid = pid.Pid(.03, .005, .005, 100)
 
     def transition(self):
@@ -241,7 +242,7 @@ class AvoidWall(Movement):
             return self.prevMovement
 
     def move(self):
-        c.CTRL().setMovement(-.6, .4)
+        c.CTRL().setMovement(AVDWLL_TRANSLATE_SPEED, AVDWLL_ROTATE_SPEED)
 
 if __name__ == "__main__":
     c.ARD()
