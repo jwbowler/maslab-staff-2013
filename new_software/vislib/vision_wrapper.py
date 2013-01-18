@@ -88,12 +88,14 @@ if __name__ == '__main__':
     startTime = time.time()
     avgTime = 0
     while True:
+        time.sleep(.01)
         if not vw.update():
             continue
         endTime = time.time()
         duration = endTime - startTime
         startTime = endTime
         avgTime = 0.9*avgTime + 0.1*duration
-        print 1/avgTime
+        #print 1/avgTime
+        #print vw.getNumObj()
     vw.stop()
         

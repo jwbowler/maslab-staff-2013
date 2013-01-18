@@ -1,4 +1,6 @@
 #include "vision.h"
+#include <unistd.h>
+#include <sys/time.h>
 
 Mat src;
 Mat ds;
@@ -10,6 +12,9 @@ Mat temp;
 SimpleBlobDetector::Params params;
 cv::Ptr<FeatureDetector> blob_detector;
 vector<KeyPoint> keyPoints;
+struct timeval startTime, endTime;
+long seconds, useconds;
+double mtime;
 
 int frameCount = 0;
 
@@ -37,7 +42,7 @@ int setup() {
 
 void load_thresh() {
 	string line;
-	ifstream myfile("vision/color.cfg");
+	ifstream myfile("vislib/color.cfg");
 	if (myfile.is_open()) {
 		int obj_count = 0;
     	while (myfile.good()) {
@@ -77,12 +82,14 @@ int init_opencv() {
     params.blobColor = 255;
     params.filterByCircularity = false;
     params.filterByArea = true;
-    params.minArea = 100.;
+    params.minArea = 5.;
     params.maxArea = 640.*480;
     
     blob_detector = new cv::SimpleBlobDetector(params);
     blob_detector->create("SimpleBlob");
     
+    gettimeofday(&startTime, NULL);
+
     return 0;
 } 
 
@@ -94,12 +101,11 @@ int step(Mat **frame_ptr, Mat **blob_ptr, Mat **scatter_ptr, int *thr, int num_c
 		thr = thresh;
 		force = false;
 	}
-	
     cap >> src; // get a new frame from camera
     //return 0;
+    gettimeofday(&startTime, NULL);
     resize(src, ds, Size(), downsample_factor, downsample_factor, INTER_NEAREST);
     cvtColor(ds, hsv, CV_BGR2HSV);
-
     colors.setTo(Scalar(0));
     
     int numDetections = 0;
@@ -132,7 +138,6 @@ int step(Mat **frame_ptr, Mat **blob_ptr, Mat **scatter_ptr, int *thr, int num_c
         blob_detector->detect(bw[i], keyPoints);
         //cout << keyPoints.size() << endl;
         
-        
         for (int j = 0; j < keyPoints.size(); j++) {
             double scale = 1/downsample_factor;
             objTypes[numDetections] = obj[i];
@@ -146,7 +151,7 @@ int step(Mat **frame_ptr, Mat **blob_ptr, Mat **scatter_ptr, int *thr, int num_c
         }
         
     }
-    
+
     
     //erode(colors, colors, iterations=5);
     
@@ -155,6 +160,7 @@ int step(Mat **frame_ptr, Mat **blob_ptr, Mat **scatter_ptr, int *thr, int num_c
     //             Point(-1,-1), 5);
     
     //cout << objSizes[0] << " " << objSizes[1] << " " << objSizes[2] << endl;
+    
     //drawKeypoints(colors, keyPoints, hsv, Scalar(0, 255, 0));
     
     
@@ -170,6 +176,7 @@ int step(Mat **frame_ptr, Mat **blob_ptr, Mat **scatter_ptr, int *thr, int num_c
     putText(src, frameCountStr, cvPoint(5,15),
             FONT_HERSHEY_COMPLEX_SMALL, 0.8, Scalar(0,255,0));
     
+    //return 0;
     if (frame_ptr != NULL) {
         *frame_ptr = &src;
     }
@@ -180,10 +187,16 @@ int step(Mat **frame_ptr, Mat **blob_ptr, Mat **scatter_ptr, int *thr, int num_c
         *scatter_ptr = &colors;
     }
     
-    rgbRecord << src;
-    blobRecord << colors3c;
+    //rgbRecord << src;
+    //blobRecord << colors3c;
     
     frameCount++;
     
+    gettimeofday(&endTime, NULL);
+    seconds = endTime.tv_sec - startTime.tv_sec;
+    useconds = endTime.tv_usec - startTime.tv_usec;
+    mtime = (seconds*1000 + useconds/1000.) + 0.5;
+    //cout << mtime << endl;
+    startTime = endTime;
     return out;
 }
