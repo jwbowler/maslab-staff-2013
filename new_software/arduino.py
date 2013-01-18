@@ -161,17 +161,14 @@ class Arduino(threading.Thread):
             elif (mode == 'J'):
                 length = ord(self.serialRead())
                 # Fill the ultSensors array with incoming data
-                print "got ult msg"
-                print length
                 for i in range(length):
-                    print "ult " + str(i)
                     byte0 = ord(self.serialRead())
                     byte1 = ord(self.serialRead())
                     byte2 = ord(self.serialRead())
                     byte3 = ord(self.serialRead())
-                    print (byte0, byte1, byte2, byte3)
-                    duration = (256**3)*byte3 + (256**2)*byte2 +256*byte1 +byte0
-                    print duration
+                    print (byte3, byte2, byte1, byte0)
+                    #duration = (256**3)*byte3 + (256**2)*byte2 +256*byte1 +byte0
+                    duration = byte3 << 24 + byte2 << 16 + byte1 << 8 + byte0
                     self.ultVals[i] = duration
                 
             # End of packet
@@ -469,4 +466,8 @@ class Ult:
     def getRawValues(self):
         return self.arduino.getUltVal(self.index)
     def getValInches(self):
-        return (self.getRawValues()/74.0)/2.0
+        val = self.getRawValues()
+        return -1 if val == None or val == 0 else (val/74.0)/2.0
+    def getValCentimeters(self):
+        val = self.getRawValues()
+        return -1 if val == None or val == 0 else (val/29.0)/2.0

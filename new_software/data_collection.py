@@ -20,10 +20,11 @@ class DataCollection:
         #self.imu = Imu()
         #self.encoderPair = EncoderPair(0,0)
         self.irs = [Ir(IR_PINS[i], IR_POSITIONS[i]) for i in xrange(len(IR_PINS))]
-        self.ultrasonics = [Ultrasonic(ULTRASONIC_PINS[i], ULTRASONIC_POSITIONS[i]) for i in xrange(len(ULTRASONIC_PINS))]
+        self.ults= [Ult(ULT_PINS[i], ULT_POSITIONS[i]) for i in xrange(len(ULT_PINS))]
 
         self.allSensors = [self.camera]
         self.allSensors.extend(self.irs)
+        self.allSensors.extend(self.ults)
         
         
 
@@ -44,7 +45,7 @@ class DataCollection:
         for ir in self.irs:
             print "IR - position: " + str(ir.getPosition()) + " raw: " + str(ir.rawValue)
 
-        for us in self.ultrasonics:
+        for us in self.ults:
             print "US - position: " + str(us.getPosition())
 
         print "~~~DATA~~~\n"
@@ -60,10 +61,10 @@ class DataCollection:
     def getIr(self, index = -1):
         return self.irs if index == -1 else self.irs[index]
         
-    # return ultrasonic object at given index or all ultrasonic objects
+    # return ultobject at given index or all ultobjects
     # Input: index (0 be the leftmost)
-    def getUltrasonic(self, index = -1):
-        return self.ultrasonic if index == -1 else self.ultrasonic[index]
+    def getUlt(self, index = -1):
+        return self.ult if index == -1 else self.ult[index]
 
     # returns IMU object
     def getIMU(self):
@@ -181,25 +182,20 @@ class Ir(Sensor):
 
 
 
-class Ultrasonic(Sensor):
+class Ult(Sensor):
 
     # analog pin and position relative bot center
-    def __init__(self, pin, position):
-        self.ardRef = arduino.AnalogInput(c.ARD(), pin)
+    def __init__(self, (trig, echo), position):
+        self.ardRef = arduino.Ult(c.ARD(), trig, echo)
         (self.radius, self.angle) = position
 
     def run(self):
-        rawValue = self.ardRef.getValue()
-        self.distance = self.convertValue(rawValue)
+        self.distance = self.ardRef.getValCentimeters()
 
     # returns (distance, angle) from center of bot, None if failing
     def getPosition(self):
         return (self.radius+self.distance, self.angle)
         
-    # takes value from pin and converts it into a distance
-    def convertValue(self, value):
-        return 0
-
 class Imu(Sensor):
 
     # analog pin

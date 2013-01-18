@@ -110,26 +110,71 @@ if __name__=="__main__":
     c.ARD()
     c.CTRL()
     c.ARD().run()
-    
-    print "Testing Left Motor"
-    c.CTRL().setLeftMotor(.3)
-    time.sleep(3)
+
+    time.sleep(1)
+
+    print "Ramping left"
+    #.25
+    for i in xrange(20):
+        p = i/40.0
+        print "P: ", p
+        c.CTRL().setLeftMotor(p)
+        time.sleep(.5)
+
     c.CTRL().setLeftMotor(0)
 
-    print "Testing Right Motor"
-    c.CTRL().setRightMotor(.3)
-    time.sleep(3)
-    c.CTRL().setRightMotor(0)
+    #.225
+    print "Ramping right"
+    for i in xrange(20):
+        p = i/40.0
+        print "P: ", p
+        c.CTRL().setRightMotor(p)
+        time.sleep(.5)
 
-    print "Testing Helix"
-    c.CTRL().setHelix(True)
-    time.sleep(3)
-    c.CTRL().setHelix(False)
+    c.CTRL().setRightMotor(0)
 
     print "Testing Roller"
     c.CTRL().setRoller(True)
     time.sleep(3)
     c.CTRL().setRoller(False)
+    
+    print "Testing Left Motor"
+    c.CTRL().setLeftMotor(.5)
+    time.sleep(2)
+    c.CTRL().setLeftMotor(0)
+
+    print "Testing Right Motor"
+    c.CTRL().setRightMotor(.5)
+    time.sleep(2)
+    c.CTRL().setRightMotor(0)
+
+    print "Testing 360 turn"
+    c.CTRL().setRightMotor(.4)
+    c.CTRL().setLeftMotor(-.4)
+    time.sleep(3)
+    c.CTRL().setRightMotor(0)
+    c.CTRL().setLeftMotor(0)
+
+    print "Testing forward drive"
+    c.CTRL().setRightMotor(.5)
+    c.CTRL().setLeftMotor(.5)
+    time.sleep(2)
+    c.CTRL().setRightMotor(0)
+    c.CTRL().setLeftMotor(0)
+
+    time.sleep(2)
+
+    print "Testing back drive"
+    c.CTRL().setRightMotor(-.5)
+    c.CTRL().setLeftMotor(-.5)
+    time.sleep(2)
+    c.CTRL().setRightMotor(0)
+    c.CTRL().setLeftMotor(0)
+
+    print "Testing Helix"
+    c.CTRL().setHelix(True)
+    time.sleep(3)
+    c.CTRL().setHelix(False)
 
     print "Testing Ramp"
     c.CTRL().setRamp(90)

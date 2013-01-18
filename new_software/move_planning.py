@@ -113,7 +113,7 @@ class MoveToOpen(Movement):
             if target != None:
                 return ApproachTarget()
             else:
-                if distance < .25
+                if distance < .25:
                     return WallFollow()
 
     def move(self):
@@ -133,9 +133,9 @@ class MoveToOpen(Movement):
             c.CTRL().setMovement(adjustedSpeed, self.rotationSpeed * pidVal)
         else:
             if abs(angle-self.startAngle) < 360: #rotate to find openning
-                self.angleMap[] = (angle, distance)
+                self.angleMap.append((angle, distance))
                 c.CTRL().setMove(0, .5)
-            else #choose most open angle
+            else: #choose most open angle
                 self.target= (0,0)
                 for (angle, dist) in self.angleMap:
                     if self.target[1] < dist:
