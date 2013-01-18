@@ -69,7 +69,7 @@ class Ult
 
       // pulse whose duration is the time (in microseconds) from the sending
       // of the ping to the reception of its echo off of an object.
-      duration = pulseIn(echoPin, HIGH);
+      duration = pulseIn(echoPin, HIGH, 6000);
       return duration;
     }
 
