@@ -166,9 +166,7 @@ class Arduino(threading.Thread):
                     byte1 = ord(self.serialRead())
                     byte2 = ord(self.serialRead())
                     byte3 = ord(self.serialRead())
-                    print (byte3, byte2, byte1, byte0)
-                    #duration = (256**3)*byte3 + (256**2)*byte2 +256*byte1 +byte0
-                    duration = byte3 << 24 + byte2 << 16 + byte1 << 8 + byte0
+                    duration = (byte0 << 24) + (byte1 << 16) + (byte2 << 8) + byte3
                     self.ultVals[i] = duration
                 
             # End of packet
@@ -468,6 +466,6 @@ class Ult:
     def getValInches(self):
         val = self.getRawValues()
         return -1 if val == None or val == 0 else (val/74.0)/2.0
-    def getValCentimeters(self):
+    def getValMeters(self):
         val = self.getRawValues()
-        return -1 if val == None or val == 0 else (val/29.0)/2.0
+        return -1 if val == None or val == 0 else (val/2900.0)/2.0
