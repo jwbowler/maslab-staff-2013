@@ -37,7 +37,7 @@ class DataCollection:
     def log(self):
         print "~~~DATA~~~"
         print "Camera"
-        print "mine: " + str(self.camera.getMyBalls()) + "theirs: " + str(self.camera.getOpponentBalls())
+        print "mine: " + str(self.camera.getMyBalls()) + "theirs: " + str(self.camera.getOpBalls())
 
         #print self.imu
 
@@ -115,10 +115,10 @@ class Camera(Sensor):
 
         if MY_BALLS_ARE_RED:
             self.myBallColor = "RED_BALL"
-            self.opponentBallColor = "GREEN_BALL"
+            self.opBallColor = "GREEN_BALL"
         else:
             self.myBallColor = "RED_BALL"
-            self.opponentBallColor = "GREEN_BALL"
+            self.opBallColor = "GREEN_BALL"
 
     # stops OpenCV thread
     def stopThread(self):
@@ -126,10 +126,12 @@ class Camera(Sensor):
 
     # attempts to capture new frame, if vision is not ready: pass
     def run(self):
-        isNewFrame = self.vision.update()
-        if not isNewFrame:
-            return
-        self.timestamp = self.vision.getTimestamp()
+        self.isNewFrame = self.vision.update()
+        if self.isNewFrame:
+            self.timestamp = self.vision.getTimestamp()
+
+    def hasNewFrame(self):
+        return self.isNewFrame
 
     # returns (dist, angle) for all my balls
     def getMyBalls(self):
@@ -140,8 +142,8 @@ class Camera(Sensor):
         return myBallsConverted
 
     # returns (dist, angle) to all opponent balls
-    def getOpponentBalls(self):
-        theirBallIndices = self.vision.getIndicesByType(self.opponentBallColor)
+    def getOpBalls(self):
+        theirBallIndices = self.vision.getIndicesByType(self.opBallColor)
         theirBalls = [(vision.getX(i), vision.getY(i)) \
                       for i in theirBallIndices]
         theirBallsConverted = [convCoords(coords) for coords in theirBalls]

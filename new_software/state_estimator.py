@@ -8,14 +8,22 @@ class StateEstimator:
     # takes data object
     def __init__(self):
         self.data = c.DATA()
+        self.relativeAngle = None
+        self.lastImageStamp = None
     
     # Updates estimated state according to data in Data class
     def run(self):
         self.computeRelativeAngle()
-        self.myBalls = self.data.getCamera().getMyBalls()
-        self.myBalls = sorted(self.myBalls, lambda ball: ball[0])
-        self.opponentBalls = self.data.getCamera().getOpponentBalls()
-        self.opponentBalls = sorted(self.opponentBalls, lambda ball: ball[0])
+
+        if c.DATA().getCamera().hasNewFrame():
+            self.myBalls = sorted(self.data.getCamera().getMyBalls())
+            self.opBalls = sorted(self.data.getCamera().getOpBalls())
+
+            self.angleAtLastFrame = self.relativeAngle
+        else:
+            shift = self.relativeAngle - self.angleAtLastFrame
+            self.myBalls = [(b[0], b[1]+shift) for b in self.myBalls]
+            self.opBalls = [(b[0], b[1]+shift) for b in self.opBalls]
 
     def log(self):
         print "~~~State Log~~~"
@@ -24,7 +32,7 @@ class StateEstimator:
         print self.getMyBalls()
 
         print "Opponent Balls"
-        print self.getOpponentBalls()
+        print self.getOpBalls()
 
         print "Wall Distances"
         print self.getWallDistances()
@@ -37,6 +45,22 @@ class StateEstimator:
 
         print "~~~State Log done~~~"
 
+    def computeRelativeAngle():
+        compass = c.DATA().getImu().getCompassHeading()
+        if self.relativeAngle == None:
+            self.relativeAngle = compass
+        else:
+            delta = compass = self.relativeAngle
+            if delta > 180:
+                delta -= 360
+            elif delta < 180:
+                delta += 360
+
+            #shift, then ensure that angle is in sync with imu
+            self.relativeAngle += delta
+            #not sure if necessary...
+            self.relativeAngle = math.round((self.relativeAngle-compass)/360.0)*360 + compass
+        
         
     # Returns set of ball distances and angles:
     # ((distance, angle), (distance, angle), ...)
@@ -49,12 +73,12 @@ class StateEstimator:
 
     # Returns set of ball distances and angles:
     # ((distance, angle), (distance, angle), ...)
-    def getOpponentBalls(self):
-        return self.opponentBalls
+    def getOpBalls(self):
+        return self.opBalls
         
     # Returns (distance, angle) of nearest ball
-    def getOpponentNearestBall(self):
-        return self.opponentBalls[0]
+    def getOpBall(self):
+        return self.opBalls[0]
     
     # Returns set of wall distances ond angles from all sensors:
     # ((distance, angle), (distance, angle), ...)
