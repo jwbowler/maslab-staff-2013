@@ -75,7 +75,7 @@ def go():
 
 def stop():
     DATA().stopVisionThread()
-          
+    CTRL().halt()
           
 if __name__ == '__main__':
     try:

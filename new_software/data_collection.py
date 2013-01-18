@@ -105,7 +105,8 @@ class Camera(Sensor):
         self.vision = vision_wrapper.VisionWrapper()
         self.vision.start()
         
-        self.elev = 0.1
+        self.elev = 0.2
+        self.horizOffset = 0.15
         self.angle = 60. # 0 == pointing down; 90 = pointing forward
         self.imWidth = 640
         self.imHeight = 480

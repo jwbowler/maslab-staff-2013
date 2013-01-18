@@ -62,6 +62,12 @@ class Control():
         self.setRightMotor(r)
         self.setLeftMotor(l)
 
+    def halt(self):
+        self.setRoller(False)
+        self.setHelix(False)
+        self.setScorer(False)
+        self.setLeftMotor(0)
+        self.setRightMotor(0)
 
 # This method bounds an input to low and high
 # Input: input value, low and high limits
