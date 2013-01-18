@@ -128,7 +128,7 @@ class Arduino(threading.Thread):
                 print "Timeout"
                 break
 
-            print "Got:", mode
+            #print "Got:", mode
 
             # Process arguments based on mode
             # Digital
@@ -162,6 +162,7 @@ class Arduino(threading.Thread):
                 length = ord(self.serialRead())
                 # Fill the ultSensors array with incoming data
                 print "got ult msg"
+                print length
                 for i in range(length):
                     print "ult " + str(i)
                     byte0 = ord(self.serialRead())
@@ -185,6 +186,10 @@ class Arduino(threading.Thread):
     def checkPorts(self):
         # If killReceived is set to true, we want to kill this thread
         while not self.killReceived:
+            #self.port.write(';')
+            #c = self.serialRead()
+            #print (c, ord(c))
+
             #print "Packet -- writing"
             self.writeOutputPacket()
 
@@ -329,8 +334,6 @@ class Arduino(threading.Thread):
     def getIMUVals(self, index):
         return self.imuVals[index]
     def getUltVal(self, index):
-        print "getUltVal array"
-        print self.ultVals
         return self.ultVals[index]
 
     # Functions to set up the components (these are called through the classes
@@ -465,4 +468,5 @@ class Ult:
         self.index = self.arduino.addUlt(trigPort,echoPort)
     def getRawValues(self):
         return self.arduino.getUltVal(self.index)
-        
+    def getValInches(self):
+        return (self.getRawValues()/74.0)/2.0

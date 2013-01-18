@@ -6,6 +6,6 @@ ard = arduino.Arduino()
 ult = arduino.Ult(ard,14,15)
 ard.run()
 
-while True:
+while False:
   print str(ult.getRawValues())
   time.sleep(1.0)
