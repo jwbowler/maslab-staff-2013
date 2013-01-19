@@ -30,6 +30,7 @@ class Movement():
     def __init__(self):
         self.stopped = False
         self.avoidWalls = True
+        self.timeOut = True
         self.startTime = time.time()
 
     def run(self):
@@ -59,6 +60,9 @@ class Movement():
     # setters
     def setAvoidWalls(self, enable):
         self.avoidWalls = enable
+
+    def setTimeOut(self, enable):
+        self.timeOut = enable
 
     # functions for subclasses to implement
     def move(self):
@@ -235,14 +239,31 @@ class ApproachTarget(Movement):
 class AvoidWall(Movement):
     def __init__(self, prevMovement):
         Movement.__init__(self)
+        self.setAvoidWalls(False)
         self.prevMovement = prevMovement
 
     def transition(self):
-        if not c.STATE().nearCollision():
+        if time.time() > (self.startTime + 1.0) and not c.STATE().nearCollision():
             return self.prevMovement
 
     def move(self):
         c.CTRL().setMovement(AVDWLL_TRANSLATE_SPEED, AVDWLL_ROTATE_SPEED)
+
+class TimeoutRun(Movement):
+    def __init__(self):
+        Movement.__init__(self)
+        self.setNoTimeout(True)
+        self.hitWall = False
+
+    def transition(self):
+        if self.hitWall:
+            return RotateInPlace()
+
+    def move(self):
+        c.CTRL().setMovement(TMOUT_TRANSLATE_SPEED, TMOUT_ROTATE_SPEED)
+
+    def resume(self):
+        self.hitWall = True
 
 if __name__ == "__main__":
     c.ARD()
