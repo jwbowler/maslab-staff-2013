@@ -71,9 +71,11 @@ int init_opencv() {
         return -1;
     
     // to initialize colors to the right size:
+    cap.set(CV_CAP_PROP_FRAME_WIDTH, 640*downsample_factor);
+    cap.set(CV_CAP_PROP_FRAME_HEIGHT, 480*downsample_factor);
     cap >> src;
     colors.create(src.size(), CV_8U);
-    resize(colors, colors, Size(), downsample_factor, downsample_factor, INTER_NEAREST);
+    //resize(colors, colors, Size(), downsample_factor, downsample_factor, INTER_NEAREST);
     
     params.minDistBetweenBlobs = 0.;
     params.filterByInertia = false;
@@ -104,8 +106,9 @@ int step(Mat **frame_ptr, Mat **blob_ptr, Mat **scatter_ptr, int *thr, int num_c
     cap >> src; // get a new frame from camera
     //return 0;
     gettimeofday(&startTime, NULL);
-    resize(src, ds, Size(), downsample_factor, downsample_factor, INTER_NEAREST);
-    cvtColor(ds, hsv, CV_BGR2HSV);
+    //resize(src, ds, Size(), downsample_factor, downsample_factor, INTER_NEAREST);
+    //cvtColor(ds, hsv, CV_BGR2HSV);
+    cvtColor(src, hsv, CV_BGR2HSV);
     colors.setTo(Scalar(0));
     
     int numDetections = 0;
