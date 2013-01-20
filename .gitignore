@@ -44,3 +44,8 @@ nosetests.xml
 #videos
 .mpeg
 *.mpeg
+
+.out
+.cfg
+*.out
+*.cfg
