@@ -79,12 +79,11 @@ def go():
         MOVE().log()
 
 def stop():
-    DATA().stopVisionThread()
     CTRL().halt()
-          
+    DATA().stopVisionThread()
+    
 if __name__ == '__main__':
     try:
         go()    
     except (KeyboardInterrupt, Alarm):
         stop()
-        sys.exit(0)

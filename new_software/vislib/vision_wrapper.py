@@ -41,8 +41,7 @@ class VisionWrapper:
         return True
 	
     def stop(self):
-        self.conn_Py2Cv.close()
-        self.p.terminate()
+        self.conn_Py2Cv.send('EXIT')
         self.p.join()
 	
     def getFrameID(self):
@@ -73,13 +72,17 @@ class VisionWrapper:
         return self.data[i][3]
 		
 def f(conn):
-    try:
-        while (True):
+    while (True):
+        try:
+            m = conn.recv()
+            if m == 'EXIT':
+                print 'Stopping vision thread'
+                break
             data = vision.step()
             timestamp = time.time()
             conn.send((timestamp, data))
-    except KeyboardInterrupt:
-        pass
+        except KeyboardInterrupt:
+            pass
         
 if __name__ == '__main__':
     # test
@@ -87,15 +90,16 @@ if __name__ == '__main__':
     vw.start()
     startTime = time.time()
     avgTime = 0
-    while True:
-        time.sleep(.01)
-        if not vw.update():
-            continue
-        endTime = time.time()
-        duration = endTime - startTime
-        startTime = endTime
-        avgTime = 0.9*avgTime + 0.1*duration
-        #print 1/avgTime
-        #print vw.getNumObj()
-    vw.stop()
-        
+    try:
+        while True:
+            time.sleep(.01)
+            if not vw.update():
+                continue
+            endTime = time.time()
+            duration = endTime - startTime
+            startTime = endTime
+            avgTime = 0.9*avgTime + 0.1*duration
+            #print 1/avgTime
+            #print vw.getNumObj()
+    except KeyboardInterrupt:
+        vw.stop() 

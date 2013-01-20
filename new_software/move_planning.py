@@ -278,22 +278,25 @@ if __name__ == "__main__":
 
     startTime = time.time()
 
-    while True:
-        c.DATA().run()
+    try:
+        while True:
+            c.DATA().run()
 
-        c.STATE().run()
+            c.STATE().run()
 
-        c.GOAL().run()
+            c.GOAL().run()
 
-        c.MOVE().run()
+            c.MOVE().run()
 
-        timeElapsed = time.time() - startTime 
-        if time.time() > nextTime:
-            c.STATE().log()
-            c.GOAL().log()
-            c.MOVE().log()
-            nextTime = time.time() + .5
-            print timeElapsed
-        if timeElapsed >= 180:
-            c.CTRL().halt()
-            break
+            timeElapsed = time.time() - startTime 
+            if time.time() > nextTime:
+                c.STATE().log()
+                c.GOAL().log()
+                c.MOVE().log()
+                nextTime = time.time() + .5
+                print timeElapsed
+            if timeElapsed >= 180:
+                c.CTRL().halt()
+                break
+    except KeyboardInterrupt:
+       c.DATA().stopVisionThread()
