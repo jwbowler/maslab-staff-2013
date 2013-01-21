@@ -16,7 +16,7 @@ class MovePlanning:
     AVOID_WALL = 6
     
     def __init__(self):
-        self.moveObject = RotateInPlace()
+        self.moveObject = WallFollow()
     
     def run(self):
         self.moveObject = self.moveObject.run()
@@ -77,7 +77,15 @@ class Movement():
 class WallFollow(Movement):
     def __init__(self):
         Movement.__init__(self)
-        self.startAngle = c.STATE().getRelativeAngle()
+        self.setAvoidWalls(False)
+        self.goalDist = .45
+        self.linear = .2
+        self.rotation = .2
+        # -85 40 0
+        self.pidArray = []
+        self.pidArray.append(pid.Pid(1.0, .000, .000, 100))
+        self.pidArray.append(pid.Pid(.0, .000, .000, 100))
+        self.pidArray.append(pid.Pid(.0, .000, .000, 100))
 
     def transition(self):
         goal = c.GOAL().getGoal()
@@ -88,17 +96,22 @@ class WallFollow(Movement):
                 return ApproachTarget()
 
     def move(self):
-        if (not self.pid.running):
-            self.pid.start(angle, self.target[0])
+        wallDistances = c.STATE().getWallDistances()
+        pidVals = []
+        for i in xrange(len(self.pidArray)):
+            pid = self.pidArray[i]
+            (angle, distance) = wallDistances[i]
+            goal = self.goalDist * math.sin(math.radians(abs(angle)))
+            if (not pid.running):
+                pid.start(distance, goal)
 
-        pidVal = self.pid.iterate(angle)
+            pidVals.append(self.pid.iterate(angle))
 
         #slowdown when close, slowdown when off-angle 
-        adjustedSpeed = self.targetSpeed if distance > .5 else self.targetSpeed*distance*2
-        adjustedSpeed = 0 if angle > 15 else ((30.0-abs(angle))/30.0)
+        collision = c.STATE().getCollisionDistance()
+        #adjustedSpeed = self.targetSpeed if collision > .5 else self.targetSpeed*collision*2
 
-        c.CTRL().setMovement(adjustedSpeed, self.rotationSpeed * pidVal)
-        pass
+        c.CTRL().setMovement(adjustedSpeed, self.rotationSpeed * sum(pidVals))
 
 class MoveToOpen(Movement):
     def __init__(self):
