@@ -185,7 +185,7 @@ class Ir(Sensor):
             return 1000
 
         #yay excel
-        x = log(value, 10)
+        x = math.log(value, 10)
         return 10**(3.1307*x**2 - 19.329*x + 30.707)
 
 

@@ -6,8 +6,8 @@ TIME_BEFORE_HALT = -1 # value <= 0 --> never stops
 ROBOT_RADIUS = .17
 
 # Sensors
-IR_PINS = (13,14,15)
-IR_POSITIONS = [(.0, -85),(.0, 0),(.0, 85)]
+IR_PINS = (15)
+IR_POSITIONS = [(.0, 0)]
 
 ULT_PINS =[(14,15),(18,19)]
 ULT_POSITIONS = [(.0,-40), (.0, 40)]
