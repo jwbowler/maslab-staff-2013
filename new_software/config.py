@@ -7,10 +7,10 @@ ROBOT_RADIUS = .17
 
 # Sensors
 IR_PINS = (13,14,15)
-IR_POSITIONS = [(.15, -85),(.15, 0),(.15, 85)]
+IR_POSITIONS = [(.0, -85),(.0, 0),(.0, 85)]
 
 ULT_PINS =[(14,15),(18,19)]
-ULT_POSITIONS = [(.15,-40), (.15, 40)]
+ULT_POSITIONS = [(.0,-40), (.0, 40)]
 
 MOTOR_CURRENT_PINS = (0,0,0,0)
 
