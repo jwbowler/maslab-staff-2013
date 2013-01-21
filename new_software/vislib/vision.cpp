@@ -104,10 +104,7 @@ int step(Mat **frame_ptr, Mat **blob_ptr, Mat **scatter_ptr, int *thr, int num_c
 		force = false;
 	}
     cap >> src; // get a new frame from camera
-    //return 0;
-    gettimeofday(&startTime, NULL);
-    //resize(src, ds, Size(), downsample_factor, downsample_factor, INTER_NEAREST);
-    //cvtColor(ds, hsv, CV_BGR2HSV);
+    //gettimeofday(&startTime, NULL);
     cvtColor(src, hsv, CV_BGR2HSV);
     colors.setTo(Scalar(0));
     
@@ -126,7 +123,6 @@ int step(Mat **frame_ptr, Mat **blob_ptr, Mat **scatter_ptr, int *thr, int num_c
             break;
         }
         int *t = &(thr[i * 6]);
-        //cout << t[0] << " " << t[1] << endl;
         if (t[0] >= 0) {
             inRange(hsv, Scalar(t[0], t[2], t[4]), Scalar(t[1], t[3], t[5]), bw[i]);
         } else {
@@ -137,9 +133,7 @@ int step(Mat **frame_ptr, Mat **blob_ptr, Mat **scatter_ptr, int *thr, int num_c
         }
         bitwise_or(colors, bw[i], colors);
         
-        //cout << "detecting blobs:" << endl;
         blob_detector->detect(bw[i], keyPoints);
-        //cout << keyPoints.size() << endl;
         
         for (int j = 0; j < keyPoints.size(); j++) {
             double scale = 1/downsample_factor;
@@ -155,22 +149,7 @@ int step(Mat **frame_ptr, Mat **blob_ptr, Mat **scatter_ptr, int *thr, int num_c
         
     }
 
-    
-    //erode(colors, colors, iterations=5);
-    
-    //morphologyEx(colors, colors, MORPH_CLOSE,
-    //             getStructuringElement(MORPH_RECT, Size(3, 3)),
-    //             Point(-1,-1), 5);
-    
-    //cout << objSizes[0] << " " << objSizes[1] << " " << objSizes[2] << endl;
-    
-    //drawKeypoints(colors, keyPoints, hsv, Scalar(0, 255, 0));
-    
-    
-    //int out = 480 * (m.m10/m.m00) * scale + (m.m01/m.m00) * scale;
     int out = 0;
-    //cout << keypoints << endl;
-    //cout << endl;
     
     cvtColor(colors, colors3c, CV_GRAY2BGR);
     string frameCountStr = convertInt(frameCount);
@@ -179,7 +158,6 @@ int step(Mat **frame_ptr, Mat **blob_ptr, Mat **scatter_ptr, int *thr, int num_c
     putText(src, frameCountStr, cvPoint(5,15),
             FONT_HERSHEY_COMPLEX_SMALL, 0.8, Scalar(0,255,0));
     
-    //return 0;
     if (frame_ptr != NULL) {
         *frame_ptr = &src;
     }
@@ -198,8 +176,8 @@ int step(Mat **frame_ptr, Mat **blob_ptr, Mat **scatter_ptr, int *thr, int num_c
     gettimeofday(&endTime, NULL);
     seconds = endTime.tv_sec - startTime.tv_sec;
     useconds = endTime.tv_usec - startTime.tv_usec;
-    mtime = (seconds*1000 + useconds/1000.) + 0.5;
-    //cout << mtime << endl;
+    mtime = (seconds + useconds/1000000.);
+    cout << 1/mtime << endl;
     startTime = endTime;
     return out;
 }

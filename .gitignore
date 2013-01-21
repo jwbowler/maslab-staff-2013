@@ -45,7 +45,6 @@ nosetests.xml
 .mpeg
 *.mpeg
 
-.out
-.cfg
-*.out
-*.cfg
+Specific files
+a.out
+color.cfg
