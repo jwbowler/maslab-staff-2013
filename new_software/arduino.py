@@ -461,11 +461,5 @@ class Ult:
     def __init__ (self, arduino, trigPort, echoPort):
         self.arduino = arduino
         self.index = self.arduino.addUlt(trigPort,echoPort)
-    def getRawValues(self):
+    def getRawValue(self):
         return self.arduino.getUltVal(self.index)
-    def getValInches(self):
-        val = self.getRawValues()
-        return 1000 if val == None or val == 0 else (val/74.0)/2.0
-    def getValMeters(self):
-        val = self.getRawValues()
-        return 1000 if val == None or val == 0 else (val/2900.0)/2.0

@@ -185,7 +185,8 @@ class Ir(Sensor):
             return 1000
 
         #yay excel
-        return 359.92*(value-150)**-1.317
+        x = log(value, 10)
+        return 10**(3.1307*x**2 - 19.329*x + 30.707)
 
 
 
@@ -199,11 +200,16 @@ class Ult(Sensor):
         self.distance = -1
 
     def run(self):
-        self.distance = self.ardRef.getValMeters()
+        self.rawValue  = self.ardRef.getRawValue()
 
     # returns (distance, angle) from center of bot, None if failing
     def getPosition(self):
-        return (self.radius+self.distance, self.angle)
+        return (self.radius+self.getValMeters(), self.angle)
+
+    def getValMeters(self):
+        val = self.rawValue
+        #used to be 29*2 
+        return 1000 if val == None or val == 0 else (val/5359.2)
         
 class Imu(Sensor):
 

@@ -73,6 +73,8 @@ int init_opencv() {
     // to initialize colors to the right size:
     cap.set(CV_CAP_PROP_FRAME_WIDTH, 640*downsample_factor);
     cap.set(CV_CAP_PROP_FRAME_HEIGHT, 480*downsample_factor);
+    cap.set(CV_CAP_PROP_FPS, 30);
+    cap.set(CV_CAP_PROP_POS_FRAMES, 0);
     cap >> src;
     colors.create(src.size(), CV_8U);
     //resize(colors, colors, Size(), downsample_factor, downsample_factor, INTER_NEAREST);
@@ -97,14 +99,35 @@ int init_opencv() {
 
 int step(Mat **frame_ptr, Mat **blob_ptr, Mat **scatter_ptr, int *thr, int num_colors) {
 
+
   bool force = true;
 	if (num_colors == 0) {
 		num_colors = num_obj;
 		thr = thresh;
 		force = false;
 	}
-    cap >> src; // get a new frame from camera
+    //cap >> src; // get a new frame from camera
     //gettimeofday(&startTime, NULL);
+    cap.grab();
+    cap.retrieve(src);
+    gettimeofday(&endTime, NULL);
+    //usleep(50000);
+
+    seconds = endTime.tv_sec - startTime.tv_sec;
+    useconds = endTime.tv_usec - startTime.tv_usec;
+    mtime = (seconds + useconds/1000000.);
+    if (frameCount % 10 == 0) {
+        cout << mtime << endl;
+        //cout << 1/mtime << endl;
+    }
+    startTime = endTime;
+    frameCount++;
+    //return 0;
+
+
+
+
+
     cvtColor(src, hsv, CV_BGR2HSV);
     colors.setTo(Scalar(0));
     
@@ -171,13 +194,5 @@ int step(Mat **frame_ptr, Mat **blob_ptr, Mat **scatter_ptr, int *thr, int num_c
     //rgbRecord << src;
     //blobRecord << colors3c;
     
-    frameCount++;
     
-    gettimeofday(&endTime, NULL);
-    seconds = endTime.tv_sec - startTime.tv_sec;
-    useconds = endTime.tv_usec - startTime.tv_usec;
-    mtime = (seconds + useconds/1000000.);
-    cout << 1/mtime << endl;
-    startTime = endTime;
-    return out;
 }
