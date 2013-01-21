@@ -107,7 +107,7 @@ int step(Mat **frame_ptr, Mat **blob_ptr, Mat **scatter_ptr, int *thr, int num_c
 		force = false;
 	}
     //cap >> src; // get a new frame from camera
-    gettimeofday(&startTime, NULL);
+    //gettimeofday(&startTime, NULL);
     cap.grab();
     cap.retrieve(src);
     gettimeofday(&endTime, NULL);
@@ -116,10 +116,13 @@ int step(Mat **frame_ptr, Mat **blob_ptr, Mat **scatter_ptr, int *thr, int num_c
     seconds = endTime.tv_sec - startTime.tv_sec;
     useconds = endTime.tv_usec - startTime.tv_usec;
     mtime = (seconds + useconds/1000000.);
-    cout << mtime << endl;
-    //cout << 1/mtime << endl;
-    //startTime = endTime;
-    return 0;
+    if (frameCount % 10 == 0) {
+        cout << mtime << endl;
+        //cout << 1/mtime << endl;
+    }
+    startTime = endTime;
+    frameCount++;
+    //return 0;
 
 
 
@@ -191,6 +194,5 @@ int step(Mat **frame_ptr, Mat **blob_ptr, Mat **scatter_ptr, int *thr, int num_c
     //rgbRecord << src;
     //blobRecord << colors3c;
     
-    frameCount++;
     
 }

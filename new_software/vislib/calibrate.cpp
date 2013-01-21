@@ -56,8 +56,8 @@ int main() {
     		int out = step(&raw_display, &hsv_display, &scatter_display,
     		    &(test_thresh[i*6]), 1);
     		    
-    		//imshow("raw", *raw_display);
-    		//imshow("blobs", *hsv_display);
+    		imshow("raw", *raw_display);
+            imshow("blobs", *hsv_display);
             //imshow("scatter", *scatter_display);
         			
 		    
