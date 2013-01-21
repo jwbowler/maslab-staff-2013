@@ -185,7 +185,8 @@ class Ir(Sensor):
             return 1000
 
         #yay excel
-        return 359.92*(value-150)**-1.317
+        x = log(value, 10)
+        return 10**(3.1307*x**2 - 19.329*x + 30.707)
 
 
 
