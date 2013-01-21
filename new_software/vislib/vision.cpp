@@ -99,7 +99,6 @@ int init_opencv() {
 
 int step(Mat **frame_ptr, Mat **blob_ptr, Mat **scatter_ptr, int *thr, int num_colors) {
 
-
   bool force = true;
 	if (num_colors == 0) {
 		num_colors = num_obj;
@@ -117,7 +116,7 @@ int step(Mat **frame_ptr, Mat **blob_ptr, Mat **scatter_ptr, int *thr, int num_c
     useconds = endTime.tv_usec - startTime.tv_usec;
     mtime = (seconds + useconds/1000000.);
     if (frameCount % 10 == 0) {
-        cout << mtime << endl;
+        //cout << mtime << endl;
         //cout << 1/mtime << endl;
     }
     startTime = endTime;
@@ -194,5 +193,5 @@ int step(Mat **frame_ptr, Mat **blob_ptr, Mat **scatter_ptr, int *thr, int num_c
     //rgbRecord << src;
     //blobRecord << colors3c;
     
-    
+    return out;   
 }

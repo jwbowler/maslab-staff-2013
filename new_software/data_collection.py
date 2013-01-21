@@ -247,7 +247,10 @@ if __name__ == "__main__":
     c.DATA()
     c.ARD().run()
 
-    while True:
-        c.DATA().run()
-        c.DATA().log()
-        time.sleep(.5)
+    try:
+        while True:
+            c.DATA().run()
+            c.DATA().log()
+            time.sleep(.5)
+    except KeyboardInterrupt:
+        c.DATA().stopVisionThread()
