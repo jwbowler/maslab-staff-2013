@@ -173,7 +173,9 @@ void ultInit()
     // it in the array
     tPin = (int)serialRead();
     ePin = (int)serialRead();
-    tOut = (int)serialRead();
+    tOut1 = (int)serialRead();
+    tOut0 = (int)serialRead();
+    tOut = tOut1*256 + tOut0
     tempUlt = new Ult(tPin, ePin,tOut);
     ults[i] = tempUlt;
   }

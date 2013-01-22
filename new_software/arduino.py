@@ -255,7 +255,8 @@ class Arduino(threading.Thread):
         for (trig, echo) in self.ultPorts:
             output += chr(trig)
             output += chr(echo)
-            output += chr(ULT_TIMEOUT)
+            output += chr(ULT_TIMEOUT/256)
+            output += chr(ULT_TIMEOUT%256)
         # Terminate the command packet
         output += ";"
 
