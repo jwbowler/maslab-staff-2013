@@ -158,7 +158,7 @@ class Camera(Sensor):
                      - self.vfov*(1.0 * y / self.imHeight))
         d = self.elev * math.tan((math.pi/180) * angle2obj)
         if d < 0:
-            d = math.isInf()
+            d = 1000000
         a = (x - (self.imHeight/2.)) * self.hfov / self.imWidth
         a -= 10  # fudge factor
         return (d, a)

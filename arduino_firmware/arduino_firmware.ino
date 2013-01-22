@@ -153,7 +153,7 @@ char serialRead()
 // Handles ultrasonic sensor initialization
 void ultInit()
 {
-  int tPin, ePin, tOut;
+  int tPin, ePin, tOut, tOut1,tOut0;
   Ult* tempUlt;
 
   // Free up any allocated memory from before

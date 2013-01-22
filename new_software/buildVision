@@ -1,3 +1,5 @@
+cd vislib
 if (python setup.py build -f) then
     sudo python setup.py install -f
 fi
+cd ..
