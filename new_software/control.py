@@ -43,20 +43,20 @@ class Control():
     # This method sets the speed of the left motor
     # Input: int from -1 to 1 inclusive
     def setLeftMotor(self,speed):
-        speed = boundAndScale(speed, 42, 127)
+        speed = boundAndScale(speed, 28, 127)
         self.leftMotor.setSpeed(speed)
 
     # This method sets the speed of the right motor
     # Input: int from -1 to 1 inclusive
     def setRightMotor(self,speed):
-        speed = boundAndScale(speed, 39, 124)
+        speed = boundAndScale(speed, 22, 127)
         self.rightMotor.setSpeed(speed)
     
 
     # This methods calculates motors speeds from a vector
     # Input: speed form -1 to 1 and rotation from -1 to 1(clockwise)
     def setMovement(self,speed, rotation):
-        (r,l) = getMotorSpeeds(speed,rotation)
+        (l,r) = getMotorSpeeds(speed,rotation)
         self.setRightMotor(r)
         self.setLeftMotor(l)
 
@@ -115,21 +115,26 @@ def getMotorSpeeds(vel, rot):
 
 if __name__=="__main__":
     c.ARD()
+    c.DATA()
     c.CTRL()
     c.ARD().run()
 
+    c.CTRL().setRoller(False)
+    c.CTRL().setHelix(False)
+    c.CTRL().setRightMotor(0)
+    c.CTRL().setLeftMotor(0)
     time.sleep(1)
 
     print "Testing Roller"
     c.CTRL().setRoller(True)
     c.CTRL().setHelix(True)
-    time.sleep(30)
+    time.sleep(2)
     c.CTRL().setRoller(False)
     c.CTRL().setHelix(True)
     
     print "Ramping left"
     #.25
-    for i in xrange(20):
+    for i in xrange(15):
         p = i/40.0
         print "P: ", p
         c.CTRL().setLeftMotor(p)
@@ -139,7 +144,7 @@ if __name__=="__main__":
 
     #.225
     print "Ramping right"
-    for i in xrange(20):
+    for i in xrange(10):
         p = i/40.0
         print "P: ", p
         c.CTRL().setRightMotor(p)

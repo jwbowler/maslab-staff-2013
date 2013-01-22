@@ -1,5 +1,6 @@
 import time
 import pid
+import math
 
 import commander as c
 from config import *
@@ -79,13 +80,11 @@ class WallFollow(Movement):
         Movement.__init__(self)
         self.setAvoidWalls(False)
         self.goalDist = .45
-        self.linear = .2
-        self.rotation = .2
+        self.linear = .18
+        self.rotation = .18
         # -85 40 0
-        self.pidArray = []
-        self.pidArray.append(pid.Pid(1.0, .000, .000, 100))
-        self.pidArray.append(pid.Pid(.0, .000, .000, 100))
-        self.pidArray.append(pid.Pid(.0, .000, .000, 100))
+        self.pid0 = pid.Pid(-2.0, .000, .000, 100)
+        self.pid1 = pid.Pid(-1.0, .000, .000, 100)
 
     def transition(self):
         goal = c.GOAL().getGoal()
@@ -97,21 +96,34 @@ class WallFollow(Movement):
 
     def move(self):
         wallDistances = c.STATE().getWallDistances()
-        pidVals = []
-        for i in xrange(len(self.pidArray)):
-            pid = self.pidArray[i]
-            (angle, distance) = wallDistances[i]
-            goal = self.goalDist * math.sin(math.radians(abs(angle)))
-            if (not pid.running):
-                pid.start(distance, goal)
+        pid0 = self.pid0
+        pid1 = self.pid1
+        (distance0, angle0) = wallDistances[4]
+        (distance1, angle1) = wallDistances[3]
+        goal0 = self.goalDist / math.sin(math.radians(abs(angle0)))
+        goal1 = self.goalDist / math.sin(math.radians(abs(angle1)))
 
-            pidVals.append(self.pid.iterate(angle))
+        if (not pid0.running):
+            pid0.start(distance0, goal0)
+        if (not pid1.running):
+            pid1.start(distance1, goal1)
 
-        #slowdown when close, slowdown when off-angle 
-        collision = c.STATE().getCollisionDistance()
-        #adjustedSpeed = self.targetSpeed if collision > .5 else self.targetSpeed*collision*2
+        if (distance0 > .6):
+            distance0 = .6
 
-        c.CTRL().setMovement(adjustedSpeed, self.rotationSpeed * sum(pidVals))
+        if (distance1 > 1.2):
+            distance1 = 1.2
+
+        pidVal0 = pid0.iterate(distance0)
+        pidVal1 = pid1.iterate(distance1)
+
+        pidVal = pidVal0 + pidVal1
+        print "~~~~~~~"
+        print (distance0, goal0, pidVal0)
+        print (distance1, goal1, pidVal1)
+        print (self.linear, self.rotation*pidVal, pidVal)
+
+        c.CTRL().setMovement(self.linear, self.rotation* pidVal)
 
 class MoveToOpen(Movement):
     def __init__(self):
@@ -306,8 +318,9 @@ if __name__ == "__main__":
                 c.STATE().log()
                 c.GOAL().log()
                 c.MOVE().log()
-                nextTime = time.time() + .5
+                nextTime = time.time() + .25
                 print timeElapsed
+                time.sleep(.26)
             if timeElapsed >= 180:
                 c.CTRL().halt()
                 break
