@@ -20,11 +20,9 @@ class VisionWrapper:
 	
     def start(self):
         vision.setup()
-        vision
         self.conn_Py2Cv, self.conn_Cv2Py = Pipe()
         self.p = Process(target=f, args=(self.conn_Cv2Py,))
         self.p.start()
-        print "Vision thread started"
 		
     def update(self):
         conn = self.conn_Py2Cv
@@ -74,10 +72,10 @@ class VisionWrapper:
 def f(conn):
     while (True):
         try:
-            m = conn.recv()
-            if m == 'EXIT':
-                print 'Stopping vision thread'
-                break
+            if conn.poll():
+                m = conn.recv()
+                if m == 'EXIT':
+                    break
             data = vision.step()
             timestamp = time.time()
             conn.send((timestamp, data))

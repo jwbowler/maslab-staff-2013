@@ -207,4 +207,5 @@ int step(Mat **frame_ptr, Mat **blob_ptr, Mat **scatter_ptr, int **thr, int num_
     //rgbRecord << src;
     //blobRecord << colors3c;
     
+    return out;   
 }

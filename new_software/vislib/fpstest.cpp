@@ -6,7 +6,7 @@
 using namespace std;
 using namespace cv;
 
-VideoCapture cap(0);
+VideoCapture cap(1);
 Mat src;
 int blah = 0;
 struct timeval startTime, endTime;
@@ -31,7 +31,7 @@ int main() {
 
     while (true) {
         step();
-        usleep(10000);
+        usleep(1000);
 
         gettimeofday(&endTime, NULL);
         seconds = endTime.tv_sec - startTime.tv_sec;

@@ -20,8 +20,8 @@ class DataCollection:
         #self.imu = Imu()
         #self.encoderPair = EncoderPair(0,0)
         self.irs = [Ir(IR_PINS[i], IR_POSITIONS[i]) for i in xrange(len(IR_PINS))]
-        print ULT_PINS[0]
         self.ults= [Ult(ULT_PINS[i], ULT_POSITIONS[i]) for i in xrange(len(ULT_PINS))]
+        print [(ULT_PINS[i], ULT_POSITIONS[i]) for i in xrange(len(ULT_PINS))]
 
         self.allSensors = [self.camera]
         self.allSensors.extend(self.irs)
@@ -185,7 +185,7 @@ class Ir(Sensor):
             return 1000
 
         #yay excel
-        x = log(value, 10)
+        x = math.log(value, 10)
         return 10**(3.1307*x**2 - 19.329*x + 30.707)
 
 
@@ -247,7 +247,10 @@ if __name__ == "__main__":
     c.DATA()
     c.ARD().run()
 
-    while True:
-        c.DATA().run()
-        c.DATA().log()
-        time.sleep(.5)
+    try:
+        while True:
+            c.DATA().run()
+            c.DATA().log()
+            time.sleep(.5)
+    except KeyboardInterrupt:
+        c.DATA().stopVisionThread()
