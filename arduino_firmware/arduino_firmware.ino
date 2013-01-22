@@ -46,13 +46,14 @@ class Stepper
 class Ult
 {
   private:
-  int trigPin, echoPin;
+  int trigPin, echoPin, timeout;
   
   public:
-    Ult(int tPin, int ePin)
+    Ult(int tPin, int ePin, int tOut)
     {
       trigPin = tPin; // Pin to trigger the ultrasound sensor
       echoPin = ePin; // Pin to read the distance
+      timeout = tOut; // Value to timeout the pulseIn function
       pinMode(trigPin, OUTPUT);
       pinMode(echoPin, INPUT);
     }
@@ -69,7 +70,7 @@ class Ult
 
       // pulse whose duration is the time (in microseconds) from the sending
       // of the ping to the reception of its echo off of an object.
-      duration = pulseIn(echoPin, HIGH, 6000);
+      duration = pulseIn(echoPin, HIGH, timeout);
       return duration;
     }
 
@@ -152,7 +153,7 @@ char serialRead()
 // Handles ultrasonic sensor initialization
 void ultInit()
 {
-  int tPin, ePin;
+  int tPin, ePin, tOut;
   Ult* tempUlt;
 
   // Free up any allocated memory from before
@@ -172,7 +173,8 @@ void ultInit()
     // it in the array
     tPin = (int)serialRead();
     ePin = (int)serialRead();
-    tempUlt = new Ult(tPin, ePin);
+    tOut = (int)serialRead();
+    tempUlt = new Ult(tPin, ePin,tOut);
     ults[i] = tempUlt;
   }
   
@@ -534,8 +536,6 @@ void loop()
       // Write the two bytes to the retVal, byte0 first
       Serial.write(durBuf[0]);
       Serial.write(durBuf[1]);
-      Serial.write(durBuf[2]);
-      Serial.write(durBuf[3]);
     }
     // Write IMU data
     if (numImus > 0)

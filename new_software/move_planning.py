@@ -1,5 +1,6 @@
 import time
 import pid
+import math
 
 import commander as c
 from config import *
@@ -78,14 +79,8 @@ class WallFollow(Movement):
     def __init__(self):
         Movement.__init__(self)
         self.setAvoidWalls(False)
-        self.goalDist = .45
-        self.linear = .2
-        self.rotation = .2
-        # -85 40 0
-        self.pidArray = []
-        self.pidArray.append(pid.Pid(1.0, .000, .000, 100))
-        self.pidArray.append(pid.Pid(.0, .000, .000, 100))
-        self.pidArray.append(pid.Pid(.0, .000, .000, 100))
+        self.pid0 = pid.Pid(.0, .000, .000, 100)
+        self.pid1 = pid.Pid(1.0, .000, .000, 100)
 
     def transition(self):
         goal = c.GOAL().getGoal()
@@ -96,22 +91,26 @@ class WallFollow(Movement):
                 return ApproachTarget()
 
     def move(self):
-        wallDistances = c.STATE().getWallDistances()
-        pidVals = []
-        for i in xrange(len(self.pidArray)):
-            pid = self.pidArray[i]
-            (angle, distance) = wallDistances[i]
-            goal = self.goalDist * math.sin(math.radians(abs(angle)))
-            if (not pid.running):
-                pid.start(distance, goal)
+        pid0 = self.pid0
+        pid1 = self.pid1
 
-            pidVals.append(self.pid.iterate(angle))
+        (d, theta) = c.STATE().getPosRelativeToWall(0, 1)
 
-        #slowdown when close, slowdown when off-angle 
-        collision = c.STATE().getCollisionDistance()
-        #adjustedSpeed = self.targetSpeed if collision > .5 else self.targetSpeed*collision*2
+        if (not pid0.running):
+            pid0.start(d, FW_DIST_TARGET)
+        if (not pid1.running):
+            pid1.start(theta, 0)
 
-        c.CTRL().setMovement(adjustedSpeed, self.rotationSpeed * sum(pidVals))
+        pidVal0 = pid0.iterate(d)
+        pidVal1 = pid1.iterate(theta)
+
+        pidVal = pidVal0 + pidVal1
+        print "~~~~~~~"
+        print (d, FW_DIST_TARGET, pidVal0)
+        print (theta, 0, pidVal1)
+        print (0, FW_ROTATE_SPEED_SCALE * pidVal1)
+
+        c.CTRL().setMovement(0, FW_ROTATE_SPEED_SCALE * pidVal1)
 
 class MoveToOpen(Movement):
     def __init__(self):
@@ -306,8 +305,9 @@ if __name__ == "__main__":
                 c.STATE().log()
                 c.GOAL().log()
                 c.MOVE().log()
-                nextTime = time.time() + .5
+                nextTime = time.time() + .25
                 print timeElapsed
+                time.sleep(.26)
             if timeElapsed >= 180:
                 c.CTRL().halt()
                 break
