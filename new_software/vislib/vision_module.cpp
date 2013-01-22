@@ -35,7 +35,7 @@ static PyObject *vision_step(PyObject *self, PyObject *args) {
 
     if (!PyArg_ParseTuple(args, "", &command))
         return NULL;
-    vec = step(NULL, NULL, NULL, NULL, 0);
+    vec = step();
     
     string format = "i(siii)(siii)(siii)(siii)(siii)(siii)(siii)(siii)";
     

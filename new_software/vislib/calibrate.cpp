@@ -5,6 +5,8 @@ extern bool *colorEnableFlags;
 extern int numColors;
 extern int **colorThresholds;
 
+extern Config cfg;
+
 Mat *raw_display;
 Mat *hsv_display;
 Mat *scatter_display;
@@ -46,36 +48,10 @@ int main() {
 		return -1;
 	}
     */
+    load_params();
     init_opencv();
 
-    Config cfg;
-    try {
-        cfg.readFile("visionparams.cfg");
-    } catch (FileIOException &e) {
-        cout << "Config file I/O error" << endl;
-        return EXIT_FAILURE;
-    } catch (ParseException &e) {
-        cout << "Parse error at visionparams.cfg:"
-             << e.getLine() << " - " << e.getError() << endl;
-        return EXIT_FAILURE;
-    }
-    numColors = cfg.lookup("colors").getLength();
-    colorNames = new string[numColors];
-    colorEnableFlags = new bool[numColors];
-    colorThresholds = new int*[numColors];    
-    Setting &colorsGroup = cfg.lookup("colors");
-    for (int i = 0; i < numColors; i++) {
-        colorThresholds[i] = new int[6];
-        Setting &colorInfo = colorsGroup[i];
-        colorInfo.lookupValue("name", colorNames[i]);
-        colorInfo.lookupValue("enabled", colorEnableFlags[i]);
-        colorInfo.lookupValue("hueMin", colorThresholds[i][0]);
-        colorInfo.lookupValue("hueMax", colorThresholds[i][1]);
-        colorInfo.lookupValue("satMin", colorThresholds[i][2]);
-        colorInfo.lookupValue("satMax", colorThresholds[i][3]);
-        colorInfo.lookupValue("valMin", colorThresholds[i][4]);
-        colorInfo.lookupValue("valMax", colorThresholds[i][5]);
-    }
+    
 
 	namedWindow("raw",1);
 	namedWindow("blobs",1);
@@ -91,13 +67,10 @@ int main() {
 
     	while (1) {
     	    
-    		int out = step(&raw_display, &hsv_display, &scatter_display,
-    		    &(colorThresholds[i]), 1);
+    		int out = step(true, &raw_display, &scatter_display, i);
 
     		imshow("raw", *raw_display);
-            imshow("blobs", *hsv_display);
-            //imshow("scatter", *scatter_display);
-        			
+            imshow("blobs", *scatter_display);
 		    
         	char c = waitKey(1);
         	if (c == -1) {
@@ -198,7 +171,6 @@ int main() {
         	
     	}
     }
-    
-    cfg.writeFile("visionparams.cfg");
+    cfg.writeFile("visionparams.cfg");    
     //myfile.close();
 }

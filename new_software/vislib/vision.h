@@ -13,18 +13,15 @@ using namespace cv;
 using namespace std;
 using namespace libconfig;
 
-//const string obj[] = {"RED_BALL", "GREEN_BALL", "YELLOW_WALL", "BLUE_WALL", "PURPLE_GOAL", "BLACK BUTTON"};
-//const bool obj_toggle[] = {true, true, false, false, false, false};
-//const int num_obj = 6;
 const double downsample_factor = .25;
 
 const int maxDetections = 16;
 
-int setup();
-//void load_thresh();
+int load_params();
 int init_opencv();
-int step(Mat **frame_ptr, Mat **hsv_ptr, Mat **scatter_ptr,
-        int **thresh, int num_colors);
+int setup();
+int step(bool isCalibMode = false, Mat **frame_ptr = NULL, Mat **scatter_ptr = NULL,
+         int colorBeingCalibrated = 0);
 int identify(Mat &image, Mat &colors, int *thresh, int num_colors);
 
 #endif
