@@ -2,10 +2,15 @@
 #include <unistd.h>
 #include <sys/time.h>
 
+string *colorNames;
+bool *colorEnableFlags;
+int numColors;
+int **colorThresholds;
+
 Mat src;
 Mat ds;
 Mat hsv;
-Mat bw[num_obj];
+Mat bw;
 Mat colors;
 Mat colors3c;
 Mat temp;
@@ -26,7 +31,6 @@ int objSizes[16];
 VideoCapture cap(CAMERA);
 VideoWriter rgbRecord("recordedRGB.mpeg", CV_FOURCC('P', 'I', 'M', '1'), 30, Size(640, 480));
 VideoWriter blobRecord("recordedBlobs.mpeg", CV_FOURCC('P', 'I', 'M', '1'), 30, Size(640, 480));
-int thresh[num_obj * 6];
 
 string convertInt(int number) {
    stringstream ss;
@@ -35,11 +39,12 @@ string convertInt(int number) {
 }
 
 int setup() {
-	load_thresh();
+	//load_thresh();
 	init_opencv();
 	return 0;
 }
 
+/*
 void load_thresh() {
 	string line;
 	ifstream myfile("vislib/color.cfg");
@@ -65,8 +70,10 @@ void load_thresh() {
   		cout << "Unable to open file";
   	}
 }
+*/
   	
 int init_opencv() {
+
 	if(!cap.isOpened())  // check if we succeeded
         return -1;
     
@@ -97,15 +104,21 @@ int init_opencv() {
     return 0;
 } 
 
-int step(Mat **frame_ptr, Mat **blob_ptr, Mat **scatter_ptr, int *thr, int num_colors) {
+int step(Mat **frame_ptr, Mat **blob_ptr, Mat **scatter_ptr, int **thr, int num_colors) {
 
-
-  bool force = true;
+    //bool force = true;
+    bool isCalibMode = false;
+    /*
 	if (num_colors == 0) {
-		num_colors = num_obj;
+		num_colors = numColors;
 		thr = thresh;
 		force = false;
 	}
+    */
+    if (num_colors == 1) {
+        isCalibMode = true;
+    }
+
     //cap >> src; // get a new frame from camera
     //gettimeofday(&startTime, NULL);
     cap.grab();
@@ -117,16 +130,12 @@ int step(Mat **frame_ptr, Mat **blob_ptr, Mat **scatter_ptr, int *thr, int num_c
     useconds = endTime.tv_usec - startTime.tv_usec;
     mtime = (seconds + useconds/1000000.);
     if (frameCount % 10 == 0) {
-        cout << mtime << endl;
+        //cout << mtime << endl;
         //cout << 1/mtime << endl;
     }
     startTime = endTime;
     frameCount++;
     //return 0;
-
-
-
-
 
     cvtColor(src, hsv, CV_BGR2HSV);
     colors.setTo(Scalar(0));
@@ -139,28 +148,32 @@ int step(Mat **frame_ptr, Mat **blob_ptr, Mat **scatter_ptr, int *thr, int num_c
         objSizes[i] = 0;
     }
     for (int i = 0; i < num_colors; i++) {
-        if (!obj_toggle[i] && !force) {
+        
+        if (!colorEnableFlags[i] && !isCalibMode) {
             continue;
         }
         if (numDetections >= maxDetections) {
             break;
         }
-        int *t = &(thr[i * 6]);
+        int *t = thr[i];
+
+        cout << t[0] << " " << t[1] << " " << t[2] << " "
+             << t[3] << " " << t[4] << " " << t[5] << endl;
         if (t[0] >= 0) {
-            inRange(hsv, Scalar(t[0], t[2], t[4]), Scalar(t[1], t[3], t[5]), bw[i]);
+            inRange(hsv, Scalar(t[0], t[2], t[4]), Scalar(t[1], t[3], t[5]), bw);
         } else {
             int t_0 = 180 + t[0];
-            inRange(hsv, Scalar(t_0, t[2], t[4]), Scalar(180, t[3], t[5]), bw[i]);
+            inRange(hsv, Scalar(t_0, t[2], t[4]), Scalar(180, t[3], t[5]), bw);
             inRange(hsv, Scalar(0, t[2], t[4]), Scalar(t[1], t[3], t[5]), temp);
-            bitwise_or(bw[i], temp, bw[i]);
+            bitwise_or(bw, temp, bw);
         }
-        bitwise_or(colors, bw[i], colors);
+        bitwise_or(colors, bw, colors);
         
-        blob_detector->detect(bw[i], keyPoints);
-        
+        blob_detector->detect(bw, keyPoints);
+
         for (int j = 0; j < keyPoints.size(); j++) {
             double scale = 1/downsample_factor;
-            objTypes[numDetections] = obj[i];
+            objTypes[numDetections] = colorNames[i];
             objXCoords[numDetections] = keyPoints[j].pt.x * scale;
             objYCoords[numDetections] = keyPoints[j].pt.y * scale;
             objSizes[numDetections] = keyPoints[j].size;
@@ -193,6 +206,5 @@ int step(Mat **frame_ptr, Mat **blob_ptr, Mat **scatter_ptr, int *thr, int num_c
     
     //rgbRecord << src;
     //blobRecord << colors3c;
-    
     
 }
