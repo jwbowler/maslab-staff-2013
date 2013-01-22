@@ -107,6 +107,21 @@ class StateEstimator:
     def nearCollision(self):
         return (self.getCollisionDistance() < .12)
     
+    # Takes two sensor indices to use for wall estimation
+    # Returns (distance to wall, angle of wall relative to bot's orientation)
+    def getPosRelativeToWall(self, index0, index1):
+        sensorList = self.getWallDistances()
+        sensorA = sensorList[index0]
+        sensorB = sensorList[index1]
+        phi = .5 * abs(sensorA[1] - sensorB[1])
+        a = sensorA[0]
+        b = sensorB[0]
+        theta = math.asin(math.sqrt((abs(a-b) / (a+b)) * math.cos(phi)))
+        if a - b > 0:
+            theta = -theta
+        d = b * math.cos(phi - theta) / math.cos(theta)
+        return (d, theta)
+
     # Returns landmarks like QR codes and the goal tower:
     # ((type, ID, distance, angle), ...)
     def getLandmarks(self):

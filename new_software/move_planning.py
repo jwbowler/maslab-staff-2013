@@ -79,12 +79,8 @@ class WallFollow(Movement):
     def __init__(self):
         Movement.__init__(self)
         self.setAvoidWalls(False)
-        self.goalDist = .45
-        self.linear = .18
-        self.rotation = .18
-        # -85 40 0
-        self.pid0 = pid.Pid(-2.0, .000, .000, 100)
-        self.pid1 = pid.Pid(-1.0, .000, .000, 100)
+        self.pid0 = pid.Pid(.0, .000, .000, 100)
+        self.pid1 = pid.Pid(1.0, .000, .000, 100)
 
     def transition(self):
         goal = c.GOAL().getGoal()
@@ -95,35 +91,26 @@ class WallFollow(Movement):
                 return ApproachTarget()
 
     def move(self):
-        wallDistances = c.STATE().getWallDistances()
         pid0 = self.pid0
         pid1 = self.pid1
-        (distance0, angle0) = wallDistances[4]
-        (distance1, angle1) = wallDistances[3]
-        goal0 = self.goalDist / math.sin(math.radians(abs(angle0)))
-        goal1 = self.goalDist / math.sin(math.radians(abs(angle1)))
+
+        (d, theta) = c.STATE().getPosRelativeToWall(0, 1)
 
         if (not pid0.running):
-            pid0.start(distance0, goal0)
+            pid0.start(d, FW_DIST_TARGET)
         if (not pid1.running):
-            pid1.start(distance1, goal1)
+            pid1.start(theta, 0)
 
-        if (distance0 > .6):
-            distance0 = .6
-
-        if (distance1 > 1.2):
-            distance1 = 1.2
-
-        pidVal0 = pid0.iterate(distance0)
-        pidVal1 = pid1.iterate(distance1)
+        pidVal0 = pid0.iterate(d)
+        pidVal1 = pid1.iterate(theta)
 
         pidVal = pidVal0 + pidVal1
         print "~~~~~~~"
-        print (distance0, goal0, pidVal0)
-        print (distance1, goal1, pidVal1)
-        print (self.linear, self.rotation*pidVal, pidVal)
+        print (d, FW_DIST_TARGET, pidVal0)
+        print (theta, 0, pidVal1)
+        print (0, FW_ROTATE_SPEED_SCALE * pidVal1)
 
-        c.CTRL().setMovement(self.linear, self.rotation* pidVal)
+        c.CTRL().setMovement(0, FW_ROTATE_SPEED_SCALE * pidVal1)
 
 class MoveToOpen(Movement):
     def __init__(self):

@@ -3,7 +3,7 @@ sys.path.append("../../lib")
 
 import serial, time
 import threading, thread
-
+from config import *
 # Class that handles communication with the arduino
 # The general idea is to have a thread that constantly sends actuator commands
 # based on arrays and receives sensor data into arrays. The rest of the code
@@ -164,9 +164,7 @@ class Arduino(threading.Thread):
                 for i in range(length):
                     byte0 = ord(self.serialRead())
                     byte1 = ord(self.serialRead())
-                    byte2 = ord(self.serialRead())
-                    byte3 = ord(self.serialRead())
-                    duration = (byte0 << 24) + (byte1 << 16) + (byte2 << 8) + byte3
+                    duration =  (byte0 << 8) + byte1
                     self.ultVals[i] = duration
                 
             # End of packet
@@ -251,13 +249,13 @@ class Arduino(threading.Thread):
         if len(self.imus) > 0:
             output += "U"
         # Ult component of initializing
-        if len(self.ultPorts) > 0:
-            output += "J"
-            numUlts = len(self.ultPorts)
-            output += chr(numUlts)
-            for (trig, echo) in self.ultPorts:
-                output += chr(trig)
-                output += chr(echo)
+        output += "J"
+        numUlts = len(self.ultPorts)
+        output += chr(numUlts)
+        for (trig, echo) in self.ultPorts:
+            output += chr(trig)
+            output += chr(echo)
+            output += chr(ULT_TIMEOUT)
         # Terminate the command packet
         output += ";"
 

@@ -43,13 +43,13 @@ class Control():
     # This method sets the speed of the left motor
     # Input: int from -1 to 1 inclusive
     def setLeftMotor(self,speed):
-        speed = boundAndScale(speed, 28, 127)
+        speed = boundAndScale(speed, 43, 127)
         self.leftMotor.setSpeed(speed)
 
     # This method sets the speed of the right motor
     # Input: int from -1 to 1 inclusive
     def setRightMotor(self,speed):
-        speed = boundAndScale(speed, 22, 127)
+        speed = boundAndScale(speed, 23, 107)
         self.rightMotor.setSpeed(speed)
     
 
@@ -115,7 +115,7 @@ def getMotorSpeeds(vel, rot):
 
 if __name__=="__main__":
     c.ARD()
-    c.DATA()
+    #c.DATA()
     c.CTRL()
     c.ARD().run()
 
@@ -134,57 +134,22 @@ if __name__=="__main__":
     
     print "Ramping left"
     #.25
-    for i in xrange(15):
-        p = i/40.0
-        print "P: ", p
-        c.CTRL().setLeftMotor(p)
-        time.sleep(.5)
+    for i in xrange(60):
+        print i
+        c.CTRL().leftMotor.setSpeed(i)
+        time.sleep(.25)
 
     c.CTRL().setLeftMotor(0)
 
     #.225
     print "Ramping right"
-    for i in xrange(10):
-        p = i/40.0
-        print "P: ", p
-        c.CTRL().setRightMotor(p)
-        time.sleep(.5)
+    for i in xrange(40):
+        print i
+        c.CTRL().rightMotor.setSpeed(i)
+        time.sleep(.25)
 
     c.CTRL().setRightMotor(0)
-
-    
-    print "Testing Left Motor"
-    c.CTRL().setLeftMotor(.5)
     time.sleep(2)
-    c.CTRL().setLeftMotor(0)
-
-    print "Testing Right Motor"
-    c.CTRL().setRightMotor(.5)
-    time.sleep(2)
-    c.CTRL().setRightMotor(0)
-
-    print "Testing 360 turn"
-    c.CTRL().setRightMotor(.4)
-    c.CTRL().setLeftMotor(-.4)
-    time.sleep(3)
-    c.CTRL().setRightMotor(0)
-    c.CTRL().setLeftMotor(0)
-
-    print "Testing forward drive"
-    c.CTRL().setRightMotor(.5)
-    c.CTRL().setLeftMotor(.5)
-    time.sleep(2)
-    c.CTRL().setRightMotor(0)
-    c.CTRL().setLeftMotor(0)
-
-    time.sleep(2)
-
-    print "Testing back drive"
-    c.CTRL().setRightMotor(-.5)
-    c.CTRL().setLeftMotor(-.5)
-    time.sleep(2)
-    c.CTRL().setRightMotor(0)
-    c.CTRL().setLeftMotor(0)
 
     print "Testing Helix"
     c.CTRL().setHelix(True)
