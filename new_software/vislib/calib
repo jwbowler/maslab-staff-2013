@@ -1,3 +1,0 @@
-if (g++ calibrate.cpp vision.cpp -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_features2d -lconfig++); then
-    ./a.out
-fi

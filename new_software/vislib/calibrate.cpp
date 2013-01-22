@@ -8,54 +8,15 @@ extern int **colorThresholds;
 extern Config cfg;
 
 Mat *raw_display;
-Mat *hsv_display;
 Mat *scatter_display;
-
-//int colorThresholds[num_obj * 6];
 
 int main() {
 
-    /*
-	string line;
-	ifstream tfile("color.cfg");
-	if (tfile.is_open()) {
-		int obj_count = 0;
-    	while (tfile.good()) {
-    		for (int i = 0; i < 6; i++) {
-      			getline(tfile, line);
-      			if (line == "") {
-      				break;
-      			}
-      			colorThresholds[obj_count*6 + i] = atoi(line.c_str());
-      			cout << colorThresholds[obj_count*6 + i] << " ";
-      		}
-      		cout << endl;
-      		if (line == "") {
-      			break;
-      		}
-      		obj_count++;
-    	}
-    	tfile.close();
-  	} else {
-  		cout << "Unable to open file";
-  	}
-  	
-    init_opencv();
-		
-	ofstream myfile("color.cfg");
-	if (!myfile.is_open()) {
-		cout << "failed to open file";
-		return -1;
-	}
-    */
     load_params();
     init_opencv();
 
-    
-
 	namedWindow("raw",1);
 	namedWindow("blobs",1);
-    //namedWindow("scatter",1);
     
     for (int i = 0; i < numColors; i++) {
     	string s = colorNames[i];
@@ -77,8 +38,6 @@ int main() {
         		continue;
         	}
         	if (c == ' ') {
-                //myfile << colorThresholds[i][j] << endl;
-
                 Setting &colorsGroup = cfg.lookup("colors");
                 Setting &colorInfo = colorsGroup[i];
                 colorInfo["hueMin"] = colorThresholds[i][0];
@@ -172,5 +131,4 @@ int main() {
     	}
     }
     cfg.writeFile("visionparams.cfg");    
-    //myfile.close();
 }
