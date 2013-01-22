@@ -12,6 +12,7 @@ class StateEstimator:
         self.lastImageStamp = None
         self.myBalls = []
         self.opBalls = []
+        self.lastGoodWallDistances = []
     
     # Updates estimated state according to data in Data class
     def run(self):
@@ -92,6 +93,16 @@ class StateEstimator:
     # Returns set of wall distances ond angles from all sensors:
     # ((distance, angle), (distance, angle), ...)
     def getWallDistances(self):
+        dist = self.getRawWallDistances()
+        if self.lastGoodWallDistances != []:
+            for i in xrange(len(dist)):
+                if dist[i][0] > 1000:
+                    dist[i] = self.lastGoodWallDistances[i]
+        self.lastGoodWallDistances = dist
+        return dist
+
+    # Returns wall distances with uncorrected timed-out values
+    def getRawWallDistances(self):
         dist = [ir.getPosition() for ir in self.data.getIr()]
         dist.extend([ult.getPosition() for ult in self.data.getUlt()])
         return dist

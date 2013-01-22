@@ -110,7 +110,7 @@ class WallFollow(Movement):
         print (theta, 0, pidVal1)
         print (0, FW_ROTATE_SPEED_SCALE * pidVal1)
 
-        c.CTRL().setMovement(0, FW_ROTATE_SPEED_SCALE * pidVal1)
+        #c.CTRL().setMovement(0, FW_ROTATE_SPEED_SCALE * pidVal1)
 
 class MoveToOpen(Movement):
     def __init__(self):

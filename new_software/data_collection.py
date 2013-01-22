@@ -125,6 +125,7 @@ class Camera(Sensor):
 
     # stops OpenCV thread
     def stopThread(self):
+        print "stopThread"
         self.vision.stop()
 
     # attempts to capture new frame, if vision is not ready: pass
@@ -245,6 +246,7 @@ class EncoderPair(Sensor):
 if __name__ == "__main__":
     c.ARD()
     c.DATA()
+    c.CTRL()
     c.ARD().run()
 
     try:
@@ -253,4 +255,6 @@ if __name__ == "__main__":
             c.DATA().log()
             time.sleep(.5)
     except KeyboardInterrupt:
+        print "Interrupting"
+        c.CTRL().halt()
         c.DATA().stopVisionThread()

@@ -28,7 +28,9 @@ int objXCoords[16];
 int objYCoords[16];
 int objSizes[16];
 
-VideoCapture cap(CAMERA);
+VideoCapture cap;
+int cameraID;
+
 VideoWriter rgbRecord("recordedRGB.mpeg", CV_FOURCC('P', 'I', 'M', '1'), 30, Size(640, 480));
 VideoWriter blobRecord("recordedBlobs.mpeg", CV_FOURCC('P', 'I', 'M', '1'), 30, Size(640, 480));
 
@@ -47,33 +49,6 @@ int setup() {
 	return 0;
 }
 
-/*
-void load_thresh() {
-	string line;
-	ifstream myfile("vislib/color.cfg");
-	if (myfile.is_open()) {
-		int obj_count = 0;
-    	while (myfile.good()) {
-    		for (int i = 0; i < 6; i++) {
-      			getline(myfile, line);
-      			if (line == "") {
-      				break;
-      			}
-      			thresh[obj_count*6 + i] = atoi(line.c_str());
-      			cout << thresh[obj_count*6 + i] << " ";
-      		}
-      		cout << endl;
-      		if (line == "") {
-      			break;
-      		}
-      		obj_count++;
-    	}
-    	myfile.close();
-  	} else {
-  		cout << "Unable to open file";
-  	}
-}
-*/
 int load_params() {
     try {
         cfg.readFile("visionparams.cfg");
@@ -85,6 +60,7 @@ int load_params() {
              << e.getLine() << " - " << e.getError() << endl;
         return EXIT_FAILURE;
     }
+    cfg.lookupValue("camera", cameraID);
     numColors = cfg.lookup("colors").getLength();
     cout << "numColors: " << numColors << endl;
     colorNames = new string[numColors];
@@ -107,7 +83,9 @@ int load_params() {
   	
 int init_opencv() {
 
-	if(!cap.isOpened())  // check if we succeeded
+    cap = VideoCapture(cameraID);
+	
+    if(!cap.isOpened())  // check if we succeeded
         return -1;
     
     // to initialize colors to the right size:

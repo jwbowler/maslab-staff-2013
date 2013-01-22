@@ -39,6 +39,7 @@ class VisionWrapper:
         return True
 	
     def stop(self):
+        print "stop"
         self.conn_Py2Cv.send('EXIT')
         self.p.join()
 	
@@ -73,8 +74,10 @@ def f(conn):
     while (True):
         try:
             if conn.poll():
+                print "Received message"
                 m = conn.recv()
                 if m == 'EXIT':
+                    print "Received EXIT"
                     break
             data = vision.step()
             timestamp = time.time()

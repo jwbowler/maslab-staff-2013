@@ -1,8 +1,6 @@
 #ifndef _VISION_H
 #define _VISION_H
 
-#define CAMERA 0
-
 #include "opencv2/opencv.hpp"
 #include <libconfig.h++>
 #include <iostream>
