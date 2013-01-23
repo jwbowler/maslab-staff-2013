@@ -25,6 +25,7 @@ class MovePlanning:
     def log(self):
         #print "~~~MOVE~~~"
         print self.moveObject
+        self.moveObject.log()
         #print "~~~MOVE~~~"
 
 class Movement():
@@ -79,8 +80,12 @@ class WallFollow(Movement):
     def __init__(self):
         Movement.__init__(self)
         self.setAvoidWalls(False)
-        self.pid0 = pid.Pid(.0, .000, .000, 100)
-        self.pid1 = pid.Pid(1.0, .000, .000, 100)
+        self.pid0 = pid.Pid(1, .000, .000, 100)
+        self.pid1 = pid.Pid(1, .07, .000, 20)
+        self.d = 0
+        self.theta = 0
+        self.pidVal0 = 0
+        self.pidVal1 = 0
 
     def transition(self):
         goal = c.GOAL().getGoal()
@@ -94,23 +99,28 @@ class WallFollow(Movement):
         pid0 = self.pid0
         pid1 = self.pid1
 
-        (d, theta) = c.STATE().getPosRelativeToWall(0, 1)
+        (self.d, self.theta) = c.STATE().getPosRelativeToWall(0, 1)
+        
 
         if (not pid0.running):
-            pid0.start(d, FW_DIST_TARGET)
+            pid0.start(self.d, FW_DIST_TARGET)
         if (not pid1.running):
-            pid1.start(theta, 0)
+            pid1.start(self.theta, 0)
 
-        pidVal0 = pid0.iterate(d)
-        pidVal1 = pid1.iterate(theta)
+        self.pidVal0 = pid0.iterate(self.d)
+        self.pidVal1 = pid1.iterate(self.theta)
 
-        pidVal = pidVal0 + pidVal1
+        self.pidVal = self.pidVal0 + self.pidVal1
+
+        c.CTRL().setMovement(FW_TRANSLATE_SPEED, FW_ROTATE_SPEED_SCALE * self.pidVal1)
+
+    def log(self):
         print "~~~~~~~"
-        print (d, FW_DIST_TARGET, pidVal0)
-        print (theta, 0, pidVal1)
-        print (0, FW_ROTATE_SPEED_SCALE * pidVal1)
-
-        #c.CTRL().setMovement(0, FW_ROTATE_SPEED_SCALE * pidVal1)
+        print "d = " + str(self.d)
+        print "theta = " + str(self.theta)
+        print (self.d, FW_DIST_TARGET, self.pidVal0)
+        print (self.theta, 0, self.pidVal1)
+        print (0, FW_ROTATE_SPEED_SCALE * self.pidVal1)
 
 class MoveToOpen(Movement):
     def __init__(self):
@@ -307,7 +317,7 @@ if __name__ == "__main__":
                 c.MOVE().log()
                 nextTime = time.time() + .25
                 print timeElapsed
-                time.sleep(.26)
+                time.sleep(.02)
             if timeElapsed >= 180:
                 c.CTRL().halt()
                 break

@@ -173,9 +173,9 @@ void ultInit()
     // it in the array
     tPin = (int)serialRead();
     ePin = (int)serialRead();
-    tOut1 = (int)serialRead();
-    tOut0 = (int)serialRead();
-    tOut = tOut1*256 + tOut0
+    tOut1 = (unsigned char)serialRead();
+    tOut0 = (unsigned char)serialRead();
+    tOut = (tOut1 << 8) + tOut0;
     tempUlt = new Ult(tPin, ePin,tOut);
     ults[i] = tempUlt;
   }
@@ -530,10 +530,8 @@ void loop()
        // Analog read the ith ult and decompose into two bytes
       unsigned long duration = ults[i]->trigger();
       char durBuf[4];
-      durBuf[0] = (char)((duration >> 24) & 0xFF) ;
-      durBuf[1] = (char)((duration >> 16) & 0xFF) ;
-      durBuf[2] = (char)((duration >> 8) & 0XFF);
-      durBuf[3] = (char)((duration & 0XFF));
+      durBuf[0] = (char)((duration >> 8) & 0XFF);
+      durBuf[1] = (char)((duration & 0XFF));
 
       // Write the two bytes to the retVal, byte0 first
       Serial.write(durBuf[0]);

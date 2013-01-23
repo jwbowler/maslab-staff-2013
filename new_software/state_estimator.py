@@ -12,7 +12,11 @@ class StateEstimator:
         self.lastImageStamp = None
         self.myBalls = []
         self.opBalls = []
-        self.lastGoodWallDistances = []
+        self.wallDistRaw = []
+        self.wallDistTimeoutFixed = []
+        self.wallDistLowpass = []
+        self.wallDistOutliersFixed = []
+        self.wallDistCorrected = []
     
     # Updates estimated state according to data in Data class
     def run(self):
@@ -28,6 +32,39 @@ class StateEstimator:
             self.myBalls = [(b[0], b[1]+shift) for b in self.myBalls]
             self.opBalls = [(b[0], b[1]+shift) for b in self.opBalls]
 
+        # set wallDistRaw
+        dist = [ir.getPosition() for ir in self.data.getIr()]
+        dist.extend([ult.getPosition() for ult in self.data.getUlt()])
+        self.wallDistRaw = dist[:]
+
+        # set wallDistTimeoutFixed
+        if self.wallDistCorrected != []:
+            for i in xrange(len(dist)):
+                if dist[i][0] > 1000:
+                    dist[i] = self.wallDistCorrected[i]
+        self.wallDistTimeoutFixed = dist[:]
+
+        # set wallDistLowpass
+        blurAmount = .8
+        if self.wallDistLowpass != []:
+            for i in xrange(len(dist)):
+                corrDist = self.wallDistLowpass[i][0] * blurAmount + dist[i][0] * (1 - blurAmount)
+                self.wallDistLowpass[i] = (corrDist, self.wallDistLowpass[1])
+        else:
+            self.wallDistLowpass = dist[:]
+        
+        # set wallDistOutliersFixed
+        errorCutoff = .25
+        if self.wallDistOutliersFixed != []:
+            for i in xrange(len(dist)):
+                if dist[i][0] > (1 + errorCutoff) * self.wallDistLowpass[i][0] \
+                 or dist[i][0] < (1 - errorCutoff) * self.wallDistLowpass[i][0]:
+                    dist[i] = self.wallDistLowpass[i]
+        self.wallDistOutliersFixed = dist[:]
+
+        # set wallDistCorrected
+        self.wallDistCorrected = self.wallDistTimeoutFixed[:]
+
     def log(self):
         print "~~~State Log~~~"
 
@@ -37,7 +74,10 @@ class StateEstimator:
         print "Opponent Balls"
         print self.getOpBalls()
 
-        print "Wall Distances"
+        print "Raw Wall Distances"
+        print self.getRawWallDistances()
+
+        print "Corrected Wall Dist"
         print self.getWallDistances()
 
         print "Collision Distance"
@@ -90,23 +130,15 @@ class StateEstimator:
             return None
         return self.opBalls[0]
     
-    # Returns set of wall distances ond angles from all sensors:
+    # Returns fully corrected set of wall distances ond angles from all sensors:
     # ((distance, angle), (distance, angle), ...)
     def getWallDistances(self):
-        dist = self.getRawWallDistances()
-        if self.lastGoodWallDistances != []:
-            for i in xrange(len(dist)):
-                if dist[i][0] > 1000:
-                    dist[i] = self.lastGoodWallDistances[i]
-        self.lastGoodWallDistances = dist
-        return dist
+        return self.wallDistCorrected
 
-    # Returns wall distances with uncorrected timed-out values
+    # Returns wall distances without any corrections
     def getRawWallDistances(self):
-        dist = [ir.getPosition() for ir in self.data.getIr()]
-        dist.extend([ult.getPosition() for ult in self.data.getUlt()])
-        return dist
-        
+        return self.wallDistRaw
+
     # Returns the forward distance that the robot can travel
     # before it hits a wall
     def getCollisionDistance(self):
@@ -157,4 +189,4 @@ if __name__ == "__main__":
         c.STATE().run()
         c.STATE().log()
 
-        time.sleep(.5)
+        time.sleep(.05)
