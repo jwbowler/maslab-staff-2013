@@ -104,7 +104,7 @@ if __name__ == '__main__':
             duration = endTime - startTime
             startTime = endTime
             avgTime = 0.9*avgTime + 0.1*duration
-            #print 1/avgTime
+            print 1/avgTime
             #print vw.getNumObj()
     except KeyboardInterrupt:
         vw.stop() 

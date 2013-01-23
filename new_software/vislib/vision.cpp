@@ -171,6 +171,8 @@ int step(bool isCalibMode, Mat **frame_ptr, Mat **scatter_ptr, int colorBeingCal
         numCycles = numColors;
     }
 
+    updateWallMap();
+
     for (int i = 0; i < numCycles; i++) {
 
         if (!colorEnableFlags[i] && !isCalibMode) {
@@ -203,12 +205,12 @@ int step(bool isCalibMode, Mat **frame_ptr, Mat **scatter_ptr, int colorBeingCal
         bitwise_or(colors, bw, colors);
         
         blob_detector->detect(bw, keyPoints);
-        updateWallMap();
+
         for (int j = 0; j < keyPoints.size(); j++) {
             double scale = 1/downsampleFactor;
             int x = keyPoints[j].pt.x;
             int y = keyPoints[j].pt.y;
-            objTypes[numDetections] = colorNames[colorIndex];
+	    objTypes[numDetections] = colorNames[colorIndex];
             objXCoords[numDetections] = x * scale;
             objYCoords[numDetections] = y * scale;
             objSizes[numDetections] = keyPoints[j].size;
@@ -223,19 +225,20 @@ int step(bool isCalibMode, Mat **frame_ptr, Mat **scatter_ptr, int colorBeingCal
     }
 
     int out = 0;
-    
+    /* 
     cvtColor(colors, colors3c, CV_GRAY2BGR);
     string frameCountStr = convertInt(frameCount);
     putText(colors3c, frameCountStr, cvPoint(5,15),
             FONT_HERSHEY_COMPLEX_SMALL, 0.8, Scalar(0,255,0));
     putText(src, frameCountStr, cvPoint(5,15),
             FONT_HERSHEY_COMPLEX_SMALL, 0.8, Scalar(0,255,0));
-    
+    */ 
     if (frame_ptr != NULL) {
         *frame_ptr = &src;
     }
     if (scatter_ptr != NULL) {
-        *scatter_ptr = &colors3c;
+        //*scatter_ptr = &colors3c;
+	*scatter_ptr = &colors;
     }
     
     //rgbRecord << src;

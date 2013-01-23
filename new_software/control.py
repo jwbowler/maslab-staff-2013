@@ -119,6 +119,15 @@ if __name__=="__main__":
     c.CTRL()
     c.ARD().run()
 
+    #########################
+    c.CTRL().setRoller(True)
+    c.CTRL().setHelix(True)
+    c.CTRL().setLeftMotor(100)
+    c.CTRL().setRightMotor(100)
+    print "Running motors..."
+    sys.exit(0)
+    #########################
+	
     c.CTRL().setRoller(False)
     c.CTRL().setHelix(False)
     c.CTRL().setRightMotor(0)

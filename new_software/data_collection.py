@@ -141,47 +141,47 @@ class Camera(Sensor):
     def hasNewFrame(self):
         return self.isNewFrame
 
-    def getObjsOfType(self, type, objHeight):
-        objIndices = self.vision.getIndicesByType(type)
+    def getObjsOfType(self, objType, objHeight):
+        objIndices = self.vision.getIndicesByType(objType)
         objs = [(self.vision.getX(i), self.vision.getY(i)) \
                       for i in objIndices]
-        objsConverted = [self.convCoords(coords) for coords in objs]
+        objsConverted = [self.convCoords(coords, objHeight) for coords in objs]
         return objsConverted
 
-    def getReachableObjsOfType(self, type, objHeight):
-        objIndices = self.vision.getIndicesByType(type)
+    def getReachableObjsOfType(self, objType, objHeight):
+        objIndices = self.vision.getIndicesByType(objType)
         objs = [(self.vision.getX(i), self.vision.getY(i)) \
                       for i in objIndices if not self.vision.getIsBehindWall(i)]
-        objsConverted = [self.convCoords(coords) for coords in objs]
+        objsConverted = [self.convCoords(coords, objHeight) for coords in objs]
         return objsConverted 
 
     # returns (dist, angle) to all my balls
     def getMyBalls(self):
-        return getObjsOfType(self.myBallColor, BALL_RADIUS)
+        return self.getObjsOfType(self.myBallColor, BALL_RADIUS)
 
     # returns (dist, angle) to all opponent balls
     def getOpBalls(self):
-        return getObjsOfType(self.opBallColor, BALL_RADIUS) 
+        return self.getObjsOfType(self.opBallColor, BALL_RADIUS) 
 
     # returns (dist, angle) to all my balls that aren't behind walls
     def getMyReachableBalls(self):
-        return getReachableObjsOfType(self.myBallColor, BALL_RADIUS) 
+        return self.getReachableObjsOfType(self.myBallColor, BALL_RADIUS) 
 
     # returns (dist, angle) to all opponent balls that aren't behind walls
     def getOpReachableBalls(self):
-        return getReachableObjsOfType(self.opBallColor, BALL_RADIUS)
+        return self.getReachableObjsOfType(self.opBallColor, BALL_RADIUS)
 
     def getGoalWalls(self):
-        return getObjsOfType("YELLOW_WALL", YELLOW_WALL_CENTER_HEIGHT/2)
+        return self.getObjsOfType("YELLOW_WALL", YELLOW_WALL_CENTER_HEIGHT/2)
 
     def getReachableGoalWalls(self):
-        return getReachableObjsOfType("YELLOW_WALL", YELLOW_WALL_CENTER_HEIGHT/2)
+        return self.getReachableObjsOfType("YELLOW_WALL", YELLOW_WALL_CENTER_HEIGHT/2)
 
     def getButtons(self):
-        return getObjsOfType("CYAN_BUTTON", BUTTON_CENTER_HEIGHT)
+        return self.getObjsOfType("CYAN_BUTTON", BUTTON_CENTER_HEIGHT)
 
     def getReachableButtons(self):
-        return getReachableObjsOfType("CYAN_BUTTON", BUTTON_CENTER_HEIGHT)
+        return self.getReachableObjsOfType("CYAN_BUTTON", BUTTON_CENTER_HEIGHT)
 
     # returns (dist, angle) given x and y pixel coordinates (from upper left)
     def convCoords(self, (x, y), objHeight):
