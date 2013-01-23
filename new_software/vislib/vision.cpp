@@ -2,10 +2,14 @@
 #include <unistd.h>
 #include <sys/time.h>
 
+int cameraID;
+double downsampleFactor;
 string *colorNames;
 bool *colorEnableFlags;
 int numColors;
 int **colorThresholds;
+int *wallStripeThresholds;
+int gapWidthThreshold;
 
 Mat src;
 Mat ds;
@@ -14,6 +18,7 @@ Mat bw;
 Mat colors;
 Mat colors3c;
 Mat temp;
+Mat wallMap;
 SimpleBlobDetector::Params params;
 cv::Ptr<FeatureDetector> blob_detector;
 vector<KeyPoint> keyPoints;
@@ -27,12 +32,12 @@ string objTypes[16];
 int objXCoords[16];
 int objYCoords[16];
 int objSizes[16];
+bool objIsBehindWall[16];
 
 VideoCapture cap;
-int cameraID;
 
-VideoWriter rgbRecord("recordedRGB.mpeg", CV_FOURCC('P', 'I', 'M', '1'), 30, Size(640, 480));
-VideoWriter blobRecord("recordedBlobs.mpeg", CV_FOURCC('P', 'I', 'M', '1'), 30, Size(640, 480));
+//VideoWriter rgbRecord("recordedRGB.mpeg", CV_FOURCC('P', 'I', 'M', '1'), 30, Size(640, 480));
+//VideoWriter blobRecord("recordedBlobs.mpeg", CV_FOURCC('P', 'I', 'M', '1'), 30, Size(640, 480));
 
 Config cfg;
 
@@ -43,7 +48,6 @@ string convertInt(int number) {
 }
 
 int setup() {
-	//load_thresh();
     load_params();
 	init_opencv();
 	return 0;
@@ -60,7 +64,10 @@ int load_params() {
              << e.getLine() << " - " << e.getError() << endl;
         return EXIT_FAILURE;
     }
+
     cfg.lookupValue("camera", cameraID);
+    cfg.lookupValue("downsampleFactor", downsampleFactor);
+
     numColors = cfg.lookup("colors").getLength();
     cout << "numColors: " << numColors << endl;
     colorNames = new string[numColors];
@@ -79,6 +86,18 @@ int load_params() {
         colorInfo.lookupValue("valMin", colorThresholds[i][4]);
         colorInfo.lookupValue("valMax", colorThresholds[i][5]);
     }
+
+    wallStripeThresholds = new int[numColors];
+    Setting &wallStripeColors = cfg.lookup("wallStripeColor");
+    wallStripeColors.lookupValue("hueMin", wallStripeThresholds[0]);
+    wallStripeColors.lookupValue("hueMax", wallStripeThresholds[1]);
+    wallStripeColors.lookupValue("satMin", wallStripeThresholds[2]);
+    wallStripeColors.lookupValue("satMax", wallStripeThresholds[3]);
+    wallStripeColors.lookupValue("valMin", wallStripeThresholds[4]);
+    wallStripeColors.lookupValue("valMax", wallStripeThresholds[5]);
+    cfg.lookupValue("gapWidthThreshold", gapWidthThreshold);
+
+    return 0;
 }
   	
 int init_opencv() {
@@ -89,8 +108,8 @@ int init_opencv() {
         return -1;
     
     // to initialize colors to the right size:
-    cap.set(CV_CAP_PROP_FRAME_WIDTH, 640*downsample_factor);
-    cap.set(CV_CAP_PROP_FRAME_HEIGHT, 480*downsample_factor);
+    cap.set(CV_CAP_PROP_FRAME_WIDTH, 640*downsampleFactor);
+    cap.set(CV_CAP_PROP_FRAME_HEIGHT, 480*downsampleFactor);
     cap.set(CV_CAP_PROP_FPS, 30);
     cap.set(CV_CAP_PROP_POS_FRAMES, 0);
     cap >> src;
@@ -142,9 +161,8 @@ int step(bool isCalibMode, Mat **frame_ptr, Mat **scatter_ptr, int colorBeingCal
         objXCoords[i] = 0;
         objYCoords[i] = 0;
         objSizes[i] = 0;
+        objIsBehindWall[i] = false;
     }
-
-    //cout << numColors << endl;
 
     int numCycles;
     if (isCalibMode) {
@@ -154,8 +172,6 @@ int step(bool isCalibMode, Mat **frame_ptr, Mat **scatter_ptr, int colorBeingCal
     }
 
     for (int i = 0; i < numCycles; i++) {
-
-        //cout << i << endl;
 
         if (!colorEnableFlags[i] && !isCalibMode) {
             continue;
@@ -172,8 +188,6 @@ int step(bool isCalibMode, Mat **frame_ptr, Mat **scatter_ptr, int colorBeingCal
             colorIndex = i;
         }
         
-        //cout << "colorIndex: " << colorIndex << endl;
-        
         int *t = colorThresholds[colorIndex];
 
         //cout << t[0] << " " << t[1] << " " << t[2] << " "
@@ -189,18 +203,22 @@ int step(bool isCalibMode, Mat **frame_ptr, Mat **scatter_ptr, int colorBeingCal
         bitwise_or(colors, bw, colors);
         
         blob_detector->detect(bw, keyPoints);
-
+        updateWallMap();
         for (int j = 0; j < keyPoints.size(); j++) {
-            double scale = 1/downsample_factor;
+            double scale = 1/downsampleFactor;
+            int x = keyPoints[j].pt.x;
+            int y = keyPoints[j].pt.y;
             objTypes[numDetections] = colorNames[colorIndex];
-            objXCoords[numDetections] = keyPoints[j].pt.x * scale;
-            objYCoords[numDetections] = keyPoints[j].pt.y * scale;
+            objXCoords[numDetections] = x * scale;
+            objYCoords[numDetections] = y * scale;
             objSizes[numDetections] = keyPoints[j].size;
+            objIsBehindWall[numDetections] = isBehindWall(x, y);
             numDetections++;
             if (numDetections == maxDetections) {
                 break;
             }
         }
+        //cout << endl;
         
     }
 
@@ -224,4 +242,46 @@ int step(bool isCalibMode, Mat **frame_ptr, Mat **scatter_ptr, int colorBeingCal
     //blobRecord << colors3c;
     
     return out;   
+}
+
+void updateWallMap() {
+    cap >> src;
+    cvtColor(src, hsv, CV_BGR2HSV);
+    int *t = wallStripeThresholds;
+    inRange(hsv, Scalar(t[0], t[2], t[4]), Scalar(t[1], t[3], t[5]), wallMap);
+}
+
+void getWallImages(Mat **frame_ptr, Mat **scatter_ptr) {
+    updateWallMap();
+    *frame_ptr = &src;
+    *scatter_ptr = &wallMap;
+}
+
+bool isBehindWall(int pixelX, int pixelY) {
+    int wImg = wallMap.size().width;
+    int hImg = wallMap.size().height;
+    int x = pixelX - gapWidthThreshold;
+    int y = pixelY;
+    int w = gapWidthThreshold*2 + 1;
+    int h = hImg - pixelY;
+    if (h < 1) {
+        return false;
+    }
+    if (x < 0) {
+        x = 0;
+    }
+    if (x + w >= wImg) {
+        x -= x + w + 1 - wImg;
+    }
+    //cout << "(" << x << ", " << y << "), (" << x + w << ", " << y + h << ")" << endl;
+
+    //try {
+        Rect roi(x, y, w, h);
+        Mat wallMapROI = wallMap(roi);
+        bool out = (bool) countNonZero(wallMapROI);
+        //cout << out << endl;
+        return out;
+    //} catch (cv::Exception &e) {
+        //return false;
+    //}
 }

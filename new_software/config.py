@@ -1,9 +1,16 @@
 # Game variables
 MY_BALLS_ARE_RED = False 
-TIME_BEFORE_HALT = -1 # value <= 0 --> never stops
+TIME_BEFORE_HALT = 180 # value <= 0 --> never stops
 
-# Robot properties
+# Strategy
+MIN_WAIT_BETWEEN_SCORING = 30
+ONLY_SCORE_PERIOD = 30
+
+# Dimensions
 ROBOT_RADIUS = .17
+BALL_RADIUS = .02
+BUTTON_CENTER_HEIGHT = .075
+YELLOW_WALL_CENTER_HEIGHT = 0.6 # not counting blue stripe
 
 # Sensors
 IR_PINS = []
@@ -43,6 +50,12 @@ HELIX_SPEED=60
 CPTRBL_TRANSLATE_SPEED = .3
 CPTRBL_ROTATE_SPEED = 0
 
+# Hit button
+HITBTN_TRANSLATE_SPEED = .3
+HITBTN_ROTATE_SPEED = 0
+
+# Align
+ALIGN_ROTATE_SPEED_SCALE = 0.4
 # Rotate in place
 ROTINPL_TRANSLATE_SPEED = .10
 ROTINPL_ROTATE_SPEED = .12

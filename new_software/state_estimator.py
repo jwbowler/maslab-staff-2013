@@ -8,10 +8,15 @@ class StateEstimator:
     # takes data object
     def __init__(self):
         self.data = c.DATA()
+        self.startTime = time.time()
+        self.timeLastScore = 0
+        self.buttonUsed = False
         self.relativeAngle = None
         self.lastImageStamp = None
         self.myBalls = []
         self.opBalls = []
+        self.goalWalls = []
+        self.buttons = []
         self.wallDistRaw = []
         self.wallDistTimeoutFixed = []
         self.wallDistLowpass = []
@@ -22,15 +27,19 @@ class StateEstimator:
     def run(self):
         #self.computeRelativeAngle()
 
-        if c.DATA().getCamera().hasNewFrame():
-            self.myBalls = sorted(self.data.getCamera().getMyBalls())
-            self.opBalls = sorted(self.data.getCamera().getOpBalls())
-
+        cam = self.data.getCamera()
+        if cam.hasNewFrame():
+            self.myBalls = sorted(cam.getMyReachableBalls(), key=lambda obj: obj[0])
+            self.opBalls = sorted(cam.getOpReachableBalls(), key=lambda obj: obj[0])
+            self.goalWalls = sorted(cam.getReachableGoalWalls(), key=lambda obj: obj[0])
+            self.buttons = sorted(cam.getReachableButtons(), key=lambda obj: obj[0])
             self.angleAtLastFrame = self.relativeAngle
         elif False:
             shift = self.relativeAngle - self.angleAtLastFrame
             self.myBalls = [(b[0], b[1]+shift) for b in self.myBalls]
             self.opBalls = [(b[0], b[1]+shift) for b in self.opBalls]
+            self.goalWalls = [(w[0], w[1]+shift) for w in self.goalWalls]
+            self.buttons = [(b[0], b[1]+shift) for b in self.buttons]
 
         # set wallDistRaw
         dist = [ir.getPosition() for ir in self.data.getIr()]
@@ -74,6 +83,12 @@ class StateEstimator:
         print "Opponent Balls"
         print self.getOpBalls()
 
+        print "Buttons"
+        print self.getButtons()
+
+        print "Goal Walls"
+        print self.getGoalWalls()
+
         print "Raw Wall Distances"
         print self.getRawWallDistances()
 
@@ -86,10 +101,23 @@ class StateEstimator:
         print "Near Collision?"
         print self.nearCollision()
 
-        print "Landmarks"
-        print self.getLandmarks()
 
-        print "~~~State Log done~~~"
+    def getTimeRemaining(self):
+        if TIME_BEFORE_HALT <= 0:
+            return 999
+        return self.startTime + TIME_BEFORE_HALT - time.time()
+
+    def notifyButtonUsed(self):
+        self.buttonUsed = True
+
+    def isButtonUsed(self):
+        return self.buttonUsed
+
+    def notifyScore(self):
+        self.timeLastScore = time.time()
+
+    def getTimeSinceLastScore(self):
+        return time.time() - self.timeLastScore
 
     def computeRelativeAngle():
         compass = c.DATA().getImu().getCompassHeading()
@@ -125,11 +153,85 @@ class StateEstimator:
         return self.opBalls
         
     # Returns (distance, angle) of nearest ball
-    def getOpBall(self):
+    def getOpNearestBall(self):
         if len(self.opBalls) == 0:
             return None
         return self.opBalls[0]
-    
+
+    def getGoalWalls(self):
+        return self.goalWalls
+        
+    def getNearestGoalWall(self):
+        if len(self.goalWalls) == 0:
+            return None
+        return self.goalWalls[0]
+
+    def getButtons(self):
+        return self.buttons
+        
+    def getNearestButton(self):
+        if len(self.buttons) == 0:
+            return None
+        return self.buttons[0]
+
+    def getObjType(self, obj):
+        if obj in self.myBalls:
+            if MY_BALLS_ARE_RED:
+                return "RED_BALL"
+            else:
+                return "GREEN_BALL"
+        if obj in self.opBalls:
+            if MY_BALLS_ARE_RED:
+                return "GREEN_BALL"
+            else:
+                return "RED_BALL"
+        if obj in self.goalWalls:
+            return "YELLOW_WALL"
+        if obj in self.buttons:
+            return "CYAN_BUTTON"
+        else:
+            return None
+
+    def getNearestBall(self):
+        m = self.getMyNearestBall()
+        o = self.getOpNearestBall()
+        if m == None and o == None:
+            return None
+        elif m == None or m[0] > o[0]:
+            return o
+        else:
+            return m
+
+    def getNearestBallOrGoal(self):
+        ball = self.getNearestBall()
+        goal = self.getNearestGoalWall()
+        if ball == None and goal == None:
+            return None
+        elif ball == None or ball[0] > goal[0]:
+            return goal
+        else:
+            return ball
+
+    def getNearestNonGoalObj(self):
+        ball = self.getNearestBall()
+        button = self.getNearestButton()
+        if ball == None and button == None:
+            return None
+        elif ball == None or ball[0] > button[0]:
+            return button
+        else:
+            return ball
+
+    def getNearestObj(self):
+        nonGoal = self.getNearestNonGoalObj()
+        goal = self.getNearestGoalWall()
+        if nonGoal == None and goal == None:
+            return None
+        elif nonGoal == None or nonGoal[0] > goal[0]:
+            return goal
+        else:
+            return nonGoal
+      
     # Returns fully corrected set of wall distances ond angles from all sensors:
     # ((distance, angle), (distance, angle), ...)
     def getWallDistances(self):
@@ -144,6 +246,7 @@ class StateEstimator:
     def getCollisionDistance(self):
         dist = self.getWallDistances()
         dist = [p[0]/math.cos(math.radians(p[1])) - ROBOT_RADIUS for p in dist]
+        dist = [d for d in dist if d > 0]
         return min(dist)
 
 

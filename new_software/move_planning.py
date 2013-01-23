@@ -13,9 +13,12 @@ class MovePlanning:
     ROTATE_IN_PLACE = 2
     APPROACH_TARGET = 3
     CAPTURE_BALL = 4
-    ALIGN = 5
-    AVOID_WALL = 6
-    
+    HIT_BUTTON = 5
+    ALIGN = 6
+    AVOID_WALL = 7
+    TIMEOUT_RUN = 8
+    SCORE = 9
+
     def __init__(self):
         self.moveObject = WallFollow()
     
@@ -23,10 +26,9 @@ class MovePlanning:
         self.moveObject = self.moveObject.run()
 
     def log(self):
-        #print "~~~MOVE~~~"
-        print self.moveObject
+        print "~~~MOVE~~~"
+        print "Move: " + str(self.moveObject)
         self.moveObject.log()
-        #print "~~~MOVE~~~"
 
 class Movement():
     def __init__(self):
@@ -35,7 +37,21 @@ class Movement():
         self.timeOut = True
         self.startTime = time.time()
 
+        
+
     def run(self):
+
+        self.myBall = c.STATE().getMyNearestBall()
+        self.opBall = c.STATE().getOpNearestBall()
+        self.goal = c.STATE().getNearestGoalWall()
+        self.button = c.STATE().getNearestButton()
+
+        self.nearestBall = c.STATE().getNearestBall()
+        if c.STATE().isButtonUsed():
+            self.nearestNonGoalObj = c.STATE().getNearestBallOrGoal()
+        else:
+            self.nearestNonGoalObj = c.STATE().getNearestNonGoalObj()
+        self.nearestObj = c.STATE().getNearestObj()
 
         if (self.stopped):
             self.stopped = False
@@ -75,32 +91,37 @@ class Movement():
         pass
     def resume(self):
         pass 
+    def log(self):
+        pass
 
 class WallFollow(Movement):
     def __init__(self):
         Movement.__init__(self)
         self.setAvoidWalls(False)
-        self.pid0 = pid.Pid(1, .000, .000, 100)
+        self.pid0 = pid.Pid(.5, .000, .000, 100)
         self.pid1 = pid.Pid(1, .07, .000, 20)
         self.d = 0
         self.theta = 0
         self.pidVal0 = 0
         self.pidVal1 = 0
+        self.speed = 0
+        self.rotation = 0
 
     def transition(self):
         goal = c.GOAL().getGoal()
-        target = c.GOAL().getTarget()
 
-        if goal == c.GOAL().FIND_BALLS:
-            if target != None:
-                return ApproachTarget()
+        if self.nearestNonGoalObj is not None:
+            if goal != c.GOAL().SCORE_AND_LOITER:
+                return approachTarget()        
+        if self.goal is not None:
+            if goal != c.GOAL().HUNT:
+                return approachTarget()
 
     def move(self):
         pid0 = self.pid0
         pid1 = self.pid1
 
         (self.d, self.theta) = c.STATE().getPosRelativeToWall(0, 1)
-        
 
         if (not pid0.running):
             pid0.start(self.d, FW_DIST_TARGET)
@@ -109,18 +130,22 @@ class WallFollow(Movement):
 
         self.pidVal0 = pid0.iterate(self.d)
         self.pidVal1 = pid1.iterate(self.theta)
-
         self.pidVal = self.pidVal0 + self.pidVal1
 
-        c.CTRL().setMovement(FW_TRANSLATE_SPEED, FW_ROTATE_SPEED_SCALE * self.pidVal1)
+        self.speed = FW_TRANSLATE_SPEED
+        self.rotation = FW_ROTATE_SPEED_SCALE * self.pidVal
+        # optional:
+        if self.pidVal > 1:
+            self.speed /= self.pidVal
+
+        c.CTRL().setMovement(self.speed, self.rotation)
 
     def log(self):
-        print "~~~~~~~"
         print "d = " + str(self.d)
         print "theta = " + str(self.theta)
-        print (self.d, FW_DIST_TARGET, self.pidVal0)
-        print (self.theta, 0, self.pidVal1)
-        print (0, FW_ROTATE_SPEED_SCALE * self.pidVal1)
+        print "pid0 = " + str(self.pidVal0)
+        print "pid1 = " + str(self.pidVal1)
+        print "SPD=" + str(self.speed) + ", ROT=" + str(self.rotation)
 
 class MoveToOpen(Movement):
     def __init__(self):
@@ -128,21 +153,24 @@ class MoveToOpen(Movement):
         self.startAngle = c.STATE().getRelativeAngle()
         self.angleMap = []
         self.target = None
-
         self.pid = pid.Pid(.03, .005, .005, 100)
         self.targetSpeed = .5
+        self.speed = 0
+        self.rotation = 0
 
     def transition(self):
         goal = c.GOAL().getGoal()
-        target = c.GOAL().getTarget()
         distance = c.STATE().getCollisionDistance()
 
-        if goal == c.GOAL().FIND_BALLS:
-            if target != None:
-                return ApproachTarget()
-            else:
-                if distance < .25:
-                    return WallFollow()
+        if distance < .25:
+            return WallFollow()
+
+        if self.nearestNonGoalObj is not None:
+            if goal != c.GOAL().SCORE_AND_LOITER:
+                return approachTarget()        
+        if self.goal is not None:
+            if goal != c.GOAL().HUNT:
+                return approachTarget()
 
     def move(self):
         angle = c.STATE().getRelativeAngle()
@@ -157,8 +185,9 @@ class MoveToOpen(Movement):
             #slowdown when close, slowdown when off-angle 
             adjustedSpeed = self.targetSpeed if distance > .33 else self.targetSpeed*distance*3
             adjustedSpeed = 0 if angle > 15 else ((30.0-abs(angle))/30.0)
-
-            c.CTRL().setMovement(adjustedSpeed, self.rotationSpeed * pidVal)
+            self.speed = adjustedSpeed
+            self.rotation = self.rotationSpeed * pidVal
+            c.CTRL().setMovement(self.speed, self.rotation)
         else:
             if abs(angle-self.startAngle) < 360: #rotate to find openning
                 self.angleMap.append((angle, distance))
@@ -169,6 +198,9 @@ class MoveToOpen(Movement):
                     if self.target[1] < dist:
                         self.target = (angle, dist)
 
+    def log(self):
+        print "SPD=" + str(self.speed) + ", ROT=" + str(self.rotation)
+
 class CaptureBall(Movement):
     def __init__(self):
         Movement.__init__(self)
@@ -176,32 +208,74 @@ class CaptureBall(Movement):
 
     def transition(self):
         goal = c.GOAL().getGoal()
-        target = c.GOAL().getTarget()
-
         if self.startTime + 2 < time.time():
             c.CTRL().setRoller(False)
-            
-            if goal == c.GOAL().FIND_BALLS:
-                if target == None:
-                    return RotateInPlace()
-                else:
-                    return ApproachTarget()
-                
+            return WallFollow()   
 
     def move(self):
         c.CTRL().setMovement(CPTRBL_TRANSLATE_SPEED, CPTRBL_ROTATE_SPEED)
         c.CTRL().setRoller(True)
 
-class Align(Movement):
+class HitButton(Movement):
     def __init__(self):
         Movement.__init__(self)
+        self.setAvoidWalls(False);
 
     def transition(self):
         goal = c.GOAL().getGoal()
-        target = c.GOAL().getTarget()
+        if self.startTime + 20 < time.time():
+            c.STATE().notifyButtonUsed()
+            return WallFollow()   
 
     def move(self):
-        pass
+        t = time.time() - self.startTime
+        if   t > 0 and t < 2   \
+          or t > 5 and t < 7   \
+          or t > 10 and t < 12 \
+          or t > 15 and t < 17:
+            c.CTRL().setMovement(HITBTN_TRANSLATE_SPEED, HITBTN_ROTATE_SPEED)
+        elif t > 2 and t < 3   \
+          or t > 7 and t < 8   \
+          or t > 12 and t < 13 \
+          or t > 17 and t < 18:
+            c.CTRL().setMovement(-1 * HITBTN_TRANSLATE_SPEED, HITBTN_ROTATE_SPEED)
+        else:
+            c.CTRL().setMovement(0, 0)
+
+class Align(Movement):
+    def __init__(self):
+        Movement.__init__(self)
+        self.pid = pid.Pid(1, .000, .000, 100)
+        self.d = 0
+        self.theta = 0
+        self.pidVal = 0
+        self.speed = 0
+        self.rotation = 0
+
+    def transition(self):
+        goal = c.GOAL().getGoal()
+        if self.d > 0.2:
+            return WallFollow()
+        if self.theta < 5 and self.theta > -5:
+            return Score()
+
+    def move(self):
+        pid = self.pid
+        (self.d, self.theta) = c.STATE().getPosRelativeToWall(0, 1) # Pick right sensors
+        
+        if (not pid.running):
+            pid.start(self.theta, 0)
+
+        self.pidVal = pid.iterate(self.theta)
+        self.speed = 0
+        self.rotation = ALIGN_ROTATE_SPEED_SCALE * self.pidVal
+        c.CTRL().setMovement(self.speed, self.rotation)
+
+    def log(self):
+        print "d = " + str(self.d)
+        print "theta = " + str(self.theta)
+        print "pid = " + str(self.pidVal)
+        print "SPD=" + str(self.speed) + ", ROT=" + str(self.rotation)
 
 class RotateInPlace(Movement):
     def __init__(self):
@@ -210,11 +284,12 @@ class RotateInPlace(Movement):
 
     def transition(self):
         goal = c.GOAL().getGoal()
-        target = c.GOAL().getTarget()
-
-        if goal == c.GOAL().FIND_BALLS:
-            if target != None:
-                return ApproachTarget()
+        if self.nearestNonGoalObj is not None:
+            if goal != c.GOAL().SCORE_AND_LOITER:
+                return approachTarget()        
+        if self.goal is not None:
+            if goal != c.GOAL().HUNT:
+                return approachTarget()
 
     def move(self):
         c.CTRL().setMovement(ROTINPL_TRANSLATE_SPEED, ROTINPL_ROTATE_SPEED)
@@ -225,23 +300,39 @@ class ApproachTarget(Movement):
         self.targetSpeed = APPTGT_TRANSLATE_SPEED
         self.rotationSpeed = APPTGT_ROTATE_SPEED
         self.pid = pid.Pid(.03, .005, .005, 100)
+        self.target = None
+        self.speed = 0
+        self.rotation = 0
 
     def transition(self):
         goal = c.GOAL().getGoal()
-        target = c.GOAL().getTarget()
         
-        if goal == c.GOAL().FIND_BALLS:
-            if target == None:
-                return RotateInPlace()
-            if target[0] < .22 and abs(target[1]) < 12:
+        if goal == c.GOAL().HUNT:
+            self.target = self.nearestNonGoalObj
+        elif goal == c.GOAL().HUNT_AND_SCORE:
+            self.target = self.nearestObj
+        elif goal == c.GOAL().SCORE_AND_LOITER:
+            self.target = self.goal
+
+        type = c.STATE().getObjType(self.target)
+
+        if self.target == None:
+            return WallFollow()
+        if type == "RED_BALL" or type == "GREEN_BALL":
+            if self.target[0] < .22 and abs(self.target[1]) < 12:
                 return CaptureBall()
+        elif type == "CYAN_BUTTON":
+            if self.target[0] < .22 and abs(self.target[1]) < 12:
+                return HitButton()
+        elif type == "YELLOW_WALL":
+            if self.target[0] < .15 and abs(self.target[1]) < 12:
+                return Align()
 
     def move(self):
-        target = c.GOAL().getTarget()
-        if target == None:
+        if self.target == None:
             return
 
-        (distance, angle) = target
+        (distance, angle) = self.target
 
         if (not self.pid.running):
             self.pid.start(angle, 0)
@@ -252,11 +343,35 @@ class ApproachTarget(Movement):
         adjustedSpeed = self.targetSpeed if distance > .5 else self.targetSpeed*distance*2
         adjustedSpeed *= ((90.0-abs(angle))/90.0)
 
-        c.CTRL().setMovement(adjustedSpeed, self.rotationSpeed * pidVal)
+        self.peed = adjustedSpeed
+        self.rotation = self.rotationSpeed * pidVal
+        c.CTRL().setMovement(self.speed, self.rotation)
 
     def pause(self):
         self.pid.stop()
 
+    def log(self):
+        print "dist = " + str(self.target[0])
+        print "angle = " + str(self.target[1])
+        print "pid = " + str(self.pidVal)
+        print "SPD=" + str(self.speed) + ", ROT=" + str(self.rotation)
+
+class Score(Movement):
+    def __init__(self):
+        Movement.__init__(self)
+        self.setAvoidWalls(False)
+
+    def transition(self):
+        goal = c.GOAL().getGoal()
+        if self.startTime + 5 < time.time():
+            c.CTRL().setScorer(False)
+            c.CTRL().setRamp(0) # what angle exactly?
+            return WallFollow()   
+
+    def move(self):
+        c.CTRL().setMovement(0, 0)
+        c.CTRL().setScorer(True)
+        c.CTRL().setRamp(90) # what angle exactly?
 
 class AvoidWall(Movement):
     def __init__(self, prevMovement):
@@ -279,7 +394,7 @@ class TimeoutRun(Movement):
 
     def transition(self):
         if self.hitWall:
-            return RotateInPlace()
+            return WallFollow()
 
     def move(self):
         c.CTRL().setMovement(TMOUT_TRANSLATE_SPEED, TMOUT_ROTATE_SPEED)
@@ -315,6 +430,7 @@ if __name__ == "__main__":
                 c.STATE().log()
                 c.GOAL().log()
                 c.MOVE().log()
+                print ""
                 nextTime = time.time() + .25
                 print timeElapsed
                 time.sleep(.02)

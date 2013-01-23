@@ -16,6 +16,7 @@ extern string objTypes[16];
 extern int objXCoords[16];
 extern int objYCoords[16];
 extern int objSizes[16];
+extern bool objIsBehindWall[16];
 extern int frameCount;
 
 static PyObject *vision_setup(PyObject *self, PyObject *args) {
@@ -37,7 +38,7 @@ static PyObject *vision_step(PyObject *self, PyObject *args) {
         return NULL;
     vec = step();
     
-    string format = "i(siii)(siii)(siii)(siii)(siii)(siii)(siii)(siii)";
+    string format = "i(siiii)(siiii)(siiii)(siiii)(siiii)(siiii)(siiii)(siiii)";
     
     /*
     cout << "HI" << endl;
@@ -45,14 +46,14 @@ static PyObject *vision_step(PyObject *self, PyObject *args) {
     cout << objTypes[1].c_str() << " " << objXCoords[1] << " " << objYCoords[1] << " " << objSizes[1] << endl;
     */
     return Py_BuildValue(format.c_str(), frameCount,
-        objTypes[0].c_str(), objXCoords[0], objYCoords[0], objSizes[0],
-        objTypes[1].c_str(), objXCoords[1], objYCoords[1], objSizes[1],
-        objTypes[2].c_str(), objXCoords[2], objYCoords[2], objSizes[2],
-        objTypes[3].c_str(), objXCoords[3], objYCoords[3], objSizes[3],
-        objTypes[4].c_str(), objXCoords[4], objYCoords[4], objSizes[4],
-        objTypes[5].c_str(), objXCoords[5], objYCoords[5], objSizes[5],
-        objTypes[6].c_str(), objXCoords[6], objYCoords[6], objSizes[6],
-        objTypes[7].c_str(), objXCoords[7], objYCoords[7], objSizes[7]
+        objTypes[0].c_str(), objXCoords[0], objYCoords[0], objSizes[0], (int) objIsBehindWall[0],
+        objTypes[1].c_str(), objXCoords[1], objYCoords[1], objSizes[1], (int) objIsBehindWall[1],
+        objTypes[2].c_str(), objXCoords[2], objYCoords[2], objSizes[2], (int) objIsBehindWall[2],
+        objTypes[3].c_str(), objXCoords[3], objYCoords[3], objSizes[3], (int) objIsBehindWall[3],
+        objTypes[4].c_str(), objXCoords[4], objYCoords[4], objSizes[4], (int) objIsBehindWall[4],
+        objTypes[5].c_str(), objXCoords[5], objYCoords[5], objSizes[5], (int) objIsBehindWall[5],
+        objTypes[6].c_str(), objXCoords[6], objYCoords[6], objSizes[6], (int) objIsBehindWall[6],
+        objTypes[7].c_str(), objXCoords[7], objYCoords[7], objSizes[7], (int) objIsBehindWall[7]
         
         );
     

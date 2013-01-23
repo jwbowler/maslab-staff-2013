@@ -37,7 +37,11 @@ class DataCollection:
     def log(self):
         print "~~~DATA~~~"
         print "Camera"
+        print "All balls:"
         print "mine: " + str(self.camera.getMyBalls()) + "theirs: " + str(self.camera.getOpBalls())
+        print "Reachable balls:"
+        print "mine: " + str(self.camera.getMyReachableBalls()) \
+              + "theirs: " + str(self.camera.getOpReachableBalls())
 
         #print self.imu
 
@@ -137,31 +141,57 @@ class Camera(Sensor):
     def hasNewFrame(self):
         return self.isNewFrame
 
-    # returns (dist, angle) for all my balls
+    def getObjsOfType(self, type, objHeight):
+        objIndices = self.vision.getIndicesByType(type)
+        objs = [(self.vision.getX(i), self.vision.getY(i)) \
+                      for i in objIndices]
+        objsConverted = [self.convCoords(coords) for coords in objs]
+        return objsConverted
+
+    def getReachableObjsOfType(self, type, objHeight):
+        objIndices = self.vision.getIndicesByType(type)
+        objs = [(self.vision.getX(i), self.vision.getY(i)) \
+                      for i in objIndices if not self.vision.getIsBehindWall(i)]
+        objsConverted = [self.convCoords(coords) for coords in objs]
+        return objsConverted 
+
+    # returns (dist, angle) to all my balls
     def getMyBalls(self):
-        myBallIndices = self.vision.getIndicesByType(self.myBallColor)
-        myBalls = [(self.vision.getX(i), self.vision.getY(i)) \
-                   for i in myBallIndices]
-        myBallsConverted = [self.convCoords(coords) for coords in myBalls]
-        return myBallsConverted
+        return getObjsOfType(self.myBallColor, BALL_RADIUS)
 
     # returns (dist, angle) to all opponent balls
     def getOpBalls(self):
-        theirBallIndices = self.vision.getIndicesByType(self.opBallColor)
-        theirBalls = [(self.vision.getX(i), self.vision.getY(i)) \
-                      for i in theirBallIndices]
-        theirBallsConverted = [self.convCoords(coords) for coords in theirBalls]
-        return theirBallsConverted
+        return getObjsOfType(self.opBallColor, BALL_RADIUS) 
+
+    # returns (dist, angle) to all my balls that aren't behind walls
+    def getMyReachableBalls(self):
+        return getReachableObjsOfType(self.myBallColor, BALL_RADIUS) 
+
+    # returns (dist, angle) to all opponent balls that aren't behind walls
+    def getOpReachableBalls(self):
+        return getReachableObjsOfType(self.opBallColor, BALL_RADIUS)
+
+    def getGoalWalls(self):
+        return getObjsOfType("YELLOW_WALL", YELLOW_WALL_CENTER_HEIGHT/2)
+
+    def getReachableGoalWalls(self):
+        return getReachableObjsOfType("YELLOW_WALL", YELLOW_WALL_CENTER_HEIGHT/2)
+
+    def getButtons(self):
+        return getObjsOfType("CYAN_BUTTON", BUTTON_CENTER_HEIGHT)
+
+    def getReachableButtons(self):
+        return getReachableObjsOfType("CYAN_BUTTON", BUTTON_CENTER_HEIGHT)
 
     # returns (dist, angle) given x and y pixel coordinates (from upper left)
-    def convCoords(self, (x, y)):
+    def convCoords(self, (x, y), objHeight):
         angle2obj = (self.angle + self.vfov/2   \
                      - self.vfov*(1.0 * y / self.imHeight))
-        d = self.elev * math.tan((math.pi/180) * angle2obj)
+        d = (self.elev - objHeight) * math.tan((math.pi/180) * angle2obj)
         if d < 0:
             d = 1000000
-        a = (x - (self.imHeight/2.)) * self.hfov / self.imWidth
-        a -= 10  # fudge factor
+        a = (x - (self.imWidth/2.)) * self.hfov / self.imWidth
+        #a -= 10  # fudge factor
         return (d, a)
 
 class Ir(Sensor):

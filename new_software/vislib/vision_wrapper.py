@@ -69,6 +69,9 @@ class VisionWrapper:
         
     def getWeight(self, i):
         return self.data[i][3]
+
+    def getIsBehindWall(self, i):
+        return self.data[i][4]
 		
 def f(conn):
     while (True):
@@ -96,6 +99,7 @@ if __name__ == '__main__':
             time.sleep(.01)
             if not vw.update():
                 continue
+            print vw.data
             endTime = time.time()
             duration = endTime - startTime
             startTime = endTime

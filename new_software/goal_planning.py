@@ -1,39 +1,36 @@
 import commander as c
+from config import *
 import time
 
 class GoalPlanning:
 
     # List of goals
-    FIND_BALLS = 0
-    SCORE_TOWER = 1
-    PRESS_BUTTON = 2
-    SCORE_WALL = 3
-    WAIT_AT_WALL = 4
-    goalNames = ["FIND_BALLS", "SCORE_TOWER", "PRESS_BUTTON", "SCORE_WALL", "WAIT_AT_WALL"]
+    HUNT = 0
+    HUNT_AND_SCORE = 1
+    SCORE_AND_LOITER = 2
+    goalNames = ["HUNT", "HUNT_AND_SCORE", "SCORE_AND_LOITER"]
     
     def __init__(self):
-        self.goal = GoalPlanning.FIND_BALLS
-        self.target = None
+        c.STATE().notifyScore() # reset time-last-scored timer
+        self.goal = GoalPlanning.HUNT
     
     # Updates current goal according to estimated state
     def run(self):
-        if self.goal == GoalPlanning.FIND_BALLS:
-            self.target = c.STATE().getMyNearestBall()
+        if c.STATE().getTimeRemaining() < ONLY_SCORE_PERIOD:
+            self.goal = GoalPlanning.SCORE_AND_LOITER
+        elif c.STATE().getTimeSinceLastScore() < MIN_WAIT_BETWEEN_SCORING:
+            self.goal = GoalPlanning.HUNT
+        else:
+            self.goal = GoalPlanning.HUNT_AND_SCORE
 
     def log(self):
         print "~~~GOAL~~~"
         print "Goal: " + self.goalNames[self.getGoal()]
-        print "Target: " + str(self.getTarget())
-        print "~~~GOAL~~~"
         
     # Returns current goal
     def getGoal(self):
         return self.goal
         
-    # Returns (distance, angle) if applicable to goal, or None if not applicable
-    def getTarget(self):
-        return self.target
-
 if __name__ == "__main__":
     c.ARD()
     c.DATA()
