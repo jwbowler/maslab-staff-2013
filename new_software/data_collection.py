@@ -42,6 +42,11 @@ class DataCollection:
         print "Reachable balls:"
         print "mine: " + str(self.camera.getMyReachableBalls()) \
               + "theirs: " + str(self.camera.getOpReachableBalls())
+        print "Goal walls: " + str(self.camera.getGoalWalls())
+        print "Reachable goal walls: " + str(self.camera.getReachableGoalWalls())
+        print "Buttons: " + str(self.camera.getButtons())
+        print "Reachable buttons: " + str(self.camera.getReachableButtons())
+            
 
         #print self.imu
 
@@ -141,15 +146,15 @@ class Camera(Sensor):
     def hasNewFrame(self):
         return self.isNewFrame
 
-    def getObjsOfType(self, objType, objHeight):
-        objIndices = self.vision.getIndicesByType(objType)
+    def getObjsOfType(self, type, objHeight):
+        objIndices = self.vision.getIndicesByType(type)
         objs = [(self.vision.getX(i), self.vision.getY(i)) \
                       for i in objIndices]
         objsConverted = [self.convCoords(coords, objHeight) for coords in objs]
         return objsConverted
 
-    def getReachableObjsOfType(self, objType, objHeight):
-        objIndices = self.vision.getIndicesByType(objType)
+    def getReachableObjsOfType(self, type, objHeight):
+        objIndices = self.vision.getIndicesByType(type)
         objs = [(self.vision.getX(i), self.vision.getY(i)) \
                       for i in objIndices if not self.vision.getIsBehindWall(i)]
         objsConverted = [self.convCoords(coords, objHeight) for coords in objs]
@@ -191,7 +196,6 @@ class Camera(Sensor):
         if d < 0:
             d = 1000000
         a = (x - (self.imWidth/2.)) * self.hfov / self.imWidth
-        #a -= 10  # fudge factor
         return (d, a)
 
 class Ir(Sensor):

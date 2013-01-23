@@ -197,7 +197,11 @@ class StateEstimator:
         o = self.getOpNearestBall()
         if m == None and o == None:
             return None
-        elif m == None or m[0] > o[0]:
+        elif m == None:
+            return o
+        elif o == None:
+            return m
+        elif m[0] > o[0]:
             return o
         else:
             return m
@@ -207,7 +211,11 @@ class StateEstimator:
         goal = self.getNearestGoalWall()
         if ball == None and goal == None:
             return None
-        elif ball == None or ball[0] > goal[0]:
+        elif ball == None:
+            return goal
+        elif goal == None:
+            return ball
+        elif ball[0] > goal[0]:
             return goal
         else:
             return ball
@@ -217,7 +225,11 @@ class StateEstimator:
         button = self.getNearestButton()
         if ball == None and button == None:
             return None
-        elif ball == None or ball[0] > button[0]:
+        elif ball == None:
+            return button
+        elif button == None:
+            return ball
+        elif ball[0] > button[0]:
             return button
         else:
             return ball
@@ -227,7 +239,11 @@ class StateEstimator:
         goal = self.getNearestGoalWall()
         if nonGoal == None and goal == None:
             return None
-        elif nonGoal == None or nonGoal[0] > goal[0]:
+        elif nonGoal == None:
+            return goal
+        elif goal == None:
+            return nonGoal
+        elif nonGoal[0] > goal[0]:
             return goal
         else:
             return nonGoal
@@ -244,15 +260,22 @@ class StateEstimator:
     # Returns the forward distance that the robot can travel
     # before it hits a wall
     def getCollisionDistance(self):
-        dist = self.getWallDistances()
-        dist = [p[0]/math.cos(math.radians(p[1])) - ROBOT_RADIUS for p in dist]
-        dist = [d for d in dist if d > 0]
-        return min(dist)
-
+        #dist = self.getWallDistances()
+        #dist = [p[0]/math.cos(math.radians(p[1])) - ROBOT_RADIUS for p in dist]
+        #dist = [d for d in dist if d > 0]
+        # temporary:
+        dist = self.getRawWallDistances()[2:]
+        return min(dist)[0]
 
     def nearCollision(self):
-        return (self.getCollisionDistance() < .12)
-    
+        #return (self.getCollisionDistance() < .12)
+        return (self.getCollisionDistance() < .25)
+
+    def getFrontProximity(self):
+        # Dependent on a specific sensor configuration. Need to make more general.
+        dist = self.getRawWallDistances()
+        return dist[3][0]
+
     # Takes two sensor indices to use for wall estimation
     # Returns (distance to wall, angle of wall relative to bot's orientation)
     def getPosRelativeToWall(self, index0, index1):
@@ -262,10 +285,10 @@ class StateEstimator:
         phi = .5 * abs(sensorA[1] - sensorB[1])
         a = sensorA[0]
         b = sensorB[0]
-        theta = math.asin(math.sqrt((abs(a-b) / (a+b)) * math.cos(phi)))
+        theta = (180/math.pi) * math.asin(math.sqrt((abs(a-b) / (a+b)) * math.cos(math.pi * phi / 180)))
         if a - b > 0:
             theta = -theta
-        d = b * math.cos(phi - theta) / math.cos(theta)
+        d = b * math.cos((math.pi/180) * (phi - theta)) / math.cos((math.pi/180)*theta)
         return (d, theta)
 
     # Returns landmarks like QR codes and the goal tower:
