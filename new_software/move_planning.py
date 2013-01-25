@@ -108,6 +108,7 @@ class WallFollow(Movement):
         self.rotation = 0
 
     def transition(self):
+        '''
         goal = c.GOAL().getGoal()
 
         if self.nearestNonGoalObj is not None:
@@ -116,6 +117,7 @@ class WallFollow(Movement):
         if self.goal is not None:
             if goal != c.GOAL().HUNT:
                 return ApproachTarget()
+        '''
 
     def move(self):
         pid0 = self.pid0
@@ -138,7 +140,8 @@ class WallFollow(Movement):
         if self.pidVal > 1:
             self.speed /= self.pidVal
 
-        c.CTRL().setMovement(self.speed, self.rotation)
+        #c.CTRL().setMovement(self.speed, self.rotation)
+        c.CTRL().setMovement(0, 0)
 
     def log(self):
         print "d = " + str(self.d)

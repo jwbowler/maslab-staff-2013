@@ -18,6 +18,12 @@ class Control():
         self.ramp = arduino.DigitalOutput(c.ARD(), RAMP_SERVO_PIN)
         self.scorer = arduino.DigitalOutput(c.ARD(), SCORER_PIN)
 
+    # Returns current sensor data: [left, right]
+    def getCurrents(self):
+        left = self.leftMotor.getCurrent()
+        right = self.rightMotor.getCurrent()
+        return (left, right)
+
     # This method turns on and off the roller motor
     # Input:Boolean
     def setRoller(self,switch):
@@ -121,11 +127,11 @@ if __name__=="__main__":
 
     #########################
     c.CTRL().setRoller(False)
-    c.CTRL().setHelix(True)
-    c.CTRL().setLeftMotor(0)
-    c.CTRL().setRightMotor(0)
+    c.CTRL().setHelix(False)
+    c.CTRL().setLeftMotor(.2)
+    c.CTRL().setRightMotor(.2)
     print "Running motors..."
-    time.sleep(60)
+    time.sleep(600)
     #########################
 	
     c.CTRL().setRoller(False)

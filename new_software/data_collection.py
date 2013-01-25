@@ -22,6 +22,7 @@ class DataCollection:
         self.irs = [Ir(IR_PINS[i], IR_POSITIONS[i]) for i in xrange(len(IR_PINS))]
         self.ults= [Ult(ULT_PINS[i], ULT_POSITIONS[i]) for i in xrange(len(ULT_PINS))]
         print [(ULT_PINS[i], ULT_POSITIONS[i]) for i in xrange(len(ULT_PINS))]
+        self.currents = CurrentSensors()
 
         self.allSensors = [self.camera]
         self.allSensors.extend(self.irs)
@@ -46,6 +47,7 @@ class DataCollection:
         print "Reachable goal walls: " + str(self.camera.getReachableGoalWalls())
         print "Buttons: " + str(self.camera.getButtons())
         print "Reachable buttons: " + str(self.camera.getReachableButtons())
+        print "Motor currents: " + str(self.currents.getCurrents())
             
 
         #print self.imu
@@ -287,6 +289,16 @@ class EncoderPair(Sensor):
     def getTics(self):
         pass
 
+class CurrentSensors(Sensor):
+    def __init__(self):
+       pass
+
+    def run(self):
+        pass
+
+    def getCurrents(self):
+        return c.CTRL().getCurrents()
+
 if __name__ == "__main__":
     c.ARD()
     c.DATA()
@@ -297,7 +309,8 @@ if __name__ == "__main__":
         while True:
             c.DATA().run()
             c.DATA().log()
-            time.sleep(.5)
+            c.CTRL().setMovement(0.2, 0)
+            time.sleep(.1)
     except KeyboardInterrupt:
         print "Interrupting"
         c.CTRL().halt()

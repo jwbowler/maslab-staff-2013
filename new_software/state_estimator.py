@@ -46,10 +46,22 @@ class StateEstimator:
             self.goalWalls = [(w[0], w[1]+shift) for w in self.goalWalls]
             self.buttons = [(b[0], b[1]+shift) for b in self.buttons]
         self.allBalls = self.myBalls + self.opBalls
-        self.nearestBall = min(self.allBalls, key = lambda obj: obj[0])
-        self.nearestBallOrGoal = min(self.allBalls + self.goalWalls, key = lambda obj: obj[0])
-        self.nearestNonGoalObj = min(self.allBalls + self.buttons, key = lambda obj: obj[0])
-        self.nearestObj = min(self.allBalls + self.buttons + self.goalWalls, key = lambda obj: obj[0])
+        if self.allBalls == []:
+            self.nearestBall = None
+        else:
+            self.nearestBall = min(self.allBalls, key = lambda obj: obj[0])
+        if self.allBalls + self.goalWalls == []:
+            self.nearestBallOrGoal = None
+        else:
+            self.nearestBallOrGoal = min(self.allBalls + self.goalWalls, key = lambda obj: obj[0])
+        if self.allBalls + self.buttons == []:
+            self.nearestNonGoalObj = None
+        else:
+            self.nearestNonGoalObj = min(self.allBalls + self.buttons, key = lambda obj: obj[0])
+        if self.allBalls + self.buttons + self.goalWalls == []:
+            self.nearestObj = None
+        else:
+            self.nearestObj = min(self.allBalls + self.buttons + self.goalWalls, key = lambda obj: obj[0])
 
         # wallDistRaw = raw data from sensors
         dist = [ir.getPosition() for ir in self.data.getIr()]
@@ -245,8 +257,10 @@ class StateEstimator:
         #dist = [d for d in dist if d > 0]
         #return min(dist)
         # temporary:
-        dist = self.getRawWallDistances()[2:]
-        return min(dist)[0]
+        # dist = self.getRawWallDistances()[2:]
+        # return min(dist)[0]
+        # even more temporary:
+        return 1000
 
     def nearCollision(self):
         #return (self.getCollisionDistance() < .12)
@@ -289,7 +303,7 @@ class StateEstimator:
             neighborIndex = closestSensorIndex + 1
         else:
             neighborIndex = closestSensorIndex - 1
-        return getWallPosFrom2Sensors(closestSensorIndex, neighborIndex)
+        return self.getWallPosFrom2Sensors(closestSensorIndex, neighborIndex)
     
     # Returns landmarks like QR codes and the goal tower:
     # ((type, ID, distance, angle), ...)
