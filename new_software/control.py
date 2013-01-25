@@ -122,10 +122,10 @@ if __name__=="__main__":
     #########################
     c.CTRL().setRoller(True)
     c.CTRL().setHelix(True)
-    c.CTRL().setLeftMotor(100)
-    c.CTRL().setRightMotor(100)
+    c.CTRL().setLeftMotor(.5)
+    c.CTRL().setRightMotor(.5)
     print "Running motors..."
-    sys.exit(0)
+    time.sleep(60)
     #########################
 	
     c.CTRL().setRoller(False)

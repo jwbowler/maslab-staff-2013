@@ -17,6 +17,11 @@ class StateEstimator:
         self.opBalls = []
         self.goalWalls = []
         self.buttons = []
+        self.allBalls = []
+        self.nearestBall = None
+        self.nearestBallOrGoal = None
+        self.nearestNonGoalObj = None
+        self.nearestObj = None
         self.wallDistRaw = []
         self.wallDistTimeoutFixed = []
         self.wallDistLowpass = []
@@ -29,10 +34,10 @@ class StateEstimator:
 
         cam = self.data.getCamera()
         if cam.hasNewFrame():
-            self.myBalls = sorted(cam.getMyReachableBalls(), key=lambda obj: obj[0])
-            self.opBalls = sorted(cam.getOpReachableBalls(), key=lambda obj: obj[0])
-            self.goalWalls = sorted(cam.getReachableGoalWalls(), key=lambda obj: obj[0])
-            self.buttons = sorted(cam.getReachableButtons(), key=lambda obj: obj[0])
+            self.myBalls = sorted(cam.getMyReachableBalls(), key = lambda obj: obj[0])
+            self.opBalls = sorted(cam.getOpReachableBalls(), key = lambda obj: obj[0])
+            self.goalWalls = sorted(cam.getReachableGoalWalls(), key = lambda obj: obj[0])
+            self.buttons = sorted(cam.getReachableButtons(), key = lambda obj: obj[0])
             self.angleAtLastFrame = self.relativeAngle
         elif False:
             shift = self.relativeAngle - self.angleAtLastFrame
@@ -40,20 +45,27 @@ class StateEstimator:
             self.opBalls = [(b[0], b[1]+shift) for b in self.opBalls]
             self.goalWalls = [(w[0], w[1]+shift) for w in self.goalWalls]
             self.buttons = [(b[0], b[1]+shift) for b in self.buttons]
+        self.allBalls = self.myBalls + self.opBalls
+        self.nearestBall = min(self.allBalls, key = lambda obj: obj[0])
+        self.nearestBallOrGoal = min(self.allBalls + self.goalWalls, key = lambda obj: obj[0])
+        self.nearestNonGoalObj = min(self.allBalls + self.buttons, key = lambda obj: obj[0])
+        self.nearestObj = min(self.allBalls + self.buttons + self.goalWalls, key = lambda obj: obj[0])
 
-        # set wallDistRaw
+        # wallDistRaw = raw data from sensors
         dist = [ir.getPosition() for ir in self.data.getIr()]
         dist.extend([ult.getPosition() for ult in self.data.getUlt()])
         self.wallDistRaw = dist[:]
 
-        # set wallDistTimeoutFixed
+        # wallDistTimeoutFixed = wallDistRaw after timeout distances are replaced with
+        # last known valid distance
         if self.wallDistCorrected != []:
             for i in xrange(len(dist)):
                 if dist[i][0] > 1000:
                     dist[i] = self.wallDistCorrected[i]
         self.wallDistTimeoutFixed = dist[:]
 
-        # set wallDistLowpass
+        # wallDistLowpass = wallDistTimeoutFixed after blurring
+        # not currently used; not sure if correct
         blurAmount = .8
         if self.wallDistLowpass != []:
             for i in xrange(len(dist)):
@@ -62,7 +74,10 @@ class StateEstimator:
         else:
             self.wallDistLowpass = dist[:]
         
-        # set wallDistOutliersFixed
+        # wallDistOutliersFixed: each distance in the list is the one from wallDistOutliersFixed
+        # if it is close enough to the corresponding one from wallDistLowpass, else it is set
+        # equal to the corresponding one from wallDistLowpass
+        # not currently used; not sure if correct
         errorCutoff = .25
         if self.wallDistOutliersFixed != []:
             for i in xrange(len(dist)):
@@ -73,6 +88,8 @@ class StateEstimator:
 
         # set wallDistCorrected
         self.wallDistCorrected = self.wallDistTimeoutFixed[:]
+        
+        self.timeLastScore = time.time()
 
     def log(self):
         print "~~~State Log~~~"
@@ -107,12 +124,14 @@ class StateEstimator:
             return 999
         return self.startTime + TIME_BEFORE_HALT - time.time()
 
+    # Called by move_planning after running through the HitButton movement
     def notifyButtonUsed(self):
         self.buttonUsed = True
 
     def isButtonUsed(self):
         return self.buttonUsed
 
+    # Called by move_planning after running through the Score movement
     def notifyScore(self):
         self.timeLastScore = time.time()
 
@@ -136,23 +155,23 @@ class StateEstimator:
             self.relativeAngle = math.round((self.relativeAngle-compass)/360.0)*360 + compass
         
         
-    # Returns set of ball distances and angles:
+    # Returns set of ball distances and angles (not behind wall):
     # ((distance, angle), (distance, angle), ...)
     def getMyBalls(self):
         return self.myBalls
         
-    # Returns (distance, angle) of nearest ball
+    # Returns (distance, angle) of nearest ball (not behind wall)
     def getMyNearestBall(self):
         if len(self.myBalls) == 0:
             return None
         return self.myBalls[0]
 
-    # Returns set of ball distances and angles:
+    # Returns set of ball distances and angles (not behind wall):
     # ((distance, angle), (distance, angle), ...)
     def getOpBalls(self):
         return self.opBalls
         
-    # Returns (distance, angle) of nearest ball
+    # Returns (distance, angle) of nearest ball (not behind wall)
     def getOpNearestBall(self):
         if len(self.opBalls) == 0:
             return None
@@ -192,61 +211,21 @@ class StateEstimator:
         else:
             return None
 
+    # Returns the nearest ball regardless of color
     def getNearestBall(self):
-        m = self.getMyNearestBall()
-        o = self.getOpNearestBall()
-        if m == None and o == None:
-            return None
-        elif m == None:
-            return o
-        elif o == None:
-            return m
-        elif m[0] > o[0]:
-            return o
-        else:
-            return m
+        return self.nearestBall
 
+    # Returns the nearest object from the combined list of balls and goal walls
     def getNearestBallOrGoal(self):
-        ball = self.getNearestBall()
-        goal = self.getNearestGoalWall()
-        if ball == None and goal == None:
-            return None
-        elif ball == None:
-            return goal
-        elif goal == None:
-            return ball
-        elif ball[0] > goal[0]:
-            return goal
-        else:
-            return ball
+        return self.nearestBallOrGoal
 
+    # Returns the nearest object that isn't a goal wall
     def getNearestNonGoalObj(self):
-        ball = self.getNearestBall()
-        button = self.getNearestButton()
-        if ball == None and button == None:
-            return None
-        elif ball == None:
-            return button
-        elif button == None:
-            return ball
-        elif ball[0] > button[0]:
-            return button
-        else:
-            return ball
+        return self.nearestNonGoalObj
 
+    # Returns the nearest object regardless of type
     def getNearestObj(self):
-        nonGoal = self.getNearestNonGoalObj()
-        goal = self.getNearestGoalWall()
-        if nonGoal == None and goal == None:
-            return None
-        elif nonGoal == None:
-            return goal
-        elif goal == None:
-            return nonGoal
-        elif nonGoal[0] > goal[0]:
-            return goal
-        else:
-            return nonGoal
+        return self.nearestObj
       
     # Returns fully corrected set of wall distances ond angles from all sensors:
     # ((distance, angle), (distance, angle), ...)

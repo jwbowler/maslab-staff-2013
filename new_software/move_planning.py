@@ -262,7 +262,7 @@ class Align(Movement):
 
     def move(self):
         pid = self.pid
-        (self.d, self.theta) = c.STATE().getPosRelativeToWall(2, 3) # Pick right sensors
+        (self.d, self.theta) = c.STATE().getPosRelativeToWall(0, 1) # Pick right sensors
         
         if (not pid.running):
             pid.start(self.theta, 0)
@@ -354,15 +354,12 @@ class ApproachTarget(Movement):
         self.pid.stop()
 
     def log(self):
-        if self.target == None:
-            print "No target"
-        else:
-            print "target type = " + self.targetType
-            print "dist from camera = " + str(self.target[0])
-            print "dist from sensor = " + str(c.STATE().getFrontProximity())
-            print "angle = " + str(self.target[1])
-            print "pid = " + str(self.pidVal)
-            print "SPD=" + str(self.speed) + ", ROT=" + str(self.rotation)
+        print "target type = " + self.targetType
+        print "dist from camera = " + str(self.target[0])
+        print "dist from sensor = " + str(c.STATE().getFrontProximity())
+        print "angle = " + str(self.target[1])
+        print "pid = " + str(self.pidVal)
+        print "SPD=" + str(self.speed) + ", ROT=" + str(self.rotation)
 
 class Score(Movement):
     def __init__(self):

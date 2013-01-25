@@ -7,7 +7,6 @@ class VisionWrapper:
     # RED_BALL
     # GREEN_BALL
     # YELLOW_WALL
-    # BLUE_WALL
     # PURPLE_GOAL
 
     def __init__(self):

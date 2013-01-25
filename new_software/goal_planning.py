@@ -11,7 +11,6 @@ class GoalPlanning:
     goalNames = ["HUNT", "HUNT_AND_SCORE", "SCORE_AND_LOITER"]
     
     def __init__(self):
-        c.STATE().notifyScore() # reset time-last-scored timer
         self.goal = GoalPlanning.HUNT
     
     # Updates current goal according to estimated state

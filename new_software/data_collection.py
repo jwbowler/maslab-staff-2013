@@ -146,6 +146,13 @@ class Camera(Sensor):
     def hasNewFrame(self):
         return self.isNewFrame
 
+    # Possible object type strings:
+    # "RED_BALL", "GREEN_BALL", "YELLOW_WALL", "CYAN_BUTTON"
+
+    # Takes a string representing an objects type (see list above)
+    # and a number representing the height of the object's center
+    # above the ground (used to calculate distance).
+    # Returns a list: [(dist, angle), (dist, angle), ...]
     def getObjsOfType(self, type, objHeight):
         objIndices = self.vision.getIndicesByType(type)
         objs = [(self.vision.getX(i), self.vision.getY(i)) \
@@ -153,6 +160,7 @@ class Camera(Sensor):
         objsConverted = [self.convCoords(coords, objHeight) for coords in objs]
         return objsConverted
 
+    # Like above, but only returns objects that aren't behind walls
     def getReachableObjsOfType(self, type, objHeight):
         objIndices = self.vision.getIndicesByType(type)
         objs = [(self.vision.getX(i), self.vision.getY(i)) \
@@ -176,6 +184,8 @@ class Camera(Sensor):
     def getOpReachableBalls(self):
         return self.getReachableObjsOfType(self.opBallColor, BALL_RADIUS)
 
+    # note: goal wall distances are always 1,000,000 (i.e. the center is
+    # calculated as being above the horizon). TODO: fix this on the openCV end
     def getGoalWalls(self):
         return self.getObjsOfType("YELLOW_WALL", YELLOW_WALL_CENTER_HEIGHT/2)
 
