@@ -121,7 +121,7 @@ class WallFollow(Movement):
         pid0 = self.pid0
         pid1 = self.pid1
 
-        (self.d, self.theta) = c.STATE().getPosRelativeToWall(0, 1)
+        (self.d, self.theta) = c.STATE().getWallRelativePos()
 
         if (not pid0.running):
             pid0.start(self.d, FW_DIST_TARGET)
@@ -262,7 +262,7 @@ class Align(Movement):
 
     def move(self):
         pid = self.pid
-        (self.d, self.theta) = c.STATE().getPosRelativeToWall(0, 1) # Pick right sensors
+        (self.d, self.theta) = c.STATE().getWallRelativePos()
         
         if (not pid.running):
             pid.start(self.theta, 0)

@@ -120,10 +120,10 @@ if __name__=="__main__":
     c.ARD().run()
 
     #########################
-    c.CTRL().setRoller(True)
-    c.CTRL().setHelix(True)
-    c.CTRL().setLeftMotor(.5)
-    c.CTRL().setRightMotor(.5)
+    c.CTRL().setRoller(False)
+    c.CTRL().setHelix(False)
+    c.CTRL().setLeftMotor(0)
+    c.CTRL().setRightMotor(0)
     print "Running motors..."
     time.sleep(60)
     #########################

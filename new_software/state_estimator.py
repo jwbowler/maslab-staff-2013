@@ -54,6 +54,7 @@ class StateEstimator:
         # wallDistRaw = raw data from sensors
         dist = [ir.getPosition() for ir in self.data.getIr()]
         dist.extend([ult.getPosition() for ult in self.data.getUlt()])
+        dist = sorted(dist, key = lambda obj: obj[1]) # Sort by angle
         self.wallDistRaw = dist[:]
 
         # wallDistTimeoutFixed = wallDistRaw after timeout distances are replaced with
@@ -242,6 +243,7 @@ class StateEstimator:
         #dist = self.getWallDistances()
         #dist = [p[0]/math.cos(math.radians(p[1])) - ROBOT_RADIUS for p in dist]
         #dist = [d for d in dist if d > 0]
+        #return min(dist)
         # temporary:
         dist = self.getRawWallDistances()[2:]
         return min(dist)[0]
@@ -257,10 +259,14 @@ class StateEstimator:
 
     # Takes two sensor indices to use for wall estimation
     # Returns (distance to wall, angle of wall relative to bot's orientation)
-    def getPosRelativeToWall(self, index0, index1):
+    def getWallPosFrom2Sensors(self, index0, index1):
         sensorList = self.getWallDistances()
-        sensorA = sensorList[index0]
-        sensorB = sensorList[index1]
+        if index0 < index1:
+            sensorA = sensorList[index0]
+            sensorB = sensorList[index1]
+        else:
+            sensorA = sensorList[index1]
+            sensorB = sensorList[index0]
         phi = .5 * abs(sensorA[1] - sensorB[1])
         a = sensorA[0]
         b = sensorB[0]
@@ -270,6 +276,21 @@ class StateEstimator:
         d = b * math.cos((math.pi/180) * (phi - theta)) / math.cos((math.pi/180)*theta)
         return (d, theta)
 
+    # Like above, but picks two sensors automatically to use in the calculation
+    def getWallRelativePos(self):
+        sensorList = self.getWallDistances()
+        numSensors = len(sensorList)
+        closestSensorIndex = min(range(numSensors), key = lambda i: sensorList[i][0])
+        if closestSensorIndex = 0:
+            neighborIndex = 1
+        elif closestSensorIndex = numSensors - 1:
+            neighborIndex = numSensors - 2
+        elif sensorList[closestSensorIndex + 1][0] < sensorList[closestSensorIndex - 1][0]:
+            neighborIndex = closestSensorIndex + 1
+        else:
+            neighborIndex = closestSensorIndex - 1
+        return getWallPosFrom2Sensors(closestSensorIndex, neighborIndex)
+    
     # Returns landmarks like QR codes and the goal tower:
     # ((type, ID, distance, angle), ...)
     def getLandmarks(self):
