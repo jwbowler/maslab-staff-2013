@@ -281,9 +281,9 @@ class StateEstimator:
         sensorList = self.getWallDistances()
         numSensors = len(sensorList)
         closestSensorIndex = min(range(numSensors), key = lambda i: sensorList[i][0])
-        if closestSensorIndex = 0:
+        if closestSensorIndex == 0:
             neighborIndex = 1
-        elif closestSensorIndex = numSensors - 1:
+        elif closestSensorIndex == numSensors - 1:
             neighborIndex = numSensors - 2
         elif sensorList[closestSensorIndex + 1][0] < sensorList[closestSensorIndex - 1][0]:
             neighborIndex = closestSensorIndex + 1

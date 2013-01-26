@@ -121,7 +121,7 @@ if __name__=="__main__":
 
     #########################
     c.CTRL().setRoller(False)
-    c.CTRL().setHelix(False)
+    c.CTRL().setHelix(True)
     c.CTRL().setLeftMotor(0)
     c.CTRL().setRightMotor(0)
     print "Running motors..."

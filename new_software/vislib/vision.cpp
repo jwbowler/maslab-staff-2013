@@ -203,7 +203,7 @@ int step(bool isCalibMode, Mat **frame_ptr, Mat **scatter_ptr, int colorBeingCal
             bitwise_or(bw, temp, bw);
         }
         bitwise_or(colors, bw, colors);
-        
+        ///*
         blob_detector->detect(bw, keyPoints);
 
         for (int j = 0; j < keyPoints.size(); j++) {
@@ -220,6 +220,7 @@ int step(bool isCalibMode, Mat **frame_ptr, Mat **scatter_ptr, int colorBeingCal
                 break;
             }
         }
+        //*/
         //cout << endl;
         
     }
@@ -248,7 +249,6 @@ int step(bool isCalibMode, Mat **frame_ptr, Mat **scatter_ptr, int colorBeingCal
 }
 
 void updateWallMap() {
-    cap >> src;
     cvtColor(src, hsv, CV_BGR2HSV);
     int *t = wallStripeThresholds;
     inRange(hsv, Scalar(t[0], t[2], t[4]), Scalar(t[1], t[3], t[5]), wallMap);
