@@ -392,7 +392,7 @@ class Motor:
     def __init__(self, arduino, currentPin, directionPin, pwmPin):
         self.arduino = arduino
         self.index = self.arduino.addMotor(currentPin, directionPin, pwmPin)
-        self.current = AnalogInput(arduino, currentPin)
+        #self.current = AnalogInput(arduino, currentPin)
     def setSpeed(self, speed):
         # Clamp to [-126, 126]
         if speed < -126:
@@ -403,7 +403,7 @@ class Motor:
         speed = speed % 255
         self.arduino.setMotorSpeed(self.index, speed)
     def getCurrent(self):
-        return self.current.getValue()
+        #return self.current.getValue()
         return 0
 
 class Stepper:
