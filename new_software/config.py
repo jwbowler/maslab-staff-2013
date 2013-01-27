@@ -1,3 +1,6 @@
+#Debugging
+LOG_FREQUENCY = .5 #seconds
+
 # Game variables
 MY_BALLS_ARE_RED = False 
 TIME_BEFORE_HALT = 180 # value <= 0 --> never stops

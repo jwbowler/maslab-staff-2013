@@ -110,31 +110,31 @@ class StateEstimator:
         self.timeLastScore = time.time()
 
     def log(self):
-        print "~~~State Log~~~"
+        c.LOG("~~~State Log~~~")
 
-        print "My Balls"
-        print self.getMyBalls()
+        c.LOG("My Balls")
+        c.LOG(self.getMyBalls())
 
-        print "Opponent Balls"
-        print self.getOpBalls()
+        c.LOG("Opponent Balls")
+        c.LOG(self.getOpBalls())
 
-        print "Buttons"
-        print self.getButtons()
+        c.LOG("Buttons")
+        c.LOG(self.getButtons())
 
-        print "Goal Walls"
-        print self.getGoalWalls()
+        c.LOG("Goal Walls")
+        c.LOG(self.getGoalWalls())
 
-        print "Raw Wall Distances"
-        print self.getRawWallDistances()
+        c.LOG("Raw Wall Distances")
+        c.LOG(self.getRawWallDistances())
 
-        print "Corrected Wall Dist"
-        print self.getWallDistances()
+        c.LOG("Corrected Wall Dist")
+        c.LOG(self.getWallDistances())
 
-        print "Collision Distance"
-        print self.getCollisionDistance()
+        c.LOG("Collision Distance")
+        c.LOG(self.getCollisionDistance())
 
-        print "Near Collision?"
-        print self.nearCollision()
+        c.LOG("Near Collision?")
+        c.LOG(self.nearCollision())
 
 
     def getTimeRemaining(self):

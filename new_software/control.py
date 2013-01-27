@@ -65,6 +65,7 @@ class Control():
         (l,r) = getMotorSpeeds(speed,rotation)
         self.setRightMotor(r)
         self.setLeftMotor(l)
+        c.LOG("MOTORS: " + str((l,r)))
 
     def halt(self):
         self.setRoller(False)

@@ -11,7 +11,6 @@ class DataCollection:
     
     # creates data object
     def __init__(self):
-        print c.ARD()
         self.initSensors()
 
     # initializes all the sensors
@@ -21,7 +20,6 @@ class DataCollection:
         #self.encoderPair = EncoderPair(0,0)
         self.irs = [Ir(IR_PINS[i], IR_POSITIONS[i]) for i in xrange(len(IR_PINS))]
         self.ults= [Ult(ULT_PINS[i], ULT_POSITIONS[i]) for i in xrange(len(ULT_PINS))]
-        print [(ULT_PINS[i], ULT_POSITIONS[i]) for i in xrange(len(ULT_PINS))]
         self.currents = CurrentSensors()
 
         self.allSensors = [self.camera]
@@ -36,33 +34,30 @@ class DataCollection:
             sensor.run()
 
     def log(self):
-        print "~~~DATA~~~"
-        print "Camera"
-        print "All balls:"
-        print "mine: " + str(self.camera.getMyBalls()) + "theirs: " + str(self.camera.getOpBalls())
-        print "Reachable balls:"
-        print "mine: " + str(self.camera.getMyReachableBalls()) \
-              + "theirs: " + str(self.camera.getOpReachableBalls())
-        print "Goal walls: " + str(self.camera.getGoalWalls())
-        print "Reachable goal walls: " + str(self.camera.getReachableGoalWalls())
-        print "Buttons: " + str(self.camera.getButtons())
-        print "Reachable buttons: " + str(self.camera.getReachableButtons())
-        print "Tower base: " + str(self.camera.getTowerBase())
-        print "Tower top: " + str(self.camera.getTowerTop())
-        #print "Motor currents: " + str(self.currents.getCurrents())
-            
+        c.LOG("~~~DATA~~~")
+        c.LOG("Camera")
+        c.LOG("All balls:")
+        c.LOG("mine: " + str(self.camera.getMyBalls()) + "theirs: " + str(self.camera.getOpBalls()))
+        c.LOG("Reachable balls:")
+        c.LOG("mine: " + str(self.camera.getMyReachableBalls()) + "theirs: " + str(self.camera.getOpReachableBalls()))
+        c.LOG("Goal walls: " + str(self.camera.getGoalWalls()))
+        c.LOG("Reachable goal walls: " + str(self.camera.getReachableGoalWalls()))
+        c.LOG("Buttons: " + str(self.camera.getButtons()))
+        c.LOG("Reachable buttons: " + str(self.camera.getReachableButtons()))
+        c.LOG("Tower base: " + str(self.camera.getTowerBase()))
+        c.LOG("Tower top: " + str(self.camera.getTowerTop()))
 
         #print self.imu
 
         #print "ENC - tics: " + str(self.encoderPair.getTics())
 
         for ir in self.irs:
-            print "IR - position: " + str(ir.getPosition()) + " raw: " + str(ir.rawValue)
+            c.LOG("IR - position: " + str(ir.getPosition()) + " raw: " + str(ir.rawValue))
 
         for us in self.ults:
-            print "US - position: " + str(us.getPosition())
+            c.LOG("US - position: " + str(us.getPosition()))
 
-        print "~~~DATA~~~\n"
+        c.LOG("~~~DATA~~~\n")
 
 
 
@@ -109,7 +104,7 @@ class Sensor:
         return time.time() - self.timestamp
 
     def __str__(self):
-        print self.__class__.__name__ + " at " + self.timestamp
+        return self.__class__.__name__ + " at " + self.timestamp
 
 class Camera(Sensor):
     

@@ -28,8 +28,8 @@ class MovePlanning:
         self.moveObject = self.moveObject.run()
 
     def log(self):
-        print "~~~MOVE~~~"
-        print "Move: " + str(self.moveObject)
+        c.LOG("~~~MOVE~~~")
+        c.LOG("Move: " + str(self.moveObject))
         self.moveObject.log()
 
 class Movement():
@@ -147,12 +147,12 @@ class WallFollow(Movement):
         c.CTRL().setMovement(0, 0)
 
     def log(self):
-        print "d = " + str(self.d)
-        print "target d = " + str(FW_DIST_TARGET)
-        print "theta = " + str(self.theta)
-        print "pid0 = " + str(self.pidVal0)
-        print "pid1 = " + str(self.pidVal1)
-        print "SPD=" + str(self.speed) + ", ROT=" + str(self.rotation)
+        c.LOG("d = " + str(self.d))
+        c.LOG("target d = " + str(FW_DIST_TARGET))
+        c.LOG("theta = " + str(self.theta))
+        c.LOG("pid0 = " + str(self.pidVal0))
+        c.LOG("pid1 = " + str(self.pidVal1))
+        c.LOG("SPD=" + str(self.speed) + ", ROT=" + str(self.rotation))
 
 class MoveToOpen(Movement):
     def __init__(self):
@@ -205,7 +205,7 @@ class MoveToOpen(Movement):
                         self.target = (angle, dist)
 
     def log(self):
-        print "SPD=" + str(self.speed) + ", ROT=" + str(self.rotation)
+        c.LOG("SPD=" + str(self.speed) + ", ROT=" + str(self.rotation))
 
 class CaptureBall(Movement):
     def __init__(self):
@@ -281,10 +281,10 @@ class AlignWithWall(Movement):
         c.CTRL().setMovement(self.speed, self.rotation)
 
     def log(self):
-        print "d = " + str(self.d)
-        print "theta = " + str(self.theta)
-        print "pid = " + str(self.pidVal)
-        print "SPD=" + str(self.speed) + ", ROT=" + str(self.rotation)
+        c.LOG("d = " + str(self.d))
+        c.LOG("theta = " + str(self.theta))
+        c.LOG("pid = " + str(self.pidVal))
+        c.LOG("SPD=" + str(self.speed) + ", ROT=" + str(self.rotation))
 
 class AlignWithTower(Movement):
     def __init__(self):
@@ -318,10 +318,10 @@ class AlignWithTower(Movement):
         c.CTRL().setMovement(self.speed, self.rotation)
 
     def log(self):
-        print "d = " + str(self.d)
-        print "theta = " + str(self.theta)
-        print "pid = " + str(self.pidVal)
-        print "SPD=" + str(self.speed) + ", ROT=" + str(self.rotation)
+        c.LOG("d = " + str(self.d))
+        c.LOG("theta = " + str(self.theta))
+        c.LOG("pid = " + str(self.pidVal))
+        c.LOG("SPD=" + str(self.speed) + ", ROT=" + str(self.rotation))
 
 class AlignWithButton(Movement):
     def __init__(self):
@@ -414,12 +414,12 @@ class ApproachTarget(Movement):
         self.pid.stop()
 
     def log(self):
-        print "target type = " + self.targetType
-        print "dist from camera = " + str(self.target[0])
-        print "dist from sensor = " + str(c.STATE().getFrontProximity())
-        print "angle = " + str(self.target[1])
-        print "pid = " + str(self.pidVal)
-        print "SPD=" + str(self.speed) + ", ROT=" + str(self.rotation)
+        c.LOG("target type = " + self.targetType)
+        c.LOG("dist from camera = " + str(self.target[0]))
+        c.LOG("dist from sensor = " + str(c.STATE().getFrontProximity()))
+        c.LOG("angle = " + str(self.target[1]))
+        c.LOG("pid = " + str(self.pidVal))
+        c.LOG("SPD=" + str(self.speed) + ", ROT=" + str(self.rotation))
 
 class Score(Movement):
     def __init__(self):

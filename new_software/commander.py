@@ -8,6 +8,7 @@ from control import Control
 import config
 import signal
 import sys
+import time
 
 
 class Alarm(Exception):
@@ -23,6 +24,10 @@ class Commander:
     goal = None
     move = None
     ctrl = None
+    logString = ""
+    logTime = 0
+    logging = False
+    frameCount = 0
 
         
 
@@ -55,6 +60,23 @@ def CTRL():
     if Commander.ctrl == None:
         Commander.ctrl = Control()
     return Commander.ctrl
+
+def LOG(str):
+    if Commander.logging:
+        logString += str + "\n"
+
+def FRAME_START():
+    Commander.frameCount += 1
+    if time.time() > Commander.logTime:
+        Commnader.logString = ""
+        Commander.logTime = time.time()  + Config.LOG_FREQUENCY
+        Commander.logging = True
+
+    if Commander.logging:
+        print "~~~ FRAME " + str(Commander.frameCount) + " ~~~"
+        print Commander.logString
+        print
+        Commander.logTime = time.time()
 
 def go():
     signal.signal(signal.SIGALRM, alarm_handler)
