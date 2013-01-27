@@ -6,11 +6,12 @@ class Pid:
     (i, target, prevValue, prevTime) = (0,0,0,0)
     running = False
 
-    def __init__(self, p, i, d, lim):
+    def __init__(self, p, i, d, oLim, iLim):
         self.kp = p
         self.ki = i
         self.kd = d
-        self.iLim = lim;
+        self.iLim = iLim
+        self.oLim = oLim
 
     def start(self, value, target):
         self.i = 0
@@ -39,4 +40,10 @@ class Pid:
         self.prevTime = curTime
         self.prevValue = value
 
-        return (p*self.kp + d*self.kd + self.i*self.ki)
+        out = p*self.kp + d*self.kd + self.i*self.ki
+        if out > self.oLim:
+            return self.oLim
+        elif out < -self.oLim:
+            return -self.oLim
+
+        return out

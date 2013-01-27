@@ -49,13 +49,13 @@ class Control():
     # This method sets the speed of the left motor
     # Input: int from -1 to 1 inclusive
     def setLeftMotor(self,speed):
-        speed = boundAndScale(speed, 20, 127)
+        speed = boundAndScale(speed, 8, 127)
         self.leftMotor.setSpeed(speed)
 
     # This method sets the speed of the right motor
     # Input: int from -1 to 1 inclusive
     def setRightMotor(self,speed):
-        speed = boundAndScale(speed, 30, 117)
+        speed = boundAndScale(speed, 13, 117)
         self.rightMotor.setSpeed(speed)
     
 

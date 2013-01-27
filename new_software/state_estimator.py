@@ -75,11 +75,12 @@ class StateEstimator:
         self.wallDistRaw = dist[:]
 
         # wallDistTimeoutFixed = wallDistRaw after timeout distances are replaced with
-        # last known valid distance
+        # designated timeout value
         if self.wallDistCorrected != []:
             for i in xrange(len(dist)):
                 if dist[i][0] > 1000:
-                    dist[i] = self.wallDistCorrected[i]
+                    #dist[i] = self.wallDistCorrected[i]
+                    dist[i] = (.7, dist[i][1])
         self.wallDistTimeoutFixed = dist[:]
 
         # wallDistLowpass = wallDistTimeoutFixed after blurring
@@ -296,7 +297,7 @@ class StateEstimator:
         a = sensorA[0]
         b = sensorB[0]
         theta = (180/math.pi) * math.asin(math.sqrt((abs(a-b) / (a+b)) * math.cos(math.pi * phi / 180)))
-        if (a > b and theta < 0) or (a < b and theta > 0):
+        if (a > b and theta > 0) or (a < b and theta < 0):
             theta = -theta
         d = b * math.cos((math.pi/180) * (phi - theta)) / math.cos((math.pi/180)*theta)
         # Only works for left-handed wall following until the following line is fixed

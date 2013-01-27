@@ -101,8 +101,9 @@ class WallFollow(Movement):
     def __init__(self):
         Movement.__init__(self)
         self.setAvoidWalls(False)
-        self.pid0 = pid.Pid(1, 0, .000, 1)
-        self.pid1 = pid.Pid(.01, 0, .000, 1)
+        self.rotLim = 0.5
+        self.pid0 = pid.Pid(1.8, 0, .000, 0.3, 0)
+        self.pid1 = pid.Pid(.016, 0, .02, 0.3, 0)
         self.d = 0
         self.theta = 0
         self.pidVal0 = 0
@@ -133,18 +134,26 @@ class WallFollow(Movement):
         if (not pid1.running):
             pid1.start(self.theta, 0)
 
+        #print (c.STATE().getRawWallDistances()[0], c.STATE().getRawWallDistances()[1])
+        #if (c.STATE().getRawWallDistances()[0][0] >= 1000 and c.STATE().getRawWallDistances()[1][0] >= 1000):
+            #self.d = 0.5
+            #self.theta = 0
         self.pidVal0 = pid0.iterate(self.d)
         self.pidVal1 = pid1.iterate(self.theta)
         self.pidVal = self.pidVal0 + self.pidVal1
 
-        self.speed = FW_TRANSLATE_SPEED
-        self.rotation = FW_ROTATE_SPEED_SCALE * self.pidVal
+        self.speed = FW_SPEED_SCALE
+        self.rotation = FW_SPEED_SCALE * self.pidVal
+        if self.rotation > self.rotLim:
+            self.rotation = self.rotLim
+        if self.rotation < -self.rotLim:
+            self.rotation = -self.rotLim
         # optional:
-        if self.pidVal > 1:
-            self.speed /= self.pidVal
+        #if self.pidVal > 1:
+        #    self.speed /= self.pidVal
 
-        #c.CTRL().setMovement(self.speed, self.rotation)
-        c.CTRL().setMovement(0, 0)
+        c.CTRL().setMovement(self.speed, self.rotation)
+        #c.CTRL().setMovement(0, 0)
 
     def log(self):
         c.LOG("d = " + str(self.d))
