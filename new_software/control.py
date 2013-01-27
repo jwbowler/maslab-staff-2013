@@ -74,16 +74,6 @@ class Control():
         self.setLeftMotor(0)
         self.setRightMotor(0)
 
-# This method bounds an input to low and high
-# Input: input value, low and high limits
-def bound(value, low, high):
-    if value > high:
-       return high;
-    elif value < low:
-       return low
-    return value
-
-
 # This method rescales an input from 0 to 1 to the oMin and oMax
 # while maintaining sign
 # Input: input and output min and max (absolute)
