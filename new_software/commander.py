@@ -5,17 +5,11 @@ from state_estimator import StateEstimator
 from goal_planning import GoalPlanning
 from move_planning import MovePlanning
 from control import Control
-import config
+from config import *
 import signal
 import sys
 import time
 
-
-class Alarm(Exception):
-    pass
-
-def alarm_handler(signum, frame):
-    raise Alarm
 
 class Commander:
     ard = None
@@ -24,7 +18,6 @@ class Commander:
     goal = None
     move = None
     ctrl = None
-    logString = ""
     logTime = 0
     logging = False
     frameCount = 0
@@ -63,25 +56,23 @@ def CTRL():
 
 def LOG(str):
     if Commander.logging:
-        logString += str + "\n"
+        print str
 
 def FRAME_START():
-    Commander.frameCount += 1
-    if time.time() > Commander.logTime:
-        Commnader.logString = ""
-        Commander.logTime = time.time()  + Config.LOG_FREQUENCY
-        Commander.logging = True
+    t = time.time()
 
     if Commander.logging:
+        Commander.logging = False
+        print ""
+
+    if t > Commander.logTime:
+        Commander.logTime = t + LOG_FREQUENCY
+        Commander.logging = True
         print "~~~ FRAME " + str(Commander.frameCount) + " ~~~"
-        print Commander.logString
-        print
-        Commander.logTime = time.time()
+
+    Commander.frameCount += 1
 
 def go():
-    signal.signal(signal.SIGALRM, alarm_handler)
-    if config.TIME_BEFORE_HALT > 0:
-        signal.alarm(TIME_BEFORE_HALT)
     
     ARD()
     DATA()
@@ -99,13 +90,9 @@ def go():
         GOAL().log()
         MOVE().run()
         MOVE().log()
+        FRAME_START()
 
 def stop():
     CTRL().halt()
     DATA().stopVisionThread()
     
-if __name__ == '__main__':
-    try:
-        go()    
-    except (KeyboardInterrupt, Alarm):
-        stop()

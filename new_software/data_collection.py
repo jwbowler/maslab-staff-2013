@@ -267,6 +267,7 @@ class Ult(Sensor):
         self.ardRef = arduino.Ult(c.ARD(), trig, echo)
         (self.radius, self.angle) = position
         self.distance = -1
+        self.rawValue = None
 
     def run(self):
         self.rawValue  = self.ardRef.getRawValue()

@@ -1,5 +1,5 @@
 #Debugging
-LOG_FREQUENCY = .5 #seconds
+LOG_FREQUENCY = .1 #seconds
 
 # Game variables
 MY_BALLS_ARE_RED = False 

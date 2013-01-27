@@ -23,8 +23,8 @@ class GoalPlanning:
             self.goal = GoalPlanning.HUNT_AND_SCORE
 
     def log(self):
-        print "~~~GOAL~~~"
-        print "Goal: " + self.goalNames[self.getGoal()]
+        c.LOG("~~~GOAL~~~")
+        c.LOG("Goal: " + self.goalNames[self.getGoal()])
         
     # Returns current goal
     def getGoal(self):
