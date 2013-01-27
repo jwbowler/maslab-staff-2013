@@ -55,7 +55,7 @@ class Control():
     # This method sets the speed of the right motor
     # Input: int from -1 to 1 inclusive
     def setRightMotor(self,speed):
-        speed = boundAndScale(speed, 10, 117)
+        speed = boundAndScale(speed, 30, 117)
         self.rightMotor.setSpeed(speed)
     
 
@@ -124,59 +124,71 @@ if __name__=="__main__":
     #c.DATA()
     c.CTRL()
     c.ARD().run()
-
-    #########################
-    c.CTRL().setRoller(False)
-    c.CTRL().setHelix(False)
-    c.CTRL().setLeftMotor(.2)
-    c.CTRL().setRightMotor(.2)
-    print "Running motors..."
-    time.sleep(600)
-    #########################
-	
-    c.CTRL().setRoller(False)
-    c.CTRL().setHelix(False)
-    c.CTRL().setRightMotor(0)
-    c.CTRL().setLeftMotor(0)
-    time.sleep(1)
-
-    print "Testing Roller"
-    c.CTRL().setRoller(True)
-    c.CTRL().setHelix(True)
-    time.sleep(2)
-    c.CTRL().setRoller(False)
-    c.CTRL().setHelix(True)
     
-    print "Ramping left"
-    #.25
-    for i in xrange(60):
-        print i
-        c.CTRL().leftMotor.setSpeed(i)
-        time.sleep(.25)
+    try:
 
-    c.CTRL().setLeftMotor(0)
+        '''
+        #########################
+        c.CTRL().setRoller(False)
+        c.CTRL().setHelix(False)
+        c.CTRL().setLeftMotor(.2)
+        c.CTRL().setRightMotor(.2)
+        print "Running motors..."
+        time.sleep(600)
+        #########################
+        
+        c.CTRL().setRoller(False)
+        c.CTRL().setHelix(False)
+        c.CTRL().setRightMotor(0)
+        c.CTRL().setLeftMotor(0)
+        time.sleep(1)
 
-    #.225
-    print "Ramping right"
-    for i in xrange(40):
-        print i
-        c.CTRL().rightMotor.setSpeed(i)
-        time.sleep(.25)
+        print "Testing Roller"
+        c.CTRL().setRoller(True)
+        c.CTRL().setHelix(True)
+        time.sleep(2)
+        c.CTRL().setRoller(False)
+        c.CTRL().setHelix(True)
+        '''
 
-    c.CTRL().setRightMotor(0)
-    time.sleep(2)
+        print "Ramping left"
+        #.25
+        for i in xrange(60):
+            print i
+            c.CTRL().leftMotor.setSpeed(i)
+            time.sleep(.25)
 
-    print "Testing Helix"
-    c.CTRL().setHelix(True)
-    time.sleep(3)
-    c.CTRL().setHelix(False)
+        c.CTRL().setLeftMotor(0)
 
-    print "Testing Ramp"
-    c.CTRL().setRamp(90)
-    time.sleep(3)
-    c.CTRL().setRamp(0)
+        #.225
+        print "Ramping right"
+        for i in xrange(60):
+            print i
+            c.CTRL().rightMotor.setSpeed(i)
+            time.sleep(.25)
 
-    print "Testing Scorer"
-    c.CTRL().setScorer(True)
-    time.sleep(3)
-    c.CTRL().setScorer(False)
+        c.CTRL().setRightMotor(0)
+
+        '''
+        time.sleep(2)
+
+        print "Testing Helix"
+        c.CTRL().setHelix(True)
+        time.sleep(3)
+        c.CTRL().setHelix(False)
+
+        print "Testing Ramp"
+        c.CTRL().setRamp(90)
+        time.sleep(3)
+        c.CTRL().setRamp(0)
+
+        print "Testing Scorer"
+        c.CTRL().setScorer(True)
+        time.sleep(3)
+        c.CTRL().setScorer(False)
+        '''
+    except KeyboardInterrupt:
+        pass
+
+    c.CTRL().halt()
+

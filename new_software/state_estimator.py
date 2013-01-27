@@ -17,6 +17,8 @@ class StateEstimator:
         self.opBalls = []
         self.goalWalls = []
         self.buttons = []
+        self.towerBase = None
+        self.towerTop = None
         self.allBalls = []
         self.nearestBall = None
         self.nearestBallOrGoal = None
@@ -38,6 +40,8 @@ class StateEstimator:
             self.opBalls = sorted(cam.getOpReachableBalls(), key = lambda obj: obj[0])
             self.goalWalls = sorted(cam.getReachableGoalWalls(), key = lambda obj: obj[0])
             self.buttons = sorted(cam.getReachableButtons(), key = lambda obj: obj[0])
+            self.towerBase = cam.getTowerBase()
+            self.towerTop = cam.getTowerTop()
             self.angleAtLastFrame = self.relativeAngle
         elif False:
             shift = self.relativeAngle - self.angleAtLastFrame
@@ -45,6 +49,7 @@ class StateEstimator:
             self.opBalls = [(b[0], b[1]+shift) for b in self.opBalls]
             self.goalWalls = [(w[0], w[1]+shift) for w in self.goalWalls]
             self.buttons = [(b[0], b[1]+shift) for b in self.buttons]
+            self.tower = (self.tower[0], self.tower[1]+shift)
         self.allBalls = self.myBalls + self.opBalls
         if self.allBalls == []:
             self.nearestBall = None
@@ -53,7 +58,7 @@ class StateEstimator:
         if self.allBalls + self.goalWalls == []:
             self.nearestBallOrGoal = None
         else:
-            self.nearestBallOrGoal = min(self.allBalls + self.goalWalls, key = lambda obj: obj[0])
+            self.nearestBallOrGoal = min(self.allBalls + self.tower, key = lambda obj: obj[0])
         if self.allBalls + self.buttons == []:
             self.nearestNonGoalObj = None
         else:
@@ -61,7 +66,7 @@ class StateEstimator:
         if self.allBalls + self.buttons + self.goalWalls == []:
             self.nearestObj = None
         else:
-            self.nearestObj = min(self.allBalls + self.buttons + self.goalWalls, key = lambda obj: obj[0])
+            self.nearestObj = min(self.allBalls + self.buttons + self.tower, key = lambda obj: obj[0])
 
         # wallDistRaw = raw data from sensors
         dist = [ir.getPosition() for ir in self.data.getIr()]
@@ -206,6 +211,12 @@ class StateEstimator:
             return None
         return self.buttons[0]
 
+    def getTowerBase(self):
+        return self.towerBase
+
+    def getTowerTop(self):
+        return self.towerTop   
+
     def getObjType(self, obj):
         if obj in self.myBalls:
             if MY_BALLS_ARE_RED:
@@ -285,10 +296,13 @@ class StateEstimator:
         a = sensorA[0]
         b = sensorB[0]
         theta = (180/math.pi) * math.asin(math.sqrt((abs(a-b) / (a+b)) * math.cos(math.pi * phi / 180)))
-        if a - b > 0:
+        if (a > b and theta < 0) or (a < b and theta > 0):
             theta = -theta
         d = b * math.cos((math.pi/180) * (phi - theta)) / math.cos((math.pi/180)*theta)
-        return (d, theta)
+        # Only works for left-handed wall following until the following line is fixed
+        angleOffset = (sensorA[1] + sensorB[1])/2 + 90
+        return (d, theta + angleOffset)
+        #return (d, theta)
 
     # Like above, but picks two sensors automatically to use in the calculation
     def getWallRelativePos(self):

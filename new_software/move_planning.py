@@ -14,10 +14,12 @@ class MovePlanning:
     APPROACH_TARGET = 3
     CAPTURE_BALL = 4
     HIT_BUTTON = 5
-    ALIGN = 6
-    AVOID_WALL = 7
-    TIMEOUT_RUN = 8
-    SCORE = 9
+    ALIGN_WITH_WALL = 6
+    ALIGN_WITH_TOWER = 7
+    ALIGN_WITH_BUTTON = 8
+    AVOID_WALL = 9
+    TIMEOUT_RUN = 10
+    SCORE = 11
 
     def __init__(self):
         self.moveObject = WallFollow()
@@ -43,7 +45,8 @@ class Movement():
 
         self.myBall = c.STATE().getMyNearestBall()
         self.opBall = c.STATE().getOpNearestBall()
-        self.goal = c.STATE().getNearestGoalWall()
+        self.goalWall = c.STATE().getNearestGoalWall()
+        self.tower = c.STATE().getTowerBase()
         self.button = c.STATE().getNearestButton()
 
         self.nearestBall = c.STATE().getNearestBall()
@@ -112,9 +115,8 @@ class WallFollow(Movement):
         goal = c.GOAL().getGoal()
 
         if self.nearestNonGoalObj is not None:
-            if goal != c.GOAL().SCORE_AND_LOITER:
-                return ApproachTarget()        
-        if self.goal is not None:
+            return ApproachTarget()        
+        if self.tower is not None:
             if goal != c.GOAL().HUNT:
                 return ApproachTarget()
         '''
@@ -123,7 +125,8 @@ class WallFollow(Movement):
         pid0 = self.pid0
         pid1 = self.pid1
 
-        (self.d, self.theta) = c.STATE().getWallRelativePos()
+        (self.d, self.theta) = c.STATE().getWallPosFrom2Sensors(0, 1)
+        #(self.d, self.theta) = c.STATE().getWallRelativePos()
 
         if (not pid0.running):
             pid0.start(self.d, FW_DIST_TARGET)
@@ -170,9 +173,8 @@ class MoveToOpen(Movement):
             return WallFollow()
 
         if self.nearestNonGoalObj is not None:
-            if goal != c.GOAL().SCORE_AND_LOITER:
-                return approachTarget()        
-        if self.goal is not None:
+            return approachTarget()        
+        if self.tower is not None:
             if goal != c.GOAL().HUNT:
                 return approachTarget()
 
@@ -232,21 +234,24 @@ class HitButton(Movement):
             return WallFollow()   
 
     def move(self):
+        # Cycle through the following steps 4 times:
+        # - Drive forward for 2 seconds
+        # - Wait for 8 seconds
+        # - Drive backward for 1 second
+        # - Wait for BALL_BUTTON_TIMEOUT - 2 - 8 - 1 = 11 seconds
         t = time.time() - self.startTime
-        if   t > 0 and t < 2   \
-          or t > 5 and t < 7   \
-          or t > 10 and t < 12 \
-          or t > 15 and t < 17:
-            c.CTRL().setMovement(HITBTN_TRANSLATE_SPEED, HITBTN_ROTATE_SPEED)
-        elif t > 2 and t < 3   \
-          or t > 7 and t < 8   \
-          or t > 12 and t < 13 \
-          or t > 17 and t < 18:
-            c.CTRL().setMovement(-1 * HITBTN_TRANSLATE_SPEED, HITBTN_ROTATE_SPEED)
-        else:
-            c.CTRL().setMovement(0, 0)
+        for i in range(4):
+            a = BALL_BUTTON_TIMEOUT * i
+            if t >= a and t < a + 2:
+                c.CTRL().setMovement(HITBTN_TRANSLATE_SPEED, HITBTN_ROTATE_SPEED)
+                break
+            elif t >= a + 10 and t < a + 11:
+                c.CTRL().setMovement(-1 * HITBTN_TRANSLATE_SPEED, HITBTN_ROTATE_SPEED)
+                break
+            else:
+                c.CTRL().setMovement(0, 0)
 
-class Align(Movement):
+class AlignWithWall(Movement):
     def __init__(self):
         Movement.__init__(self)
         self.pid = pid.Pid(1, .000, .000, 100)
@@ -281,6 +286,60 @@ class Align(Movement):
         print "pid = " + str(self.pidVal)
         print "SPD=" + str(self.speed) + ", ROT=" + str(self.rotation)
 
+class AlignWithTower(Movement):
+    def __init__(self):
+        Movement.__init__(self)
+        self.towerTop = None
+        self.pid = pid.Pid(1, .000, .000, 100)
+        self.d = 0
+        self.theta = 0
+        self.pidVal = 0
+        self.speed = 0
+        self.rotation = 0
+
+    def transition(self):
+        goal = c.GOAL().getGoal()
+        if self.d > 0.4:
+            return WallFollow()
+        if self.theta < 5 and self.theta > -5:
+            return Score()
+
+    def move(self):
+        self.towerTop = c.STATE().getTowerTop()
+        pid = self.pid
+        (self.d, self.theta) = c.STATE().getWallRelativePos()
+        
+        if (not pid.running):
+            pid.start(self.theta, 0)
+
+        self.pidVal = pid.iterate(self.theta)
+        self.speed = 0
+        self.rotation = ALIGN_ROTATE_SPEED_SCALE * self.pidVal
+        c.CTRL().setMovement(self.speed, self.rotation)
+
+    def log(self):
+        print "d = " + str(self.d)
+        print "theta = " + str(self.theta)
+        print "pid = " + str(self.pidVal)
+        print "SPD=" + str(self.speed) + ", ROT=" + str(self.rotation)
+
+class AlignWithButton(Movement):
+    def __init__(self):
+        pass
+
+    def transition(self):
+        goal = c.GOAL().getGoal()
+        if self.d > 0.4:
+            return WallFollow()
+        if self.theta < 5 and self.theta > -5:
+            return Score()
+
+    def move(self):
+        pass
+
+    def log(self):
+        pass
+
 class RotateInPlace(Movement):
     def __init__(self):
         Movement.__init__(self)
@@ -289,9 +348,8 @@ class RotateInPlace(Movement):
     def transition(self):
         goal = c.GOAL().getGoal()
         if self.nearestNonGoalObj is not None:
-            if goal != c.GOAL().SCORE_AND_LOITER:
-                return approachTarget()        
-        if self.goal is not None:
+            return approachTarget()        
+        if self.tower is not None:
             if goal != c.GOAL().HUNT:
                 return approachTarget()
 
@@ -317,8 +375,6 @@ class ApproachTarget(Movement):
             self.target = self.nearestNonGoalObj
         elif goal == c.GOAL().HUNT_AND_SCORE:
             self.target = self.nearestObj
-        elif goal == c.GOAL().SCORE_AND_LOITER:
-            self.target = self.goal
 
         self.targetType = c.STATE().getObjType(self.target)
         t = self.targetType
@@ -329,10 +385,11 @@ class ApproachTarget(Movement):
                 return CaptureBall()
         elif t == "CYAN_BUTTON":
             if c.STATE().getFrontProximity() < 30 and abs(self.target[1]) < 12:
-                return HitButton()
+                return AlignWithButton()
+        # following should never happen given how target is selected
         elif t == "YELLOW_WALL":
             if c.STATE().getFrontProximity() < 30:
-                return Align()
+                return AlignWithWall()
 
     def move(self):
         if self.target == None:
@@ -443,7 +500,10 @@ if __name__ == "__main__":
                 print timeElapsed
                 time.sleep(.02)
             if timeElapsed >= 180:
-                c.CTRL().halt()
                 break
+
     except KeyboardInterrupt:
-       c.DATA().stopVisionThread()
+        pass
+
+    c.CTRL().halt()
+    c.DATA().stopVisionThread()

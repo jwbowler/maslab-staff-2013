@@ -47,7 +47,9 @@ class DataCollection:
         print "Reachable goal walls: " + str(self.camera.getReachableGoalWalls())
         print "Buttons: " + str(self.camera.getButtons())
         print "Reachable buttons: " + str(self.camera.getReachableButtons())
-        print "Motor currents: " + str(self.currents.getCurrents())
+        print "Tower base: " + str(self.camera.getTowerBase())
+        print "Tower top: " + str(self.camera.getTowerTop())
+        #print "Motor currents: " + str(self.currents.getCurrents())
             
 
         #print self.imu
@@ -116,7 +118,7 @@ class Camera(Sensor):
         self.vision = vision_wrapper.VisionWrapper()
         self.vision.start()
         
-        self.elev = 0.2
+        self.elev = 0.36
         self.horizOffset = 0.15
         self.angle = 60. # 0 == pointing down; 90 = pointing forward
         self.imWidth = 640
@@ -170,6 +172,25 @@ class Camera(Sensor):
         objsConverted = [self.convCoords(coords, objHeight) for coords in objs]
         return objsConverted 
 
+    def getBiggestObjectOfType(self, type, objHeight):
+        objIndices = self.vision.getIndicesByType(type)
+        if objIndices == []:
+            return None
+        index = max(objIndices, key = lambda i: self.vision.getWeight(i))
+        coords = (self.vision.getX(index), self.vision.getY(index))
+        out = self.convCoords(coords, objHeight)
+        return out
+
+    def getBiggestReachableObjOfType(self, type, objHeight):
+        objIndices = self.vision.getIndicesByType(type)
+        objIndices = [i for i in objIndices if not self.vision.getIsBehindWall(i)]
+        if objIndices == []:
+            return None
+        index = max(objIndices, key = lambda i: self.vision.getWeight(i))
+        coords = (self.vision.getX(index), self.vision.getY(index))
+        out = self.convCoords(coords, objHeight)
+        return out
+
     # returns (dist, angle) to all my balls
     def getMyBalls(self):
         return self.getObjsOfType(self.myBallColor, BALL_RADIUS)
@@ -199,6 +220,12 @@ class Camera(Sensor):
 
     def getReachableButtons(self):
         return self.getReachableObjsOfType("CYAN_BUTTON", BUTTON_CENTER_HEIGHT)
+
+    def getTowerBase(self):
+        return self.getBiggestReachableObjOfType("PURPLE_GOAL", TOWER_BASE_CENTER_HEIGHT)
+
+    def getTowerTop(self):
+        return self.getBiggestReachableObjOfType("BLUE_GOAL", TOWER_TOP_CENTER_HEIGHT)
 
     # returns (dist, angle) given x and y pixel coordinates (from upper left)
     def convCoords(self, (x, y), objHeight):
@@ -309,7 +336,7 @@ if __name__ == "__main__":
         while True:
             c.DATA().run()
             c.DATA().log()
-            c.CTRL().setMovement(0.2, 0)
+            #c.CTRL().setMovement(0.2, 0)
             time.sleep(.1)
     except KeyboardInterrupt:
         print "Interrupting"
