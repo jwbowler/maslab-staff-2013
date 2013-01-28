@@ -32,6 +32,7 @@ class Control():
     # This method turns on and off the helix motor
     # Input:Boolean
     def setHelix(self,switch):
+        print HELIX_SPEED
         self.helix.setSpeed(HELIX_SPEED*switch)
 
     # This method controls the motor that releases the balls
@@ -118,16 +119,20 @@ if __name__=="__main__":
     
     try:
 
-        '''
         #########################
-        c.CTRL().setRoller(False)
-        c.CTRL().setHelix(False)
-        c.CTRL().setLeftMotor(.2)
-        c.CTRL().setRightMotor(.2)
+        c.CTRL().setRoller(True)
+        c.CTRL().setHelix(True)
+        c.CTRL().setLeftMotor(.0)
+        c.CTRL().setRightMotor(.0)
         print "Running motors..."
         time.sleep(600)
         #########################
-        
+
+        for i in xrange(128):
+            print i
+            c.CTRL().setRoller(i)
+            time.sleep(.2)
+        '''
         c.CTRL().setRoller(False)
         c.CTRL().setHelix(False)
         c.CTRL().setRightMotor(0)

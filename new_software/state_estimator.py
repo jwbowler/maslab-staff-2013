@@ -49,7 +49,8 @@ class StateEstimator:
             self.opBalls = [(b[0], b[1]+shift) for b in self.opBalls]
             self.goalWalls = [(w[0], w[1]+shift) for w in self.goalWalls]
             self.buttons = [(b[0], b[1]+shift) for b in self.buttons]
-            self.tower = (self.tower[0], self.tower[1]+shift)
+            self.towerBase = (self.towerBase[0], self.towerBase[1]+shift)
+            self.towerTop = (self.towerTop[0], self.towerTop[1]+shift)
         self.allBalls = self.myBalls + self.opBalls
         if self.allBalls == []:
             self.nearestBall = None
@@ -58,7 +59,7 @@ class StateEstimator:
         if self.allBalls + self.goalWalls == []:
             self.nearestBallOrGoal = None
         else:
-            self.nearestBallOrGoal = min(self.allBalls + self.tower, key = lambda obj: obj[0])
+            self.nearestBallOrGoal = min(self.allBalls + [self.towerBase], key = lambda obj: obj[0])
         if self.allBalls + self.buttons == []:
             self.nearestNonGoalObj = None
         else:
@@ -66,7 +67,7 @@ class StateEstimator:
         if self.allBalls + self.buttons + self.goalWalls == []:
             self.nearestObj = None
         else:
-            self.nearestObj = min(self.allBalls + self.buttons + self.tower, key = lambda obj: obj[0])
+            self.nearestObj = min(self.allBalls + self.buttons + [self.towerBase], key = lambda obj: obj[0])
 
         # wallDistRaw = raw data from sensors
         dist = [ir.getPosition() for ir in self.data.getIr()]
@@ -124,6 +125,12 @@ class StateEstimator:
 
         c.LOG("Goal Walls")
         c.LOG(self.getGoalWalls())
+
+        c.LOG("Tower Base")
+        c.LOG(self.getTowerBase())
+
+        c.LOG("Tower Top")
+        c.LOG(self.getTowerTop())
 
         c.LOG("Raw Wall Distances")
         c.LOG(self.getRawWallDistances())

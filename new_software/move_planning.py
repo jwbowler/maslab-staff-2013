@@ -38,7 +38,14 @@ class Movement():
         self.avoidWalls = True
         self.timeOut = True
         self.startTime = time.time()
-
+        self.myBall = None
+        self.opBall = None
+        self.goalWall = None
+        self.tower = None
+        self.button = None
+        self.nearestBall = None
+        self.nearestNonGoalObj = None
+        self.nearestObj = None
         
 
     def run(self):
@@ -112,16 +119,21 @@ class WallFollow(Movement):
         self.rotation = 0
 
     def transition(self):
-        '''
+        
         goal = c.GOAL().getGoal()
+        target = None
 
-        if self.nearestNonGoalObj is not None:
-            return ApproachTarget()        
-        if self.tower is not None:
-            if goal != c.GOAL().HUNT:
-                return ApproachTarget()
-        '''
+        if goal == c.GOAL().HUNT:
+            target = self.nearestNonGoalObj
+        if goal == c.GOAL().HUNT_AND_SCORE:
+            target = self.nearestObj
+        if goal == c.GOAL().SCORE:
+            target = self.tower
 
+        if target is not None:
+            return ApproachTarget()
+    
+    
     def move(self):
         pid0 = self.pid0
         pid1 = self.pid1
@@ -152,8 +164,8 @@ class WallFollow(Movement):
         #if self.pidVal > 1:
         #    self.speed /= self.pidVal
 
-        c.CTRL().setMovement(self.speed, self.rotation)
-        #c.CTRL().setMovement(0, 0)
+        #c.CTRL().setMovement(self.speed, self.rotation)
+        c.CTRL().setMovement(0, 0)
 
     def log(self):
         c.LOG("d = " + str(self.d))
@@ -286,7 +298,7 @@ class AlignWithWall(Movement):
 
         self.pidVal = pid.iterate(self.theta)
         self.speed = 0
-        self.rotation = ALIGN_ROTATE_SPEED_SCALE * self.pidVal
+        self.rotation = ALIGN_WALL_ROTATE_SPEED_SCALE * self.pidVal
         c.CTRL().setMovement(self.speed, self.rotation)
 
     def log(self):
@@ -308,23 +320,26 @@ class AlignWithTower(Movement):
 
     def transition(self):
         goal = c.GOAL().getGoal()
-        if self.d > 0.4:
+        if self.d > 0.7:
             return WallFollow()
-        if self.theta < 5 and self.theta > -5:
+        if self.theta < 5 and self.theta > -5 and self.d < .3:
             return Score()
 
     def move(self):
         self.towerTop = c.STATE().getTowerTop()
         pid = self.pid
-        (self.d, self.theta) = c.STATE().getWallRelativePos()
-        
+        #self.d = c.STATE().getFrontProximity()
+        self.d = self.towerTop[0]
+        self.theta = self.towerTop[1]
+
         if (not pid.running):
             pid.start(self.theta, 0)
 
         self.pidVal = pid.iterate(self.theta)
-        self.speed = 0
+        self.speed = ALIGN_TOWER_TRANSLATE_SPEED
         self.rotation = ALIGN_ROTATE_SPEED_SCALE * self.pidVal
-        c.CTRL().setMovement(self.speed, self.rotation)
+        c.CTRL().setMovement(0, 0)
+        #c.CTRL().setMovement(self.speed, self.rotation)
 
     def log(self):
         c.LOG("d = " + str(self.d))
@@ -370,21 +385,16 @@ class ApproachTarget(Movement):
         Movement.__init__(self)
         self.targetSpeed = APPTGT_TRANSLATE_SPEED
         self.rotationSpeed = APPTGT_ROTATE_SPEED
-        self.pid = pid.Pid(.03, .005, .005, 100)
+        self.pid = pid.Pid(.03, .005, .005, .2, 100)
         self.target = None
         self.targetType = None
         self.speed = 0
         self.rotation = 0
         self.pidVal = 0
+        
 
     def transition(self):
-        goal = c.GOAL().getGoal()
         
-        if goal == c.GOAL().HUNT:
-            self.target = self.nearestNonGoalObj
-        elif goal == c.GOAL().HUNT_AND_SCORE:
-            self.target = self.nearestObj
-
         self.targetType = c.STATE().getObjType(self.target)
         t = self.targetType
         if t == None:
@@ -395,12 +405,28 @@ class ApproachTarget(Movement):
         elif t == "CYAN_BUTTON":
             if c.STATE().getFrontProximity() < 30 and abs(self.target[1]) < 12:
                 return AlignWithButton()
+        #elif t == "PURPLE_GOAL":
+        elif t == "YELLOW_WALL":
+            d = self.target[0]
+            if d < 50 and abs(self.target[1]) < 12:
+                return AlignWithTower()
+        '''    
         # following should never happen given how target is selected
         elif t == "YELLOW_WALL":
             if c.STATE().getFrontProximity() < 30:
                 return AlignWithWall()
+        '''
 
     def move(self):
+        goal = c.GOAL().getGoal()
+        
+        if goal == c.GOAL().HUNT:
+            self.target = self.nearestNonGoalObj
+        elif goal == c.GOAL().HUNT_AND_SCORE:
+            self.target = self.nearestObj
+        elif goal == c.GOAL().SCORE:
+            self.target = self.tower
+
         if self.target == None:
             return
 
@@ -417,12 +443,16 @@ class ApproachTarget(Movement):
 
         self.speed = adjustedSpeed
         self.rotation = self.rotationSpeed * self.pidVal
-        c.CTRL().setMovement(self.speed, self.rotation)
+        c.CTRL().setMovement(0, 0)
+        #c.CTRL().setMovement(self.speed, self.rotation)
 
     def pause(self):
         self.pid.stop()
 
     def log(self):
+        if self.target is None:
+            c.LOG("no target")
+            return
         c.LOG("target type = " + self.targetType)
         c.LOG("dist from camera = " + str(self.target[0]))
         c.LOG("dist from sensor = " + str(c.STATE().getFrontProximity()))
@@ -443,6 +473,7 @@ class Score(Movement):
             return WallFollow()   
 
     def move(self):
+        return
         c.CTRL().setMovement(0, 0)
         c.CTRL().setScorer(True)
         c.CTRL().setRamp(90) # what angle exactly?

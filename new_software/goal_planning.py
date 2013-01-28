@@ -7,13 +7,17 @@ class GoalPlanning:
     # List of goals
     HUNT = 0
     HUNT_AND_SCORE = 1
-    goalNames = ["HUNT", "HUNT_AND_SCORE"]
+    SCORE = 2
+    goalNames = ["HUNT", "HUNT_AND_SCORE", "SCORE"]
     
     def __init__(self):
-        self.goal = GoalPlanning.HUNT
+        #self.goal = GoalPlanning.HUNT
+        self.goal = GoalPlanning.SCORE
     
     # Updates current goal according to estimated state
     def run(self):
+        self.goal = GoalPlanning.SCORE
+        return
         if c.STATE().getTimeRemaining() < ONLY_SCORE_PERIOD:
             #self.goal = GoalPlanning.SCORE_AND_LOITER
             pass

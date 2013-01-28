@@ -210,7 +210,7 @@ int step(bool isCalibMode, Mat **frame_ptr, Mat **scatter_ptr, int colorBeingCal
             double scale = 1/downsampleFactor;
             int x = keyPoints[j].pt.x;
             int y = keyPoints[j].pt.y;
-	    objTypes[numDetections] = colorNames[colorIndex];
+            objTypes[numDetections] = colorNames[colorIndex];
             objXCoords[numDetections] = x * scale;
             objYCoords[numDetections] = y * scale;
             objSizes[numDetections] = keyPoints[j].size;
@@ -221,7 +221,6 @@ int step(bool isCalibMode, Mat **frame_ptr, Mat **scatter_ptr, int colorBeingCal
             }
         }
         //*/
-        //cout << endl;
         
     }
 
@@ -239,7 +238,7 @@ int step(bool isCalibMode, Mat **frame_ptr, Mat **scatter_ptr, int colorBeingCal
     }
     if (scatter_ptr != NULL) {
         //*scatter_ptr = &colors3c;
-	*scatter_ptr = &colors;
+        *scatter_ptr = &colors;
     }
     
     //rgbRecord << src;
@@ -288,3 +287,44 @@ bool isBehindWall(int pixelX, int pixelY) {
         //return false;
     //}
 }
+/*
+void SimpleBlobDetector::findBlobs(const cv::Mat &binaryImage, vector<Center> &centers, vector<int> &bottoms) const
+{
+    centers.clear();
+
+    vector < vector<Point> > contours;
+    Mat tmpBinaryImage = binaryImage.clone();
+    findContours(tmpBinaryImage, contours, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
+
+    for (size_t contourIdx = 0; contourIdx < contours.size(); contourIdx++)
+    {
+        Center center;
+        center.confidence = 1;
+        Moments moms = moments(Mat(contours[contourIdx]));
+        
+        double area = moms.m00;
+        if (area < params.minArea || area >= params.maxArea)
+            continue;
+
+        center.location = Point2d(moms.m10 / moms.m00, moms.m01 / moms.m00);
+
+        if (binaryImage.at<uchar> (cvRound(center.location.y), cvRound(center.location.x)) != params.blobColor)
+            continue;
+
+        //compute blob radius
+        {
+            vector<double> dists;
+            for (size_t pointIdx = 0; pointIdx < contours[contourIdx].size(); pointIdx++)
+            {
+                Point2d pt = contours[contourIdx][pointIdx];
+                dists.push_back(norm(center.location - pt));
+            }
+            std::sort(dists.begin(), dists.end());
+            center.radius = (dists[(dists.size() - 1) / 2] + dists[dists.size() / 2]) / 2.;
+        }
+
+        centers.push_back(center);
+
+    }
+}
+*/

@@ -15,15 +15,20 @@ class Pid:
         self.iLim = iLim
         self.oLim = oLim
         self.dTime = dTime
+
+        self.prevValue = None
+        self.prevTime = None
         self.pastVals = []
+        self.running = False
 
     def start(self, value, target):
         self.i = 0
         self.target = target
+        self.prevVals = []
         self.prevValue = value
         self.prevTime = time.time()
         self.running = True
-        self.pastVals.append((self.prevTime, prevValue))
+        self.pastVals.append((self.prevTime, self.prevValue))
 
     def stop(self):
         self.running = False
@@ -32,14 +37,14 @@ class Pid:
         curTime = time.time()
         dt = curTime - self.prevTime 
 
-        self.prevVals.append(curTime, value)
-        for i in xrange(self.prevVals):
+        self.prevVals.append((curTime, value))
+        for i in xrange(len(self.prevVals)):
             if self.prevVals[i][0] + self.dTime > curTime:
                 self.prevVals = self.prevVals[i:]
                 break
 
-        longDt = prevVals[-1][0]-prevVals[0][0]
-        longDx = prevVals[-1][1]-prevVals[0][1]
+        longDt = self.prevVals[-1][0]-self.prevVals[0][0]
+        longDx = self.prevVals[-1][1]-self.prevVals[0][1]
 
 
         p = self.target-value

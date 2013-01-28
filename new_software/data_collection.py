@@ -113,13 +113,13 @@ class Camera(Sensor):
         self.vision = vision_wrapper.VisionWrapper()
         self.vision.start()
         
-        self.elev = 0.36
-        self.horizOffset = 0.15
+        self.elev = 0.328
+        self.horizOffset = 0.0
         self.angle = 60. # 0 == pointing down; 90 = pointing forward
         self.imWidth = 640
         self.imHeight = 480
         self.ar = 1. * self.imWidth / self.imHeight
-        self.vfov = 50.
+        self.vfov = 49.8
         self.hfov = self.ar * self.vfov
 
         if MY_BALLS_ARE_RED:
@@ -167,7 +167,7 @@ class Camera(Sensor):
         objsConverted = [self.convCoords(coords, objHeight) for coords in objs]
         return objsConverted 
 
-    def getBiggestObjectOfType(self, type, objHeight):
+    def getBiggestObjOfType(self, type, objHeight):
         objIndices = self.vision.getIndicesByType(type)
         if objIndices == []:
             return None
@@ -217,10 +217,10 @@ class Camera(Sensor):
         return self.getReachableObjsOfType("CYAN_BUTTON", BUTTON_CENTER_HEIGHT)
 
     def getTowerBase(self):
-        return self.getBiggestReachableObjOfType("PURPLE_GOAL", TOWER_BASE_CENTER_HEIGHT)
+        return self.getBiggestReachableObjOfType("YELLOW_WALL", TOWER_BASE_CENTER_HEIGHT)
 
     def getTowerTop(self):
-        return self.getBiggestReachableObjOfType("BLUE_GOAL", TOWER_TOP_CENTER_HEIGHT)
+        return self.getBiggestObjOfType("BLUE_GOAL", TOWER_TOP_CENTER_HEIGHT)
 
     # returns (dist, angle) given x and y pixel coordinates (from upper left)
     def convCoords(self, (x, y), objHeight):
@@ -330,6 +330,7 @@ if __name__ == "__main__":
 
     try:
         while True:
+            c.FRAME_START()
             c.DATA().run()
             c.DATA().log()
             #c.CTRL().setMovement(0.2, 0)
