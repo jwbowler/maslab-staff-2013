@@ -219,12 +219,12 @@ class StateEstimator:
 
     def getObjType(self, obj):
         if obj in self.myBalls:
-            if MY_BALLS_ARE_RED:
+            if c.MY_BALLS_ARE_RED():
                 return "RED_BALL"
             else:
                 return "GREEN_BALL"
         if obj in self.opBalls:
-            if MY_BALLS_ARE_RED:
+            if c.MY_BALLS_ARE_RED():
                 return "GREEN_BALL"
             else:
                 return "RED_BALL"

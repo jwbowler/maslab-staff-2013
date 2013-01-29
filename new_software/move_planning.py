@@ -98,6 +98,9 @@ class WallFollow(Movement):
         if target is not None:
             return ApproachTarget()
         '''
+        target = c.STATE().getNearestBall()
+        if target is not None:
+            return ApproachTarget()
 
     def move(self):
         distPid = self.distPid
@@ -117,6 +120,8 @@ class WallFollow(Movement):
         rotation = FW_SPEED_SCALE * pidVal
 
         c.CTRL().setMovement(speed, utils.absBound(rotation, self.rotLim))
+        c.CTRL().setRoller(True)
+        c.CTRL().setHelix(True)
 
         if MOVE_LOG:
             c.LOG("d = " + str(dist))
@@ -140,7 +145,10 @@ class CaptureBall(Movement):
     def move(self):
         c.CTRL().setMovement(CPTRBL_TRANSLATE_SPEED, CPTRBL_ROTATE_SPEED)
         c.CTRL().setRoller(True)
+        c.CTRL().setRoller(True)
+        c.CTRL().setHelix(True)
 
+'''
 class HitButton(Movement):
     def __init__(self):
         Movement.__init__(self)
@@ -245,6 +253,7 @@ class RotateInPlace(Movement):
 
     def move(self):
         c.CTRL().setMovement(ROTINPL_TRANSLATE_SPEED, ROTINPL_ROTATE_SPEED)
+'''
 
 class ApproachTarget(Movement):
     def __init__(self):
@@ -263,6 +272,7 @@ class ApproachTarget(Movement):
         if self.target is None:
             return WallFollow()
 
+        '''
         self.targetType = c.STATE().getObjType(self.target)
         t = self.targetType
 
@@ -277,8 +287,13 @@ class ApproachTarget(Movement):
             d = self.target[0]
             if d < .7:
                 return AlignWithTower()
+        '''
+
+        if self.target[0] < .3 and abs(self.target[0]) < 10:
+            return CaptureBall()
 
     def move(self):
+        '''
         goal = c.GOAL().getGoal()
         
         if goal == c.GOAL().HUNT:
@@ -287,6 +302,9 @@ class ApproachTarget(Movement):
             self.target = c.STATE().getNearestObj()
         elif goal == c.GOAL().SCORE:
             self.target = c.STATE().getTowerMiddle()
+        '''
+        self.target = c.STATE().getNearestBall()
+        self.targetType = c.STATE().getObjType(self.target)
 
         if self.target == None:
             return
@@ -306,6 +324,8 @@ class ApproachTarget(Movement):
         self.speed = adjustedSpeed
         self.rotation = self.rotationSpeed * self.pidVal
         c.CTRL().setMovement(self.speed, self.rotation)
+        c.CTRL().setRoller(True)
+        c.CTRL().setHelix(True)
 
     def pause(self):
         self.pid.stop()
@@ -321,6 +341,7 @@ class ApproachTarget(Movement):
         c.LOG("pid = " + str(self.pidVal))
         c.LOG("SPD=" + str(self.speed) + ", ROT=" + str(self.rotation))
 
+'''
 class Score(Movement):
     def __init__(self):
         Movement.__init__(self)
@@ -336,6 +357,7 @@ class Score(Movement):
         c.CTRL().setMovement(0, 0)
         return
         c.CTRL().setRamp(90) # what angle exactly?
+'''
 
 class AvoidWall(Movement):
     def __init__(self, prevMovement):
