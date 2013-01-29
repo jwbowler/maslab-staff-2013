@@ -10,8 +10,8 @@ class Start():
         self.resetButton = arduino.DigitalInput(c.ARD(), RESET_BUTTON_PIN)
 
     def poll(self):
-        print self.resetButton.getValue()
         if self.resetButton.getValue():
+            print self.colorSwitch.getValue()
             if self.colorSwitch.getValue():
                 return True
             else:

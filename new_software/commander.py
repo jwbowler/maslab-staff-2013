@@ -23,7 +23,7 @@ class Commander:
     logTime = 0
     logging = False
     frameCount = 0
-    myBallsAreRed = None
+    myBallsAreRed = True
 
 def MY_BALLS_ARE_RED():
     return Commander.myBallsAreRed
@@ -89,9 +89,8 @@ def go():
     GOAL()
     MOVE()
     CTRL()
-    ARD().run()
-
     START()
+    ARD().run()
 
     while True:
         Commander.myBallsAreRed = START().poll()
@@ -99,8 +98,8 @@ def go():
             break
         time.sleep(.01)
 
+    print "Are my balls red?"
     print Commander.myBallsAreRed
-    return
     
     while True:
         DATA().run()
