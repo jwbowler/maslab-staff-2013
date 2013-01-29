@@ -64,5 +64,5 @@ class Pid:
         
         return out
     
-    def getLastOutput(self)
+    def getLastOutput(self):
         return self.prevOut
