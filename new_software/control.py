@@ -16,7 +16,7 @@ class Control():
         self.rightMotor = arduino.Motor(c.ARD(), RIGHT_MOTOR_PINS[0], RIGHT_MOTOR_PINS[1], RIGHT_MOTOR_PINS[2])
         self.leftMotor = arduino.Motor(c.ARD(), LEFT_MOTOR_PINS[0], LEFT_MOTOR_PINS[1], LEFT_MOTOR_PINS[2])
         self.helix = arduino.Motor(c.ARD(),HELIX_PINS[0], HELIX_PINS[1], HELIX_PINS[2])
-        self.ramp = arduino.DigitalOutput(c.ARD(), RAMP_SERVO_PIN)
+        self.ramp = arduino.Servo(c.ARD(), RAMP_SERVO_PIN)
 
         self.prevTime = time.time()
         self.prevRight = 0
