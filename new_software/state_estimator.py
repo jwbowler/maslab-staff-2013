@@ -240,6 +240,9 @@ class StateEstimator:
             return "YELLOW_WALL"
         if obj in self.buttons:
             return "CYAN_BUTTON"
+        if obj == self.towerBase:
+            return "YELLOW_WALL"
+            #return "PURPLE_GOAL"
         else:
             return None
 

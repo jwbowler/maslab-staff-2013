@@ -164,8 +164,8 @@ class WallFollow(Movement):
         #if self.pidVal > 1:
         #    self.speed /= self.pidVal
 
-        #c.CTRL().setMovement(self.speed, self.rotation)
-        c.CTRL().setMovement(0, 0)
+        c.CTRL().setMovement(self.speed, self.rotation)
+        #c.CTRL().setMovement(0, 0)
 
     def log(self):
         c.LOG("d = " + str(self.d))
@@ -311,8 +311,9 @@ class AlignWithTower(Movement):
     def __init__(self):
         Movement.__init__(self)
         self.towerTop = None
-        self.pid = pid.Pid(1, .000, .000, 100)
+        self.pid = pid.Pid(.016, 0, .02, 0.3, 0)
         self.d = 0
+        self.baseD = 0
         self.theta = 0
         self.pidVal = 0
         self.speed = 0
@@ -320,26 +321,33 @@ class AlignWithTower(Movement):
 
     def transition(self):
         goal = c.GOAL().getGoal()
-        if self.d > 0.7:
-            return WallFollow()
-        if self.theta < 5 and self.theta > -5 and self.d < .3:
+        if self.baseD > 0.8:
+            return ApproachTarget()
+        if (-5 < self.theta < 5) and self.d < 0:
             return Score()
 
     def move(self):
-        self.towerTop = c.STATE().getTowerTop()
+        #self.towerTop = c.STATE().getTowerTop()
+        self.towerTop = self.tower
+        if self.towerTop is None:
+            return
         pid = self.pid
         #self.d = c.STATE().getFrontProximity()
         self.d = self.towerTop[0]
+        if self.tower is None:
+            self.baseD = 0
+        else:
+            self.baseD = self.tower[0]
         self.theta = self.towerTop[1]
 
         if (not pid.running):
             pid.start(self.theta, 0)
 
-        self.pidVal = pid.iterate(self.theta)
+        self.pidVal = pid.iterate(-self.theta)
         self.speed = ALIGN_TOWER_TRANSLATE_SPEED
-        self.rotation = ALIGN_ROTATE_SPEED_SCALE * self.pidVal
-        c.CTRL().setMovement(0, 0)
-        #c.CTRL().setMovement(self.speed, self.rotation)
+        self.rotation = ALIGN_TOWER_ROTATE_SPEED_SCALE * self.pidVal
+        #c.CTRL().setMovement(0, 0)
+        c.CTRL().setMovement(self.speed, self.rotation)
 
     def log(self):
         c.LOG("d = " + str(self.d))
@@ -385,7 +393,7 @@ class ApproachTarget(Movement):
         Movement.__init__(self)
         self.targetSpeed = APPTGT_TRANSLATE_SPEED
         self.rotationSpeed = APPTGT_ROTATE_SPEED
-        self.pid = pid.Pid(.03, .005, .005, .2, 100)
+        self.pid = pid.Pid(.03, .000, .000, .2, 100)
         self.target = None
         self.targetType = None
         self.speed = 0
@@ -394,7 +402,9 @@ class ApproachTarget(Movement):
         
 
     def transition(self):
-        
+        if self.target is None:
+            return
+
         self.targetType = c.STATE().getObjType(self.target)
         t = self.targetType
         if t == None:
@@ -408,7 +418,7 @@ class ApproachTarget(Movement):
         #elif t == "PURPLE_GOAL":
         elif t == "YELLOW_WALL":
             d = self.target[0]
-            if d < 50 and abs(self.target[1]) < 12:
+            if d < .7:
                 return AlignWithTower()
         '''    
         # following should never happen given how target is selected
@@ -435,7 +445,7 @@ class ApproachTarget(Movement):
         if (not self.pid.running):
             self.pid.start(angle, 0)
 
-        self.pidVal = self.pid.iterate(angle)
+        self.pidVal = self.pid.iterate(-angle)
 
         #slowdown when close, slowdown when off-angle 
         adjustedSpeed = self.targetSpeed if distance > .5 else self.targetSpeed*distance*2
@@ -443,8 +453,8 @@ class ApproachTarget(Movement):
 
         self.speed = adjustedSpeed
         self.rotation = self.rotationSpeed * self.pidVal
-        c.CTRL().setMovement(0, 0)
-        #c.CTRL().setMovement(self.speed, self.rotation)
+        #c.CTRL().setMovement(0, 0)
+        c.CTRL().setMovement(self.speed, self.rotation)
 
     def pause(self):
         self.pid.stop()
@@ -473,8 +483,8 @@ class Score(Movement):
             return WallFollow()   
 
     def move(self):
-        return
         c.CTRL().setMovement(0, 0)
+        return
         c.CTRL().setScorer(True)
         c.CTRL().setRamp(90) # what angle exactly?
 
