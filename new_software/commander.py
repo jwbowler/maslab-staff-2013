@@ -84,7 +84,13 @@ def FRAME_START():
 def go():
     
     ARD()
-    '''
+    DATA()
+    STATE()
+    GOAL()
+    MOVE()
+    CTRL()
+    ARD().run()
+
     START()
 
     while True:
@@ -95,14 +101,7 @@ def go():
 
     print Commander.myBallsAreRed
     return
-    '''
-    DATA()
-    STATE()
-    GOAL()
-    MOVE()
-    CTRL()
-    ARD().run()
-
+    
     while True:
         DATA().run()
         STATE().run()
