@@ -117,9 +117,9 @@ class Camera(Sensor):
         self.vision = vision_wrapper.VisionWrapper()
         self.vision.start()
         
-        self.elev = 0.328
+        self.elev = 0.343
         self.horizOffset = 0.0
-        self.angle = 60. # 0 == pointing down; 90 = pointing forward
+        self.angle = 65.1 # 0 == pointing down; 90 = pointing forward
         self.imWidth = 640
         self.imHeight = 480
         self.ar = 1. * self.imWidth / self.imHeight
@@ -239,16 +239,16 @@ class Camera(Sensor):
         return self.getReachableObjsOfType("CYAN_BUTTON", BUTTON_CENTER_HEIGHT)
 
     def getTowerBase_Bottom(self):
-        return self.getBiggestReachableObjOfType("PURPLE_GOAL", 0, True)
+        return self.getBiggestObjOfType("PURPLE_GOAL", 0, True)
 
     def getTowerBase_Center(self):
-        return self.getBiggestReachableObjOfType("PURPLE_GOAL", 0, False)
+        return self.getBiggestObjOfType("PURPLE_GOAL", 0, False)
 
     def getTowerMiddle_Bottom(self):
-        return self.getBiggestReachableObjOfType("YELLOW_WALL", TOWER_MIDDLE_BOTTOM_HEIGHT, True)
+        return self.getBiggestObjOfType("YELLOW_WALL", TOWER_MIDDLE_BOTTOM_HEIGHT, True)
 
     def getTowerMiddle_Center(self):
-        return self.getBiggestReachableObjOfType("YELLOW_WALL", TOWER_MIDDLE_BOTTOM_HEIGHT, False)
+        return self.getBiggestObjOfType("YELLOW_WALL", TOWER_MIDDLE_BOTTOM_HEIGHT, False)
 
     def getTowerTop_Bottom(self):
         return self.getBiggestObjOfType("BLUE_GOAL", TOWER_TOP_BOTTOM_HEIGHT, True)

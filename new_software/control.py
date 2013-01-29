@@ -32,11 +32,11 @@ class Control():
         self.helix.setSpeed(HELIX_SPEED*self.helixState)
         self.ramp.setValue(self.rampAngle)
 
-        self.prevLeft = self.accelBound(self, self.prevLeft, self.leftSpeed)
+        self.prevLeft = self.accelBound(self.prevLeft, self.leftSpeed)
         l = boundAndScale(self.prevLeft, 8, 127)
         self.leftMotor.setSpeed(l)
 
-        self.prevRight = self.accelBound(self, self.prevRight, self.rightSpeed)
+        self.prevRight = self.accelBound(self.prevRight, self.rightSpeed)
         r = boundAndScale(self.prevRight, 13, 117)
         self.rightMotor.setSpeed(r)
 
@@ -47,12 +47,13 @@ class Control():
         c.LOG("DRIVE ACTUAL: " + str((self.prevLeft,self.prevRight)))
         c.LOG("ROLLER: " + str(self.rollerState))
         c.LOG("HELIX: " + str(self.helixState))
-        c.log("RAMP: " + str(self.rampAngle))
+        c.LOG("RAMP: " + str(self.rampAngle))
 
     def accelBound(self, prevSpeed, goalSpeed):
         delta = goalSpeed - prevSpeed
         maxDelta = ACCEL_LIM * (time.time() - self.prevTime)
-        return prevSpeed + utils.absBound(delta, maxDelta)
+        newSpeed = prevSpeed + utils.absBound(delta, maxDelta)
+        return utils.absBound(newSpeed, goalSpeed)
 
     # This method turns on and off the roller motor
     # Input:Boolean
@@ -92,7 +93,7 @@ class Control():
         self.setHelix(False)
         self.setLeftMotor(0)
         self.setRightMotor(0)
-        run()
+        self.run()
         self.roller.setSpeed(0)
         self.helix.setSpeed(0)
         self.leftMotor.setSpeed(0)

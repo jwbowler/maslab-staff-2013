@@ -101,6 +101,7 @@ def go():
     print Commander.myBallsAreRed
     
     while True:
+        FRAME_START()
         DATA().run()
         STATE().run()
         STATE().log()
@@ -110,7 +111,6 @@ def go():
         MOVE().log()
         CTRL().run()
         CTRL().log()
-        FRAME_START()
 
 def stop():
     CTRL().halt()
