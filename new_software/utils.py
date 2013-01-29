@@ -13,6 +13,6 @@ def absBound(value, high):
     if value > high:
        return high;
     elif value < -high:
-       return high
+       return -high
 
     return value

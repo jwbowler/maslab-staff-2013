@@ -148,7 +148,8 @@ class WallFollow(Movement):
         #if self.pidVal > 1:
         #    self.speed /= self.pidVal
 
-        c.CTRL().setMovement(self.speed, self.rotation)
+        #c.CTRL().setMovement(self.speed, self.rotation)
+        c.CTRL().setMovement(self.speed, 0)
         #c.CTRL().setMovement(0, 0)
 
     def log(self):
@@ -317,12 +318,12 @@ class AlignWithTower(Movement):
         pid = self.pid
         #self.d = c.STATE().getFrontProximity()
         self.d = c.STATE().getTowerMiddle()[0]
-        self.theta = c.STATE().getTowerMiddle()[1]
+        self.theta = -c.STATE().getTowerMiddle()[1]
 
         if (not pid.running):
             pid.start(self.theta, 0)
 
-        self.pidVal = pid.iterate(-self.theta)
+        self.pidVal = pid.iterate(self.theta)
         self.speed = ALIGN_TOWER_TRANSLATE_SPEED
         self.rotation = ALIGN_TOWER_ROTATE_SPEED_SCALE * self.pidVal
         #c.CTRL().setMovement(0, 0)
@@ -413,11 +414,12 @@ class ApproachTarget(Movement):
             return
 
         (distance, angle) = self.target
+        angle = -angle
 
         if (not self.pid.running):
             self.pid.start(angle, 0)
 
-        self.pidVal = self.pid.iterate(-angle)
+        self.pidVal = self.pid.iterate(angle)
 
         #slowdown when close, slowdown when off-angle 
         adjustedSpeed = self.targetSpeed if distance > .5 else self.targetSpeed*distance*2
