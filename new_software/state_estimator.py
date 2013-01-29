@@ -4,7 +4,6 @@ import math
 from config import *
 
 class StateEstimator:
-
     # takes data object
     def __init__(self):
         self.data = c.DATA()
@@ -25,11 +24,6 @@ class StateEstimator:
         self.nearestBallOrGoal = None
         self.nearestNonGoalObj = None
         self.nearestObj = None
-        self.wallDistRaw = []
-        self.wallDistTimeoutFixed = []
-        self.wallDistLowpass = []
-        self.wallDistOutliersFixed = []
-        self.wallDistCorrected = []
     
     # Updates estimated state according to data in Data class
     def run(self):
@@ -100,46 +94,7 @@ class StateEstimator:
                 else:
                     self.nearestObj = min(self.allBalls + self.buttons, key = lambda obj: obj[0])
 
-        # wallDistRaw = raw data from sensors
-        dist = [ir.getPosition() for ir in self.data.getIr()]
-        dist.extend([ult.getPosition() for ult in self.data.getUlt()])
-        dist = sorted(dist, key = lambda obj: obj[1]) # Sort by angle
-        self.wallDistRaw = dist[:]
 
-        # wallDistTimeoutFixed = wallDistRaw after timeout distances are replaced with
-        # designated timeout value
-        if self.wallDistCorrected != []:
-            for i in xrange(len(dist)):
-                if dist[i][0] > 1000:
-                    #dist[i] = self.wallDistCorrected[i]
-                    dist[i] = (.7, dist[i][1])
-        self.wallDistTimeoutFixed = dist[:]
-
-        # wallDistLowpass = wallDistTimeoutFixed after blurring
-        # not currently used; not sure if correct
-        blurAmount = .8
-        if self.wallDistLowpass != []:
-            for i in xrange(len(dist)):
-                corrDist = self.wallDistLowpass[i][0] * blurAmount + dist[i][0] * (1 - blurAmount)
-                self.wallDistLowpass[i] = (corrDist, self.wallDistLowpass[1])
-        else:
-            self.wallDistLowpass = dist[:]
-        
-        # wallDistOutliersFixed: each distance in the list is the one from wallDistOutliersFixed
-        # if it is close enough to the corresponding one from wallDistLowpass, else it is set
-        # equal to the corresponding one from wallDistLowpass
-        # not currently used; not sure if correct
-        errorCutoff = .25
-        if self.wallDistOutliersFixed != []:
-            for i in xrange(len(dist)):
-                if dist[i][0] > (1 + errorCutoff) * self.wallDistLowpass[i][0] \
-                 or dist[i][0] < (1 - errorCutoff) * self.wallDistLowpass[i][0]:
-                    dist[i] = self.wallDistLowpass[i]
-        self.wallDistOutliersFixed = dist[:]
-
-        # set wallDistCorrected
-        self.wallDistCorrected = self.wallDistTimeoutFixed[:]
-        
         self.timeLastScore = time.time()
 
     def log(self):
@@ -305,28 +260,31 @@ class StateEstimator:
     # Returns fully corrected set of wall distances ond angles from all sensors:
     # ((distance, angle), (distance, angle), ...)
     def getWallDistances(self):
-        return self.wallDistCorrected
+        dist = self.getRawWallDistances()
+        for i in xrange(len(dist)):
+            if dist[i][0] > 1000:
+                dist[i] = (.7, dist[i][1])
+
+        return dist
+
 
     # Returns wall distances without any corrections
     def getRawWallDistances(self):
-        return self.wallDistRaw
+        dist = [ir.getPosition() for ir in self.data.getIr()]
+        dist.extend([ult.getPosition() for ult in self.data.getUlt()])
+        dist = sorted(dist, key = lambda obj: obj[1]) # Sort by angle
+        return dist
 
     # Returns the forward distance that the robot can travel
     # before it hits a wall
     def getCollisionDistance(self):
-        #dist = self.getWallDistances()
-        #dist = [p[0]/math.cos(math.radians(p[1])) - ROBOT_RADIUS for p in dist]
-        #dist = [d for d in dist if d > 0]
-        #return min(dist)
-        # temporary:
-        # dist = self.getRawWallDistances()[2:]
-        # return min(dist)[0]
-        # even more temporary:
-        return 1000
+        dist = self.getWallDistances()
+        dist = [p[0]/math.cos(math.radians(p[1])) - ROBOT_RADIUS for p in dist]
+        dist = [d for d in dist if d > 0]
+        return min(dist)
 
     def nearCollision(self):
-        #return (self.getCollisionDistance() < .12)
-        return (self.getCollisionDistance() < .25)
+        return self.getFrontProximity() < .25
 
     def getFrontProximity(self):
         # Dependent on a specific sensor configuration. Need to make more general.
@@ -380,19 +338,3 @@ class StateEstimator:
 
     def getRelativeAngle(self):
         return 0.0
-
-if __name__ == "__main__":
-    c.ARD()
-    c.DATA()
-    c.STATE()
-    c.ARD().run()
-
-    while True:
-        c.FRAME_START()
-
-        c.DATA().run()
-
-        c.STATE().run()
-        c.STATE().log()
-
-        time.sleep(.1)

@@ -6,21 +6,6 @@ import commander as c
 from config import *
 
 class MovePlanning:
-    # List of moves
-    #wall
-    WALL_FOLLOW = 0
-    MOVE_TO_OPEN = 1
-    ROTATE_IN_PLACE = 2
-    APPROACH_TARGET = 3
-    CAPTURE_BALL = 4
-    HIT_BUTTON = 5
-    ALIGN_WITH_WALL = 6
-    ALIGN_WITH_TOWER = 7
-    ALIGN_WITH_BUTTON = 8
-    AVOID_WALL = 9
-    TIMEOUT_RUN = 10
-    SCORE = 11
-
     def __init__(self):
         self.moveObject = WallFollow()
     
@@ -97,11 +82,6 @@ class WallFollow(Movement):
         self.distPid = pid.Pid(1.8, 0, .000, 0.3, 0)
         self.anglePid = pid.Pid(.016, 0, .02, 0.3, 0)
 
-        self.pidVal0 = 0
-        self.pidVal1 = 0
-        self.speed = 0
-        self.rotation = 0
-
     def transition(self):
         goal = c.GOAL().getGoal()
         target = None
@@ -141,59 +121,6 @@ class WallFollow(Movement):
             c.LOG("distPid = " + str(self.distPid.getLastOutput()))
             c.LOG("anglePid = " + str(self.anglePid.getLastOutput()))
             c.LOG("SPD=" + str(speed) + ", ROT=" + str(rotation))
-
-class MoveToOpen(Movement):
-    def __init__(self):
-        Movement.__init__(self)
-        self.startAngle = c.STATE().getRelativeAngle()
-        self.angleMap = []
-        self.target = None
-        self.pid = pid.Pid(.03, .005, .005, 100)
-        self.targetSpeed = .5
-        self.speed = 0
-        self.rotation = 0
-
-    def transition(self):
-        goal = c.GOAL().getGoal()
-        distance = c.STATE().getCollisionDistance()
-
-        if distance < .25:
-            return WallFollow()
-
-        if self.nearestNonGoalObj is not None:
-            return approachTarget()        
-        if c.STATE().getTowerMiddle() is not None:
-            if goal != c.GOAL().HUNT:
-                return approachTarget()
-
-    def move(self):
-        angle = c.STATE().getRelativeAngle()
-        distance = c.STATE().getCollisionDistance()
-
-        if self.target != None: #go in most open direction
-            if (not self.pid.running):
-                self.pid.start(angle, self.target[0])
-
-            pidVal = self.pid.iterate(angle)
-
-            #slowdown when close, slowdown when off-angle 
-            adjustedSpeed = self.targetSpeed if distance > .33 else self.targetSpeed*distance*3
-            adjustedSpeed = 0 if angle > 15 else ((30.0-abs(angle))/30.0)
-            self.speed = adjustedSpeed
-            self.rotation = self.rotationSpeed * pidVal
-            c.CTRL().setMovement(self.speed, self.rotation)
-        else:
-            if abs(angle-self.startAngle) < 360: #rotate to find openning
-                self.angleMap.append((angle, distance))
-                c.CTRL().setMovement(0, .5)
-            else: #choose most open angle
-                self.target= (0,0)
-                for (angle, dist) in self.angleMap:
-                    if self.target[1] < dist:
-                        self.target = (angle, dist)
-
-    def log(self):
-        c.LOG("SPD=" + str(self.speed) + ", ROT=" + str(self.rotation))
 
 class CaptureBall(Movement):
     def __init__(self):
@@ -238,41 +165,6 @@ class HitButton(Movement):
                 break
             else:
                 c.CTRL().setMovement(0, 0)
-
-class AlignWithWall(Movement):
-    def __init__(self):
-        Movement.__init__(self)
-        self.pid = pid.Pid(1, .000, .000, 100)
-        self.d = 0
-        self.theta = 0
-        self.pidVal = 0
-        self.speed = 0
-        self.rotation = 0
-
-    def transition(self):
-        goal = c.GOAL().getGoal()
-        if self.d > 0.4:
-            return WallFollow()
-        if self.theta < 5 and self.theta > -5:
-            return Score()
-
-    def move(self):
-        pid = self.pid
-        (self.d, self.theta) = c.STATE().getWallRelativePos()
-        
-        if (not pid.running):
-            pid.start(self.theta, 0)
-
-        self.pidVal = pid.iterate(self.theta)
-        self.speed = 0
-        self.rotation = ALIGN_WALL_ROTATE_SPEED_SCALE * self.pidVal
-        c.CTRL().setMovement(self.speed, self.rotation)
-
-    def log(self):
-        c.LOG("d = " + str(self.d))
-        c.LOG("theta = " + str(self.theta))
-        c.LOG("pid = " + str(self.pidVal))
-        c.LOG("SPD=" + str(self.speed) + ", ROT=" + str(self.rotation))
 
 class AlignWithTower(Movement):
     def __init__(self):
@@ -469,44 +361,3 @@ class TimeoutRun(Movement):
 
     def resume(self):
         self.hitWall = True
-
-if __name__ == "__main__":
-    c.ARD()
-    c.DATA()
-    c.STATE()
-    c.GOAL()
-    c.MOVE()
-    c.CTRL()
-    c.ARD().run()
-
-    nextTime = time.time() + .5
-
-    startTime = time.time()
-
-    try:
-        while True:
-            c.DATA().run()
-
-            c.STATE().run()
-
-            c.GOAL().run()
-
-            c.MOVE().run()
-
-            timeElapsed = time.time() - startTime 
-            if time.time() > nextTime:
-                c.STATE().log()
-                c.GOAL().log()
-                c.MOVE().log()
-                print ""
-                nextTime = time.time() + .25
-                print timeElapsed
-                time.sleep(.02)
-            if timeElapsed >= 180:
-                break
-
-    except KeyboardInterrupt:
-        pass
-
-    c.CTRL().halt()
-    c.DATA().stopVisionThread()
