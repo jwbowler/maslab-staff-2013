@@ -291,10 +291,11 @@ void updateWallMap() {
     int *t = wallStripeThresholds;
     inRange(hsv, Scalar(t[0], t[2], t[4]), Scalar(t[1], t[3], t[5]), wallMap);
 
+    /*
     // quick, dirty and temporary
     Mat wallMap1;
     Mat temp;
-    /*
+    
     t = colorThresholds[0];
     if (t[0] >= 0) {
         inRange(hsv, Scalar(t[0], t[2], t[4]), Scalar(t[1], t[3], t[5]), wallMap1);
@@ -305,11 +306,12 @@ void updateWallMap() {
         bitwise_or(wallMap, temp, wallMap1);
     }
     bitwise_or(wallMap, wallMap1, wallMap);
-    */
+    
     Mat wallMap2;
     t = colorThresholds[1];
     inRange(hsv, Scalar(t[0], t[2], t[4]), Scalar(t[1], t[3], t[5]), wallMap2);
     bitwise_or(wallMap, wallMap2, wallMap);
+    */
 }
 
 void getWallImages(Mat **frame_ptr, Mat **scatter_ptr) {

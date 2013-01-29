@@ -4,6 +4,7 @@ import math
 
 import commander as c
 from config import *
+import utils
 
 class MovePlanning:
     def __init__(self):
@@ -79,10 +80,11 @@ class WallFollow(Movement):
         self.setAvoidWalls(False)
 
         self.rotLim = 0.5
-        self.distPid = pid.Pid(1.8, 0, .000, 0.3, 0)
-        self.anglePid = pid.Pid(.016, 0, .02, 0.3, 0)
+        self.distPid = pid.Pid(2.8, 0, .000, 0.3, 0)
+        self.anglePid = pid.Pid(.08, 0, .02, 0.4, 0)
 
     def transition(self):
+        '''
         goal = c.GOAL().getGoal()
         target = None
 
@@ -95,22 +97,24 @@ class WallFollow(Movement):
 
         if target is not None:
             return ApproachTarget()
-    
+        '''
+
     def move(self):
         distPid = self.distPid
         anglePid = self.anglePid
 
-        (dist, theta) = c.STATE().getWallPosFrom2Sensors(0, 1)
+        #(dist, theta) = c.STATE().getWallPosFrom2Sensors(0, 1)
+        (dist, theta) = c.STATE().getWallRelativePos(4)
 
         if (not distPid.running):
             distPid.start(dist, FW_DIST_TARGET)
         if (not anglePid.running):
-            anglePid.start(self.theta, 0)
+            anglePid.start(theta, 0)
 
-        pidVal = distPid.iterate(dist) + anglePid.iterate(self.theta)
+        pidVal = distPid.iterate(dist) + anglePid.iterate(theta)
 
         speed = FW_SPEED_SCALE
-        rotation = FW_SPEED_SCALE * self.pidVal
+        rotation = FW_SPEED_SCALE * pidVal
 
         c.CTRL().setMovement(speed, utils.absBound(rotation, self.rotLim))
 

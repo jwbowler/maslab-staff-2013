@@ -309,15 +309,25 @@ class StateEstimator:
             theta = -theta
         d = b * math.cos((math.pi/180) * (phi - theta)) / math.cos((math.pi/180)*theta)
         # Only works for left-handed wall following until the following line is fixed
-        angleOffset = (sensorA[1] + sensorB[1])/2 + 90
+        angleOffset = -(sensorA[1] + sensorB[1])/2 - 90
+        c.LOG("offset angle = " + str(angleOffset))
         return (d, theta + angleOffset)
         #return (d, theta)
 
     # Like above, but picks two sensors automatically to use in the calculation
-    def getWallRelativePos(self):
+    def getWallRelativePos(self, numSensors):
         sensorList = self.getWallDistances()
-        numSensors = len(sensorList)
-        closestSensorIndex = min(range(numSensors), key = lambda i: sensorList[i][0])
+        sensorIndices = sorted(range(numSensors), \
+                                 key = lambda i: (sensorList[i][0] - ROBOT_RADIUS) / (180 - abs(sensorList[i][1])))
+        sortedDistances = [sensorList[i][0] for i in sensorIndices]
+        sortedMultipliedDistances = [(sensorList[i][0] - ROBOT_RADIUS) / (180 - abs(sensorList[i][1])) for i in sensorIndices]
+        c.LOG("sensor indices:")
+        c.LOG(sensorIndices)
+        c.LOG("sorted distances:")
+        c.LOG(sortedDistances)
+        c.LOG("sorted multiplied distances:")
+        c.LOG(sortedMultipliedDistances)
+        closestSensorIndex = sensorIndices[0]
         if closestSensorIndex == 0:
             neighborIndex = 1
         elif closestSensorIndex == numSensors - 1:
@@ -326,6 +336,9 @@ class StateEstimator:
             neighborIndex = closestSensorIndex + 1
         else:
             neighborIndex = closestSensorIndex - 1
+        c.LOG("Wall following sensors:")
+        c.LOG("closest sensor index = " + str(closestSensorIndex))
+        c.LOG("neighbor index = " + str(neighborIndex))
         return self.getWallPosFrom2Sensors(closestSensorIndex, neighborIndex)
     
     # Returns landmarks like QR codes and the goal tower:
