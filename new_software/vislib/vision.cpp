@@ -206,6 +206,13 @@ int step(bool isCalibMode, Mat **frame_ptr, Mat **scatter_ptr, int colorBeingCal
             bitwise_or(bw, temp, bw);
         }
         bitwise_or(colors, bw, colors);
+
+        if (i == 2) {
+            Mat topMask = colors.clone();
+            topMask.setTo(Scalar(0));
+            rectangle(topMask, Point(0, 0), Point(topMask.size().height, 3), Scalar(255));
+            bitwise_or(colors, topMask, colors);
+        }
         /*
         blob_detector->detect(bw, keyPoints);
 

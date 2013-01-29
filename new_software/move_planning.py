@@ -312,12 +312,12 @@ class AlignWithTower(Movement):
             return Score()
 
     def move(self):
-        if c.STATE().getTowerTop() is None:
+        if c.STATE().getTowerMiddle() is None:
             return
         pid = self.pid
         #self.d = c.STATE().getFrontProximity()
-        self.d = c.STATE().getTowerTop()[0]
-        self.theta = c.STATE().getTowerTop()[1]
+        self.d = c.STATE().getTowerMiddle()[0]
+        self.theta = c.STATE().getTowerMiddle()[1]
 
         if (not pid.running):
             pid.start(self.theta, 0)
