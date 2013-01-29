@@ -21,5 +21,6 @@ int step(bool isCalibMode = false, Mat **frame_ptr = NULL, Mat **scatter_ptr = N
 void updateWallMap();
 void getWallImages(Mat **frame_ptr, Mat **scatter_ptr);
 bool isBehindWall(int pixelX, int pixelY);
+void findBlobs(const cv::Mat &binaryImage, vector<Point2d> &centers, vector<Rect> &boxes, vector<int> &areas, vector<Point2d> &lowestPoint);
 
 #endif

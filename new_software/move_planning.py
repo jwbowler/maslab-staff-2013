@@ -41,7 +41,9 @@ class Movement():
         self.myBall = None
         self.opBall = None
         self.goalWall = None
-        self.tower = None
+        self.towerBase = None
+        self.towerMiddle = None
+        self.towerTop = None
         self.button = None
         self.nearestBall = None
         self.nearestNonGoalObj = None
@@ -53,7 +55,9 @@ class Movement():
         self.myBall = c.STATE().getMyNearestBall()
         self.opBall = c.STATE().getOpNearestBall()
         self.goalWall = c.STATE().getNearestGoalWall()
-        self.tower = c.STATE().getTowerBase()
+        self.towerBase = c.STATE().getTowerBase()
+        self.towerMiddle = c.STATE().getTowerMiddle()
+        self.towerTop = c.STATE().getTowerTop()
         self.button = c.STATE().getNearestButton()
 
         self.nearestBall = c.STATE().getNearestBall()
@@ -128,7 +132,7 @@ class WallFollow(Movement):
         if goal == c.GOAL().HUNT_AND_SCORE:
             target = self.nearestObj
         if goal == c.GOAL().SCORE:
-            target = self.tower
+            target = self.towerBase
 
         if target is not None:
             return ApproachTarget()
@@ -195,7 +199,7 @@ class MoveToOpen(Movement):
 
         if self.nearestNonGoalObj is not None:
             return approachTarget()        
-        if self.tower is not None:
+        if self.towerBase is not None:
             if goal != c.GOAL().HUNT:
                 return approachTarget()
 
@@ -327,17 +331,17 @@ class AlignWithTower(Movement):
             return Score()
 
     def move(self):
-        #self.towerTop = c.STATE().getTowerTop()
-        self.towerTop = self.tower
+        #self.towerTop = self.towerTop
+        self.towerTop = self.towerMiddle
         if self.towerTop is None:
             return
         pid = self.pid
         #self.d = c.STATE().getFrontProximity()
         self.d = self.towerTop[0]
-        if self.tower is None:
+        if self.towerMiddle is None:
             self.baseD = 0
         else:
-            self.baseD = self.tower[0]
+            self.baseD = self.towerMiddle[0]
         self.theta = self.towerTop[1]
 
         if (not pid.running):
@@ -381,7 +385,7 @@ class RotateInPlace(Movement):
         goal = c.GOAL().getGoal()
         if self.nearestNonGoalObj is not None:
             return approachTarget()        
-        if self.tower is not None:
+        if self.towerBase is not None:
             if goal != c.GOAL().HUNT:
                 return approachTarget()
 
@@ -435,7 +439,7 @@ class ApproachTarget(Movement):
         elif goal == c.GOAL().HUNT_AND_SCORE:
             self.target = self.nearestObj
         elif goal == c.GOAL().SCORE:
-            self.target = self.tower
+            self.target = self.towerBase
 
         if self.target == None:
             return

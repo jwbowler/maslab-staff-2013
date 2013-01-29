@@ -44,8 +44,12 @@ class DataCollection:
         c.LOG("Reachable goal walls: " + str(self.camera.getReachableGoalWalls()))
         c.LOG("Buttons: " + str(self.camera.getButtons()))
         c.LOG("Reachable buttons: " + str(self.camera.getReachableButtons()))
-        c.LOG("Tower base: " + str(self.camera.getTowerBase()))
-        c.LOG("Tower top: " + str(self.camera.getTowerTop()))
+        c.LOG("Tower base (bottom): " + str(self.camera.getTowerBase_Bottom()))
+        c.LOG("Tower base (center): " + str(self.camera.getTowerBase_Center()))
+        c.LOG("Tower middle (bottom): " + str(self.camera.getTowerMiddle_Bottom()))
+        c.LOG("Tower middle (center): " + str(self.camera.getTowerMiddle_Center()))
+        c.LOG("Tower top (bottom): " + str(self.camera.getTowerTop_Bottom()))
+        c.LOG("Tower top (center): " + str(self.camera.getTowerTop_Center()))
 
         #print self.imu
 
@@ -122,7 +126,7 @@ class Camera(Sensor):
         self.vfov = 49.8
         self.hfov = self.ar * self.vfov
 
-        if MY_BALLS_ARE_RED:
+        if c.MY_BALLS_ARE_RED:
             self.myBallColor = "RED_BALL"
             self.opBallColor = "GREEN_BALL"
         else:
@@ -152,63 +156,81 @@ class Camera(Sensor):
     # and a number representing the height of the object's center
     # above the ground (used to calculate distance).
     # Returns a list: [(dist, angle), (dist, angle), ...]
-    def getObjsOfType(self, type, objHeight):
+    def getObjsOfType(self, type, objHeight, useBottom=False):
         objIndices = self.vision.getIndicesByType(type)
-        objs = [(self.vision.getX(i), self.vision.getY(i)) \
-                      for i in objIndices]
+        if useBottom:
+            objs = [(self.vision.getXBottom(i), self.vision.getYBottom(i)) \
+                          for i in objIndices]
+        else:
+            objs = [(self.vision.getXCenter(i), self.vision.getYCenter(i)) \
+                          for i in objIndices]
         objsConverted = [self.convCoords(coords, objHeight) for coords in objs]
         return objsConverted
 
     # Like above, but only returns objects that aren't behind walls
-    def getReachableObjsOfType(self, type, objHeight):
+    def getReachableObjsOfType(self, type, objHeight, useBottom=False):
         objIndices = self.vision.getIndicesByType(type)
-        objs = [(self.vision.getX(i), self.vision.getY(i)) \
-                      for i in objIndices if not self.vision.getIsBehindWall(i)]
+        if useBottom:
+            objs = [(self.vision.getXBottom(i), self.vision.getYBottom(i)) \
+                          for i in objIndices if not self.vision.getIsBehindWall(i)]
+        else:
+            objs = [(self.vision.getXCenter(i), self.vision.getYCenter(i)) \
+                          for i in objIndices if not self.vision.getIsBehindWall(i)]
         objsConverted = [self.convCoords(coords, objHeight) for coords in objs]
         return objsConverted 
 
-    def getBiggestObjOfType(self, type, objHeight):
+    def getBiggestObjOfType(self, type, objHeight, useBottom=False):
         objIndices = self.vision.getIndicesByType(type)
         if objIndices == []:
             return None
         index = max(objIndices, key = lambda i: self.vision.getWeight(i))
-        coords = (self.vision.getX(index), self.vision.getY(index))
+        if useBottom:
+            coords = (self.vision.getXBottom(index), self.vision.getYBottom(index))
+        else:
+            coords = (self.vision.getXCenter(index), self.vision.getYCenter(index))
         out = self.convCoords(coords, objHeight)
         return out
 
-    def getBiggestReachableObjOfType(self, type, objHeight):
+    def getBiggestReachableObjOfType(self, type, objHeight, useBottom=False):
         objIndices = self.vision.getIndicesByType(type)
         objIndices = [i for i in objIndices if not self.vision.getIsBehindWall(i)]
         if objIndices == []:
             return None
         index = max(objIndices, key = lambda i: self.vision.getWeight(i))
-        coords = (self.vision.getX(index), self.vision.getY(index))
+        if useBottom:
+            coords = (self.vision.getXBottom(index), self.vision.getYBottom(index))
+        else:
+            coords = (self.vision.getXCenter(index), self.vision.getYCenter(index))
         out = self.convCoords(coords, objHeight)
         return out
 
     # returns (dist, angle) to all my balls
     def getMyBalls(self):
         return self.getObjsOfType(self.myBallColor, BALL_RADIUS)
+        #return self.getObjsOfType(self.myBallColor, 0)
 
     # returns (dist, angle) to all opponent balls
     def getOpBalls(self):
         return self.getObjsOfType(self.opBallColor, BALL_RADIUS) 
+        #return self.getObjsOfType(self.opBallColor, 0) 
 
     # returns (dist, angle) to all my balls that aren't behind walls
     def getMyReachableBalls(self):
         return self.getReachableObjsOfType(self.myBallColor, BALL_RADIUS) 
+        #return self.getReachableObjsOfType(self.myBallColor, 0) 
 
     # returns (dist, angle) to all opponent balls that aren't behind walls
     def getOpReachableBalls(self):
         return self.getReachableObjsOfType(self.opBallColor, BALL_RADIUS)
+        #return self.getReachableObjsOfType(self.opBallColor, 0)
 
-    # note: goal wall distances are always 1,000,000 (i.e. the center is
-    # calculated as being above the horizon). TODO: fix this on the openCV end
     def getGoalWalls(self):
-        return self.getObjsOfType("YELLOW_WALL", YELLOW_WALL_CENTER_HEIGHT/2)
+        return self.getObjsOfType("YELLOW_WALL", YELLOW_WALL_CENTER_HEIGHT)
+        #return self.getObjsOfType("YELLOW_WALL", 0)
 
     def getReachableGoalWalls(self):
-        return self.getReachableObjsOfType("YELLOW_WALL", YELLOW_WALL_CENTER_HEIGHT/2)
+        return self.getReachableObjsOfType("YELLOW_WALL", YELLOW_WALL_CENTER_HEIGHT)
+        #return self.getReachableObjsOfType("YELLOW_WALL", 0)
 
     def getButtons(self):
         return self.getObjsOfType("CYAN_BUTTON", BUTTON_CENTER_HEIGHT)
@@ -216,12 +238,25 @@ class Camera(Sensor):
     def getReachableButtons(self):
         return self.getReachableObjsOfType("CYAN_BUTTON", BUTTON_CENTER_HEIGHT)
 
-    def getTowerBase(self):
-        return self.getBiggestReachableObjOfType("YELLOW_WALL", TOWER_BASE_CENTER_HEIGHT)
+    def getTowerBase_Bottom(self):
+        return self.getBiggestReachableObjOfType("PURPLE_GOAL", 0, True)
 
-    def getTowerTop(self):
-        return self.getBiggestObjOfType("BLUE_GOAL", TOWER_TOP_CENTER_HEIGHT)
+    def getTowerBase_Center(self):
+        return self.getBiggestReachableObjOfType("PURPLE_GOAL", 0, False)
 
+    def getTowerMiddle_Bottom(self):
+        return self.getBiggestReachableObjOfType("YELLOW_WALL", TOWER_MIDDLE_BOTTOM_HEIGHT, True)
+
+    def getTowerMiddle_Center(self):
+        return self.getBiggestReachableObjOfType("YELLOW_WALL", TOWER_MIDDLE_BOTTOM_HEIGHT, False)
+
+    def getTowerTop_Bottom(self):
+        return self.getBiggestObjOfType("BLUE_GOAL", TOWER_TOP_BOTTOM_HEIGHT, True)
+
+    def getTowerTop_Center(self):
+        return self.getBiggestObjOfType("BLUE_GOAL", TOWER_TOP_BOTTOM_HEIGHT, False)
+
+    # returns (dist, angle) given x and y pixel coordinates (from upper left)
     # returns (dist, angle) given x and y pixel coordinates (from upper left)
     def convCoords(self, (x, y), objHeight):
         angle2obj = (self.angle + self.vfov/2   \

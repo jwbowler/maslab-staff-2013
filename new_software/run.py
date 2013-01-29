@@ -16,3 +16,8 @@ try:
     commander.go()    
 except (KeyboardInterrupt, Alarm):
     commander.stop()
+'''
+except:
+    commander.stop()
+    print sys.exc_info()
+'''

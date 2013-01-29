@@ -29,9 +29,12 @@ double mtime;
 int frameCount = 0;
 
 string objTypes[16];
-int objXCoords[16];
-int objYCoords[16];
+int objXCenters[16];
+int objYCenters[16];
+Rect objBoxes[16];
 int objSizes[16];
+int objXLowestPoints[16];
+int objYLowestPoints[16];
 bool objIsBehindWall[16];
 
 VideoCapture cap;
@@ -125,8 +128,8 @@ int init_opencv() {
     params.minArea = 5.;
     params.maxArea = 640.*480;
     
-    blob_detector = new cv::SimpleBlobDetector(params);
-    blob_detector->create("SimpleBlob");
+    //blob_detector = new cv::SimpleBlobDetector(params);
+    //blob_detector->create("SimpleBlob");
     
     gettimeofday(&startTime, NULL);
 
@@ -158,10 +161,10 @@ int step(bool isCalibMode, Mat **frame_ptr, Mat **scatter_ptr, int colorBeingCal
     int numDetections = 0;
     for (int i = 0; i < maxDetections; i++) {
         objTypes[i] = "";
-        objXCoords[i] = 0;
-        objYCoords[i] = 0;
-        objSizes[i] = 0;
-        objIsBehindWall[i] = false;
+        //objXCoords[i] = 0;
+        //objYCoords[i] = 0;
+        //objSizes[i] = 0;
+        //objIsBehindWall[i] = false;
     }
 
     int numCycles;
@@ -203,7 +206,7 @@ int step(bool isCalibMode, Mat **frame_ptr, Mat **scatter_ptr, int colorBeingCal
             bitwise_or(bw, temp, bw);
         }
         bitwise_or(colors, bw, colors);
-        ///*
+        /*
         blob_detector->detect(bw, keyPoints);
 
         for (int j = 0; j < keyPoints.size(); j++) {
@@ -220,7 +223,36 @@ int step(bool isCalibMode, Mat **frame_ptr, Mat **scatter_ptr, int colorBeingCal
                 break;
             }
         }
-        //*/
+        */
+        vector<Point2d> centers;
+        vector<Rect> boxes;
+        vector<int> areas;
+        vector<Point2d> lowestPoints;
+        //blob_detector->detect(bw, keyPoints);
+        findBlobs(bw, centers, boxes, areas, lowestPoints);
+
+        for (int j = 0; j < centers.size(); j++) {
+            double scale = 1/downsampleFactor;
+            double scaleSq = scale*scale;
+            int x = centers[j].x;
+            int y = centers[j].y;
+            int xL = lowestPoints[j].x;
+            int yL = lowestPoints[j].y;
+            objTypes[numDetections] = colorNames[colorIndex];
+            objXCenters[numDetections] = x * scale;
+            objYCenters[numDetections] = y * scale;
+            objBoxes[numDetections] = boxes[j];
+            //objSizes[numDetections] = areas[j] * scaleSq;
+            objSizes[numDetections] = areas[j];
+            objXLowestPoints[numDetections] = xL * scale;
+            objYLowestPoints[numDetections] = yL * scale;
+            objIsBehindWall[numDetections] = isBehindWall(x, y);
+            numDetections++;
+            if (numDetections == maxDetections) {
+                break;
+            }
+        }
+
         
     }
 
@@ -251,6 +283,16 @@ void updateWallMap() {
     cvtColor(src, hsv, CV_BGR2HSV);
     int *t = wallStripeThresholds;
     inRange(hsv, Scalar(t[0], t[2], t[4]), Scalar(t[1], t[3], t[5]), wallMap);
+
+    // quick, dirty and temporary
+    Mat wallMap1;
+    t = colorThresholds[0];
+    inRange(hsv, Scalar(t[0], t[2], t[4]), Scalar(t[1], t[3], t[5]), wallMap1);
+    bitwise_or(wallMap, wallMap1, wallMap);
+    Mat wallMap2;
+    t = colorThresholds[1];
+    inRange(hsv, Scalar(t[0], t[2], t[4]), Scalar(t[1], t[3], t[5]), wallMap2);
+    bitwise_or(wallMap, wallMap2, wallMap);
 }
 
 void getWallImages(Mat **frame_ptr, Mat **scatter_ptr) {
@@ -287,9 +329,8 @@ bool isBehindWall(int pixelX, int pixelY) {
         //return false;
     //}
 }
-/*
-void SimpleBlobDetector::findBlobs(const cv::Mat &binaryImage, vector<Center> &centers, vector<int> &bottoms) const
-{
+
+void findBlobs(const cv::Mat &binaryImage, vector<Point2d> &centers, vector<Rect> &boxes, vector<int> &areas, vector<Point2d> &lowestPoints) {
     centers.clear();
 
     vector < vector<Point> > contours;
@@ -298,33 +339,37 @@ void SimpleBlobDetector::findBlobs(const cv::Mat &binaryImage, vector<Center> &c
 
     for (size_t contourIdx = 0; contourIdx < contours.size(); contourIdx++)
     {
-        Center center;
-        center.confidence = 1;
         Moments moms = moments(Mat(contours[contourIdx]));
         
         double area = moms.m00;
         if (area < params.minArea || area >= params.maxArea)
             continue;
 
-        center.location = Point2d(moms.m10 / moms.m00, moms.m01 / moms.m00);
+        Point2d center = Point2d(moms.m10 / moms.m00, moms.m01 / moms.m00);
 
-        if (binaryImage.at<uchar> (cvRound(center.location.y), cvRound(center.location.x)) != params.blobColor)
+        if (binaryImage.at<uchar> (cvRound(center.y), cvRound(center.x)) != params.blobColor)
             continue;
 
+        Rect box = boundingRect(contours[contourIdx]);
+
         //compute blob radius
+        vector<double> dists;
+        Point2d lowestPoint(0, 0);
+        for (size_t pointIdx = 0; pointIdx < contours[contourIdx].size(); pointIdx++)
         {
-            vector<double> dists;
-            for (size_t pointIdx = 0; pointIdx < contours[contourIdx].size(); pointIdx++)
-            {
-                Point2d pt = contours[contourIdx][pointIdx];
-                dists.push_back(norm(center.location - pt));
+            Point2d pt = contours[contourIdx][pointIdx];
+            dists.push_back(norm(center - pt));
+            if (pt.y > lowestPoint.y) {
+                lowestPoint.x = pt.x;
+                lowestPoint.y = pt.y;
             }
-            std::sort(dists.begin(), dists.end());
-            center.radius = (dists[(dists.size() - 1) / 2] + dists[dists.size() / 2]) / 2.;
         }
+        std::sort(dists.begin(), dists.end());
+        int size = (dists[(dists.size() - 1) / 2] + dists[dists.size() / 2]) / 2.;
 
         centers.push_back(center);
-
+        boxes.push_back(box);
+        areas.push_back(area);
+        lowestPoints.push_back(lowestPoint);
     }
 }
-*/

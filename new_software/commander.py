@@ -1,4 +1,5 @@
 from arduino import Arduino
+from start import Start
 #from data_collection import DataCollection
 import data_collection as d
 from state_estimator import StateEstimator
@@ -13,6 +14,7 @@ import time
 
 class Commander:
     ard = None
+    start = None
     data = None
     state = None
     goal = None
@@ -21,13 +23,20 @@ class Commander:
     logTime = 0
     logging = False
     frameCount = 0
+    myBallsAreRed = None
 
-        
+def MY_BALLS_ARE_RED():
+    return Commander.myBallsAreRed
 
 def ARD():
     if Commander.ard == None:
         Commander.ard = Arduino()
     return Commander.ard
+
+def START():
+    if Commander.start == None:
+        Commander.start = Start()
+    return Commander.start
 
 def DATA():
     if Commander.data == None:
@@ -75,6 +84,18 @@ def FRAME_START():
 def go():
     
     ARD()
+    '''
+    START()
+
+    while True:
+        Commander.myBallsAreRed = START().poll()
+        if Commander.myBallsAreRed is not None:
+            break
+        time.sleep(.01)
+
+    print Commander.myBallsAreRed
+    return
+    '''
     DATA()
     STATE()
     GOAL()

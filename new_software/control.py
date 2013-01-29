@@ -120,7 +120,7 @@ if __name__=="__main__":
     try:
 
         #########################
-        c.CTRL().setRoller(True)
+        c.CTRL().setRoller(False)
         c.CTRL().setHelix(True)
         c.CTRL().setLeftMotor(.0)
         c.CTRL().setRightMotor(.0)

@@ -18,6 +18,7 @@ class StateEstimator:
         self.goalWalls = []
         self.buttons = []
         self.towerBase = None
+        self.towerMiddle = None
         self.towerTop = None
         self.allBalls = []
         self.nearestBall = None
@@ -40,8 +41,18 @@ class StateEstimator:
             self.opBalls = sorted(cam.getOpReachableBalls(), key = lambda obj: obj[0])
             self.goalWalls = sorted(cam.getReachableGoalWalls(), key = lambda obj: obj[0])
             self.buttons = sorted(cam.getReachableButtons(), key = lambda obj: obj[0])
-            self.towerBase = cam.getTowerBase()
-            self.towerTop = cam.getTowerTop()
+            if cam.getTowerBase_Bottom() is not None:
+                self.towerBase = (cam.getTowerBase_Bottom()[0], cam.getTowerBase_Center()[1])
+            else:
+                self.towerBase = None
+            if cam.getTowerMiddle_Bottom() is not None:
+                self.towerMiddle = (cam.getTowerMiddle_Bottom()[0], cam.getTowerMiddle_Center()[1])
+            else:
+                self.towerMiddle = None
+            if cam.getTowerTop_Bottom() is not None:
+                self.towerTop = (cam.getTowerTop_Bottom()[0], cam.getTowerTop_Center()[1])
+            else:
+                self.towerTop = None
             self.angleAtLastFrame = self.relativeAngle
         elif False:
             shift = self.relativeAngle - self.angleAtLastFrame
@@ -52,22 +63,42 @@ class StateEstimator:
             self.towerBase = (self.towerBase[0], self.towerBase[1]+shift)
             self.towerTop = (self.towerTop[0], self.towerTop[1]+shift)
         self.allBalls = self.myBalls + self.opBalls
+
         if self.allBalls == []:
             self.nearestBall = None
         else:
             self.nearestBall = min(self.allBalls, key = lambda obj: obj[0])
+
         if self.allBalls + self.goalWalls == []:
             self.nearestBallOrGoal = None
         else:
-            self.nearestBallOrGoal = min(self.allBalls + [self.towerBase], key = lambda obj: obj[0])
+            if self.towerBase is not None:
+                self.nearestBallOrGoal = min(self.allBalls + [self.towerBase], key = lambda obj: obj[0])
+            else:
+                if self.allBalls == []:
+                    self.nearestBallOrGoal = None
+                else:
+                    self.nearestBallOrGoal = min(self.allBalls, key = lambda obj: obj[0])
+
         if self.allBalls + self.buttons == []:
             self.nearestNonGoalObj = None
         else:
-            self.nearestNonGoalObj = min(self.allBalls + self.buttons, key = lambda obj: obj[0])
+            if self.allBalls + self.buttons == None:
+                self.nearestNonGoalObj = None
+            else:
+                self.nearestNonGoalObj = min(self.allBalls + self.buttons, key = lambda obj: obj[0])
+                
+
         if self.allBalls + self.buttons + self.goalWalls == []:
             self.nearestObj = None
         else:
-            self.nearestObj = min(self.allBalls + self.buttons + [self.towerBase], key = lambda obj: obj[0])
+            if self.towerBase is not None:
+                self.nearestObj = min(self.allBalls + self.buttons + [self.towerBase], key = lambda obj: obj[0])
+            else:
+                if self.allBalls + self.buttons == []:
+                    self.nearestObj = None
+                else:
+                    self.nearestObj = min(self.allBalls + self.buttons, key = lambda obj: obj[0])
 
         # wallDistRaw = raw data from sensors
         dist = [ir.getPosition() for ir in self.data.getIr()]
@@ -128,6 +159,9 @@ class StateEstimator:
 
         c.LOG("Tower Base")
         c.LOG(self.getTowerBase())
+
+        c.LOG("Tower Middle")
+        c.LOG(self.getTowerMiddle())
 
         c.LOG("Tower Top")
         c.LOG(self.getTowerTop())
@@ -221,6 +255,9 @@ class StateEstimator:
 
     def getTowerBase(self):
         return self.towerBase
+
+    def getTowerMiddle(self):
+        return self.towerMiddle
 
     def getTowerTop(self):
         return self.towerTop   
@@ -348,10 +385,11 @@ if __name__ == "__main__":
     c.ARD().run()
 
     while True:
+        c.FRAME_START()
+
         c.DATA().run()
-        c.DATA().log()
 
         c.STATE().run()
         c.STATE().log()
 
-        time.sleep(.05)
+        time.sleep(.1)

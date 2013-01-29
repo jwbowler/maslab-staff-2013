@@ -60,17 +60,23 @@ class VisionWrapper:
         return [i for i in xrange(self.numObjects)
                 if self.data[i][0] == typeName]
         
-    def getX(self, i):
+    def getXCenter(self, i):
         return self.data[i][1]
 
-    def getY(self, i):
+    def getYCenter(self, i):
         return self.data[i][2]
-        
-    def getWeight(self, i):
+
+    def getXBottom(self, i):
         return self.data[i][3]
 
-    def getIsBehindWall(self, i):
+    def getYBottom(self, i):
         return self.data[i][4]
+        
+    def getWeight(self, i):
+        return self.data[i][5]
+
+    def getIsBehindWall(self, i):
+        return self.data[i][6]
 		
 def f(conn):
     while (True):
