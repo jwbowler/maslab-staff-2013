@@ -56,6 +56,8 @@ LEFT_MOTOR_MAX = 127
 ROLLER_SPEED=-80
 HELIX_SPEED=060
 
+ACCEL_LIM = 2.0 #delta per second
+
 # MOVEMENT CONSTANTS
 
 # Capture ball

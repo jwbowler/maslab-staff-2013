@@ -49,9 +49,7 @@ class Movement():
         self.nearestNonGoalObj = None
         self.nearestObj = None
         
-
     def run(self):
-
         self.myBall = c.STATE().getMyNearestBall()
         self.opBall = c.STATE().getOpNearestBall()
         self.goalWall = c.STATE().getNearestGoalWall()

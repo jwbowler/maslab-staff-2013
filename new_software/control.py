@@ -2,6 +2,7 @@ import time
 import sys
 import pid
 import arduino
+import utils
 from config import *
 
 import commander as c
@@ -16,48 +17,67 @@ class Control():
         self.leftMotor = arduino.Motor(c.ARD(), LEFT_MOTOR_PINS[0], LEFT_MOTOR_PINS[1], LEFT_MOTOR_PINS[2])
         self.helix = arduino.Motor(c.ARD(),HELIX_PINS[0], HELIX_PINS[1], HELIX_PINS[2])
         self.ramp = arduino.DigitalOutput(c.ARD(), RAMP_SERVO_PIN)
-        self.scorer = arduino.DigitalOutput(c.ARD(), SCORER_PIN)
 
-    # Returns current sensor data: [left, right]
-    def getCurrents(self):
-        left = self.leftMotor.getCurrent()
-        right = self.rightMotor.getCurrent()
-        return (left, right)
+        self.prevTime = time.time()
+        self.prevRight = 0
+        self.prevLeft = 0
+        self.rightSpeed = 0
+        self.leftSpeed = 0
+        self.rollerState = False
+        self.helixState = False
+        self.rampAngle = 0
+
+    def run(self):
+        self.roller.setSpeed(-1*ROLLER_SPEED*self.rollerState) 
+        self.helix.setSpeed(HELIX_SPEED*self.helixState)
+        self.ramp.setValue(self.rampAngle)
+
+        self.prevLeft = self.accelBound(self, self.prevLeft, self.leftSpeed)
+        l = boundAndScale(self.prevLeft, 8, 127)
+        self.leftMotor.setSpeed(l)
+
+        self.prevRight = self.accelBound(self, self.prevRight, self.rightSpeed)
+        r = boundAndScale(self.prevRight, 13, 117)
+        self.rightMotor.setSpeed(r)
+
+        self.prevTime = time.time()
+
+    def log(self):
+        c.LOG("DRIVE GOAL: " + str((self.leftSpeed,self.rightSpeed)))
+        c.LOG("DRIVE ACTUAL: " + str((self.prevLeft,self.prevRight)))
+        c.LOG("ROLLER: " + str(self.rollerState))
+        c.LOG("HELIX: " + str(self.helixState))
+        c.log("RAMP: " + str(self.rampAngle))
+
+    def accelBound(self, prevSpeed, goalSpeed):
+        delta = goalSpeed - prevSpeed
+        maxDelta = ACCEL_LIM * (time.time() - self.prevTime)
+        return prevSpeed + utils.absBound(delta, maxDelta)
 
     # This method turns on and off the roller motor
     # Input:Boolean
     def setRoller(self,switch):
-        self.roller.setSpeed(-1*ROLLER_SPEED*switch) 
+        self.rollerState = switch
 
     # This method turns on and off the helix motor
     # Input:Boolean
     def setHelix(self,switch):
-        print HELIX_SPEED
-        self.helix.setSpeed(HELIX_SPEED*switch)
-
-    # This method controls the motor that releases the balls
-    # Input:Boolean (True when ready to score)
-    def setScorer(self,switch):
-        value= 127*switch
-        self.scorer.setValue(value) 
+        self.helixState = switch
 
     # This method actuates the scoring ramp
     #input: angle in degrees from vertical
     def setRamp(self,angle):
-        value= 127*(angle/180)
-        self.ramp.setValue(value)
+        self.ramp
 
     # This method sets the speed of the left motor
     # Input: int from -1 to 1 inclusive
     def setLeftMotor(self,speed):
-        speed = boundAndScale(speed, 8, 127)
-        self.leftMotor.setSpeed(speed)
+        self.leftSpeed = speed
 
     # This method sets the speed of the right motor
     # Input: int from -1 to 1 inclusive
     def setRightMotor(self,speed):
-        speed = boundAndScale(speed, 13, 117)
-        self.rightMotor.setSpeed(speed)
+        self.rightSpeed = speed
     
 
     # This methods calculates motors speeds from a vector
@@ -66,14 +86,17 @@ class Control():
         (l,r) = getMotorSpeeds(speed,rotation)
         self.setRightMotor(r)
         self.setLeftMotor(l)
-        c.LOG("MOTORS: " + str((l,r)))
 
     def halt(self):
         self.setRoller(False)
         self.setHelix(False)
-        self.setScorer(False)
         self.setLeftMotor(0)
         self.setRightMotor(0)
+        run()
+        self.roller.setSpeed(0)
+        self.helix.setSpeed(0)
+        self.leftMotor.setSpeed(0)
+        self.rightMotor.setSpeed(0)
 
 # This method rescales an input from 0 to 1 to the oMin and oMax
 # while maintaining sign
@@ -177,14 +200,9 @@ if __name__=="__main__":
         c.CTRL().setRamp(90)
         time.sleep(3)
         c.CTRL().setRamp(0)
-
-        print "Testing Scorer"
-        c.CTRL().setScorer(True)
-        time.sleep(3)
-        c.CTRL().setScorer(False)
         '''
+
     except KeyboardInterrupt:
         pass
 
     c.CTRL().halt()
-

@@ -82,7 +82,6 @@ def FRAME_START():
     Commander.frameCount += 1
 
 def go():
-    
     ARD()
     DATA()
     STATE()
@@ -109,6 +108,8 @@ def go():
         GOAL().log()
         MOVE().run()
         MOVE().log()
+        CTRL().run()
+        CTRL().log()
         FRAME_START()
 
 def stop():
