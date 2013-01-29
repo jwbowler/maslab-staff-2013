@@ -92,18 +92,17 @@ class WallFollow(Movement):
     def __init__(self):
         Movement.__init__(self)
         self.setAvoidWalls(False)
+
         self.rotLim = 0.5
-        self.pid0 = pid.Pid(1.8, 0, .000, 0.3, 0)
-        self.pid1 = pid.Pid(.016, 0, .02, 0.3, 0)
-        self.d = 0
-        self.theta = 0
+        self.distPid = pid.Pid(1.8, 0, .000, 0.3, 0)
+        self.anglePid = pid.Pid(.016, 0, .02, 0.3, 0)
+
         self.pidVal0 = 0
         self.pidVal1 = 0
         self.speed = 0
         self.rotation = 0
 
     def transition(self):
-        
         goal = c.GOAL().getGoal()
         target = None
 
@@ -117,48 +116,31 @@ class WallFollow(Movement):
         if target is not None:
             return ApproachTarget()
     
-    
     def move(self):
-        pid0 = self.pid0
-        pid1 = self.pid1
+        distPid = self.distPid
+        anglePid = self.anglePid
 
-        (self.d, self.theta) = c.STATE().getWallPosFrom2Sensors(0, 1)
-        #(self.d, self.theta) = c.STATE().getWallRelativePos()
+        (dist, theta) = c.STATE().getWallPosFrom2Sensors(0, 1)
 
-        if (not pid0.running):
-            pid0.start(self.d, FW_DIST_TARGET)
-        if (not pid1.running):
-            pid1.start(self.theta, 0)
+        if (not distPid.running):
+            distPid.start(dist, FW_DIST_TARGET)
+        if (not anglePid.running):
+            anglePid.start(self.theta, 0)
 
-        #print (c.STATE().getRawWallDistances()[0], c.STATE().getRawWallDistances()[1])
-        #if (c.STATE().getRawWallDistances()[0][0] >= 1000 and c.STATE().getRawWallDistances()[1][0] >= 1000):
-            #self.d = 0.5
-            #self.theta = 0
-        self.pidVal0 = pid0.iterate(self.d)
-        self.pidVal1 = pid1.iterate(self.theta)
-        self.pidVal = self.pidVal0 + self.pidVal1
+        pidVal = distPid.iterate(dist) + anglePid.iterate(self.theta)
 
-        self.speed = FW_SPEED_SCALE
-        self.rotation = FW_SPEED_SCALE * self.pidVal
-        if self.rotation > self.rotLim:
-            self.rotation = self.rotLim
-        if self.rotation < -self.rotLim:
-            self.rotation = -self.rotLim
-        # optional:
-        #if self.pidVal > 1:
-        #    self.speed /= self.pidVal
+        speed = FW_SPEED_SCALE
+        rotation = FW_SPEED_SCALE * self.pidVal
 
-        #c.CTRL().setMovement(self.speed, self.rotation)
-        c.CTRL().setMovement(self.speed, 0)
-        #c.CTRL().setMovement(0, 0)
+        c.CTRL().setMovement(speed, utils.absBound(rotation, self.rotLim))
 
-    def log(self):
-        c.LOG("d = " + str(self.d))
-        c.LOG("target d = " + str(FW_DIST_TARGET))
-        c.LOG("theta = " + str(self.theta))
-        c.LOG("pid0 = " + str(self.pidVal0))
-        c.LOG("pid1 = " + str(self.pidVal1))
-        c.LOG("SPD=" + str(self.speed) + ", ROT=" + str(self.rotation))
+        if MOVE_LOG:
+            c.LOG("d = " + str(dist))
+            c.LOG("target d = " + str(FW_DIST_TARGET))
+            c.LOG("theta = " + str(theta))
+            c.LOG("distPid = " + str(self.distPid.getLastOutput()))
+            c.LOG("anglePid = " + str(self.anglePid.getLastOutput()))
+            c.LOG("SPD=" + str(speed) + ", ROT=" + str(rotation))
 
 class MoveToOpen(Movement):
     def __init__(self):

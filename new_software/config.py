@@ -1,5 +1,6 @@
 #Debugging
 LOG_FREQUENCY = .1 #seconds
+MOVE_LOG = True
 
 # Game variables
 TIME_BEFORE_HALT = -1 # value <= 0 --> never stops

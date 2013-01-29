@@ -16,6 +16,8 @@ class Pid:
         self.oLim = oLim
         self.dTime = dTime
 
+        self.prevOut = None
+
         self.prevValue = None
         self.prevTime = None
         self.pastVals = []
@@ -58,5 +60,9 @@ class Pid:
 
         self.prevTime = curTime
         self.prevValue = value
-
+        self.prevOut = out
+        
         return out
+    
+    def getLastOutput(self)
+        return self.prevOut
