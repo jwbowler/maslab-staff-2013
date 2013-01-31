@@ -10,6 +10,7 @@ class GoalPlanning:
     SCORE = 2
     goalNames = ["HUNT","BUTTON", "SCORE"]
 
+    #list of target types
     BALL = 0
     BUTTON = 1
     TOWER = 2
