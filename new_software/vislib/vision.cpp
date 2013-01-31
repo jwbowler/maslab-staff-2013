@@ -207,11 +207,12 @@ int step(bool isCalibMode, Mat **frame_ptr, Mat **scatter_ptr, int colorBeingCal
         }
         bitwise_or(colors, bw, colors);
 
+        // assumes that BLUE_GOAL is the third from the top of the config color list
         if (i == 2) {
             Mat topMask = colors.clone();
             topMask.setTo(Scalar(0));
-            rectangle(topMask, Point(0, 0), Point(topMask.size().height, 3), Scalar(255));
-            bitwise_or(colors, topMask, colors);
+            rectangle(topMask, Point(0, 0), Point(topMask.size().width, 3), Scalar(255), CV_FILLED);
+            bitwise_and(bw, topMask, bw);
         }
         /*
         blob_detector->detect(bw, keyPoints);
@@ -238,7 +239,14 @@ int step(bool isCalibMode, Mat **frame_ptr, Mat **scatter_ptr, int colorBeingCal
         //blob_detector->detect(bw, keyPoints);
         findBlobs(bw, centers, boxes, areas, lowestPoints);
 
+        int max_index = max_element(areas.begin(),areas.end()) - areas.begin();
+
         for (int j = 0; j < centers.size(); j++) {
+            ///
+            if (j != max_index) {
+                continue;
+            }
+            ///
             double scale = 1/downsampleFactor;
             double scaleSq = scale*scale;
             int x = centers[j].x;
