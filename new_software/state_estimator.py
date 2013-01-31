@@ -146,42 +146,60 @@ class StateEstimator:
     # Returns (distance to wall, angle of wall relative to bot's orientation)
     def getWallPosFrom2Sensors(self, index0, index1):
         sensorList = self.getWallDistances()
-        if index0 < index1:
-            sensorA = sensorList[index0]
-            sensorB = sensorList[index1]
-        else:
-            sensorA = sensorList[index1]
-            sensorB = sensorList[index0]
+
+        # phi = 1/2 the angle difference the sensors. sensor A -> clockwise -> sensor B
         phi = .5 * abs(sensorA[1] - sensorB[1])
         a = sensorA[0]
         b = sensorB[0]
-        theta = (180/math.pi) * math.asin(math.sqrt((abs(a-b) / (a+b)) * math.cos(math.pi * phi / 180)))
+
+        # theta = angle of wall relative to robot. will return positive
+        # unless the sensors are >180 degrees apart, measured clockwise from A to B
+        thetaRad = math.asin(math.sqrt((abs(a-b) / (a+b)) * math.cos(math.radians(phi))
+        theta = math.degrees(thetaRad)
+
+        # sets sign of theta: negative means the robot will hit the wall
         if (a > b and theta > 0) or (a < b and theta < 0):
             theta = -theta
+
+        # d = calculated distance to robot
         d = b * math.cos((math.pi/180) * (phi - theta)) / math.cos((math.pi/180)*theta)
-        # Only works for left-handed wall following until the following line is fixed
+
+        # offset is zero if sensors are centered at the robot's 9-o'clock, otherwise it corrects theta
         angleOffset = -(sensorA[1] + sensorB[1])/2 - 90
-        c.LOG("offset angle = " + str(angleOffset))
         return (d, theta + angleOffset)
-        #return (d, theta)
 
     # Like above, but picks two sensors automatically to use in the calculation
     def getWallRelativePos(self, numSensors):
         sensorList = self.getWallDistances()
-        sensorIndices = sorted(range(numSensors), \
-                                 key = lambda i: (sensorList[i][0] - ROBOT_RADIUS) / (180 - abs(sensorList[i][1])))
-        sortedDistances = [sensorList[i][0] for i in sensorIndices]
-        sortedMultipliedDistances = [(sensorList[i][0] - ROBOT_RADIUS) / (180 - abs(sensorList[i][1])) for i in sensorIndices]
+        sensorIndices = sorted(range(numSensors), key = getSensorPriority)
         closestSensorIndex = sensorIndices[0]
+
+        # edge cases
         if closestSensorIndex == 0:
             neighborIndex = 1
         elif closestSensorIndex == numSensors - 1:
             neighborIndex = numSensors - 2
+        # pick smallest neighbor index
         elif sensorList[closestSensorIndex + 1][0] < sensorList[closestSensorIndex - 1][0]:
             neighborIndex = closestSensorIndex + 1
         else:
             neighborIndex = closestSensorIndex - 1
+            
+        # Log the priority calculation
+        sortedDistances = [sensorList[i][0] for i in sensorIndices]
+        sortedMultipliedDistances = getSensorPriority(i) for i in sensorIndices]
         c.LOG("Wall following sensors:")
         c.LOG("closest sensor index = " + str(closestSensorIndex))
         c.LOG("neighbor index = " + str(neighborIndex))
-        return self.getWallPosFrom2Sensors(closestSensorIndex, neighborIndex)
+
+        return self.getWallPosFrom2Sensors(
+                min(closestSensorIndex, neighborIndex),
+                max(closestSensorIndex, neighborIndex))
+
+    # Returns the priority (smaller is better) of the sensor with the given index,
+    # taking into account closeness to front of robot and smallness or distance measurement
+    def getSensorPriority(self, index):
+        dist = sensorList[i][0] - ROBOT_RADIUS
+        weight = 180 - abs(sensorList[i][1]
+        return dist/weight
+
