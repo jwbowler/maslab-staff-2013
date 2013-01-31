@@ -87,17 +87,14 @@ class WallFollow(Movement):
         c.LOG("angle PID = " + str(anglePidVal))
         c.LOG("PID = " + str(pidVal))
 
-        speed = WF_SPEED_SCALE
-        #blah = c.STATE().getWallDistancesAdjusted()[3][0]
+        speed = WF_SPEED
         colDist = c.STATE().getCollisionDistance()
         if colDist < WF_SLOWDOWN_DIST:
             slowRange = WF_SLOWDOWN_DIST-WF_STOP_DIST
             speed *= (slowRange-colDist)/slowRange
         c.LOG("Slowed: " + str(speed))
 
-        
-
-        rotation = WF_ROT_SCALE * pidVal
+        rotation = WF_ROTATION * pidVal
 
         c.CTRL().setMovement(speed, rotation)
 
@@ -112,7 +109,7 @@ class ApproachTarget(Movement):
         if targetType is None:
             return WallFollow()
 
-        (dist, angle) = c.GOAL.getTarget()
+        (dist, angle) = c.GOAL().getTarget()
 
         if targetType == c.GOAL().BALL:
             if dist < CPTR_DIST and abs(angle) < CPTR_ANGLE:
@@ -123,18 +120,18 @@ class ApproachTarget(Movement):
 
 
     def move(self):
-        (dist, angle) = c.GOAL.getTarget()
+        (dist, angle) = c.GOAL().getTarget()
 
         if (not self.pid.running):
             self.pid.start(-angle, 0)
 
         self.pidVal = self.pid.iterate(-angle)
 
-        speed = APP_TRANSLATE_SPEED * ((90.0-abs(angle))/90.0)
+        speed = APP_SPEED * ((90.0-abs(angle))/90.0)
         if dist < APP_SLOWDOWN_DIST:
             speed *= (APP_SLOWDOWN_DIST-dist)/APP_SLOWDOWN_DIST
 
-        rotation = APR_ROTATION * self.pidVal
+        rotation = APP_ROTATION * self.pidVal
 
         c.CTRL().setMovement(speed, rotation)
 

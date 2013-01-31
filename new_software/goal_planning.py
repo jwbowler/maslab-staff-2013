@@ -14,11 +14,12 @@ class GoalPlanning:
     BALL = 0
     BUTTON = 1
     TOWER = 2
+    targetNames = ["BALL", "BUTTON", "TOWER"]
     
     
     def __init__(self):
-        #self.goal = GoalPlanning.HUNT
-        self.goal = GoalPlanning.SCORE
+        self.goal = GoalPlanning.HUNT
+        #self.goal = GoalPlanning.SCORE
         self.target = None
         self.targetType = None 
     
@@ -28,14 +29,13 @@ class GoalPlanning:
         self.chooseTarget()
 
     def chooseGoal(self):
-        if c.STATE().getTimeRemaining() < ONLY_SCORE_PERIOD:
+        if 0 < c.STATE().getTimeRemaining() < ONLY_SCORE_PERIOD:
             self.goal = self.SCORE
         else:
             self.goal = self.HUNT
 
     def chooseTarget(self):
         self.target = None
-        self.targetType = None
 
         if self.getGoal() == self.HUNT:
             self.target = c.STATE().getNearestBall()
@@ -46,6 +46,9 @@ class GoalPlanning:
         elif self.getGoal() == self.SCORE:
             self.target = c.STATE().getTowerMiddle()
             self.targetType = self.TOWER
+
+        if self.target == None:
+            self.targetType = None
 
 
     def log(self):

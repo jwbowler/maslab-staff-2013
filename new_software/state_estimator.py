@@ -20,6 +20,7 @@ class StateEstimator:
             self.loadFrame()
 
     def loadFrame(self):
+        cam = self.data.getCamera()
         if cam.getTowerBase_Bottom() is not None:
             self.towerBase = (cam.getTowerBase_Bottom()[0], cam.getTowerBase_Center()[1])
         else:
@@ -32,7 +33,6 @@ class StateEstimator:
             self.towerTop = (cam.getTowerTop_Bottom()[0], cam.getTowerTop_Center()[1])
         else:
             self.towerTop = None
-        self.angleAtLastFrame = self.relativeAngle
 
 
     def log(self):
@@ -41,6 +41,8 @@ class StateEstimator:
         c.LOG(self.getWallDistancesAdjusted())
         c.LOG("Collision distance:")
         c.LOG(self.getCollisionDistance())
+        c.LOG("Balls?")
+        c.LOG(self.getMyBalls())
 
     def getTimeRemaining(self):
         if TIME_BEFORE_HALT <= 0:
@@ -57,6 +59,7 @@ class StateEstimator:
     # Returns set of ball distances and angles (not behind wall):
     # ((distance, angle), (distance, angle), ...)
     def getMyBalls(self):
+        cam = self.data.getCamera()
         return sorted(cam.getMyReachableBalls())
         
     # Returns (distance, angle) of nearest ball (not behind wall)
@@ -67,6 +70,7 @@ class StateEstimator:
     # Returns set of ball distances and angles (not behind wall):
     # ((distance, angle), (distance, angle), ...)
     def getOpBalls(self):
+        cam = self.data.getCamera()
         return sorted(cam.getOpReachableBalls())
         
     # Returns (distance, angle) of nearest ball (not behind wall)
@@ -75,6 +79,7 @@ class StateEstimator:
         return balls[0] if len(balls) > 0 else None
 
     def getGoalWalls(self):
+        cam = self.data.getCamera()
         return sorted(cam.getReachableGoalWalls())
         
     def getNearestGoalWall(self):
@@ -82,6 +87,7 @@ class StateEstimator:
         return balls[0] if len(balls) > 0 else None
 
     def getButton(self):
+        cam = self.data.getCamera()
         buttons = sorted(cam.getReachableButtons())
         return buttons[0] if len(buttons) > 0 else None
         

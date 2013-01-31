@@ -38,7 +38,7 @@ class Control():
         self.leftMotor.setSpeed(l)
 
         self.prevRight = self.accelBound(self.prevRight, self.rightSpeed)
-        r = boundAndScale(self.prevRight, 13, 117)
+        r = boundAndScale(self.prevRight, 8, 127)
         self.rightMotor.setSpeed(r)
 
         self.prevTime = time.time()
@@ -51,9 +51,11 @@ class Control():
         c.LOG("RAMP: " + str(self.rampAngle))
 
     def accelBound(self, prevSpeed, goalSpeed):
+        return goalSpeed
         delta = goalSpeed - prevSpeed
         maxDelta = ACCEL_LIM * (time.time() - self.prevTime)
         newSpeed = prevSpeed + utils.absBound(delta, maxDelta)
+        c.LOG(newSpeed)
         return utils.absBound(newSpeed, goalSpeed)
 
     # This method turns on and off the roller motor
@@ -136,14 +138,40 @@ def getMotorSpeeds(vel, rot):
 
     return (l,r);
 
+def rampMotors():
+        print "Ramping left"
+        #.25
+        for i in xrange(60):
+            print i
+            c.CTRL().leftMotor.setSpeed(i)
+            time.sleep(.25)
+
+        c.CTRL().leftMotor.setSpeed(0)
+
+        #.225
+        print "Ramping right"
+        for i in xrange(60):
+            print i
+            c.CTRL().rightMotor.setSpeed(i)
+            time.sleep(.25)
+
+        c.CTRL().setRightMotor(0)
+
+        time.sleep(2)
+
 if __name__=="__main__":
     c.ARD()
     c.DATA()
+    c.STATE()
+    c.GOAL()
+    c.MOVE()
     c.CTRL()
     c.ARD().run()
     
     try:
+        rampMotors()
       
+        """
         #########################
         c.CTRL().setRoller(False)
         c.CTRL().setHelix(False)
@@ -184,25 +212,6 @@ if __name__=="__main__":
         c.CTRL().setRoller(False)
         c.CTRL().setHelix(True)
 
-        print "Ramping left"
-        #.25
-        for i in xrange(60):
-            print i
-            c.CTRL().leftMotor.setSpeed(i)
-            time.sleep(.25)
-
-        c.CTRL().setLeftMotor(0)
-
-        #.225
-        print "Ramping right"
-        for i in xrange(60):
-            print i
-            c.CTRL().rightMotor.setSpeed(i)
-            time.sleep(.25)
-
-        c.CTRL().setRightMotor(0)
-
-        time.sleep(2)
 
         print "Testing Helix"
         c.CTRL().setHelix(True)
@@ -215,6 +224,7 @@ if __name__=="__main__":
             print i
             c.CTRL().ramp.setSpeed(i)
             time.sleep(.2)
+        """
 
     except KeyboardInterrupt:
         pass
