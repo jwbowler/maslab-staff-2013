@@ -150,7 +150,11 @@ class StateEstimator:
     def getCollisionDistance(self):
         dist = self.getWallDistancesAdjusted()
         dist = [(p[0]-ROBOT_RADIUS)/math.cos(math.radians(p[1])) for p in dist if abs(p[1]) < 90]
-        return min(dist)
+        minDist = min(dist)
+        if minDist < 0:
+            return 0
+
+        return minDist
 
     def nearCollision(self):
         return self.getCollisionDistance() < .25

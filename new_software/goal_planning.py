@@ -44,7 +44,8 @@ class GoalPlanning:
             self.target = c.STATE().getButton()
             self.targetType = self.BUTTON
         elif self.getGoal() == self.SCORE:
-            self.target = c.STATE().getTowerMiddle()
+            #self.target = c.STATE().getTowerMiddle()
+            self.target = c.STATE().getTowerBase()
             self.targetType = self.TOWER
 
         if self.target == None:

@@ -63,8 +63,11 @@ class WallFollow(Movement):
         self.anglePid = pid.Pid(*WF_ANGLE_PID)
 
     def transition(self):
+        '''
         if c.GOAL().getTarget() is not None:
             return ApproachTarget()
+        '''
+        pass
 
     def move(self):
         distPid = self.distPid
@@ -167,25 +170,25 @@ class AlignWithTower(Movement):
         self.pid = pid.Pid(*ALIGN_TOWER_PID)
 
     def transition(self):
-        midTower = c.STATE().getTowerMiddle()
+        tower = c.STATE().getTowerTop()
 
-        if midTower is None:
+        if tower is None:
             return WallFollow()
 
-        (dist, angle) = midTower
+        (dist, angle) = tower
 
         if dist < SCORE_DIST and abs(angle) < SCORE_ANGLE:
             return Score()
 
     def move(self):
-        mitTower = c.STATE().getTowerMiddle()
+        tower = c.STATE().getTowerTop()
 
-        if midTower is None:
+        if tower is None:
             return
 
         pid = self.pid
-        self.d = c.STATE().getTowerMiddle()[0]
-        self.theta = -c.STATE().getTowerMiddle()[1]
+        self.d = c.STATE().getTowerTop()[0]
+        self.theta = -c.STATE().getTowerTop()[1]
 
         if (not pid.running):
             pid.start(self.theta, 0)
