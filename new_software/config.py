@@ -50,7 +50,7 @@ WF_STOP_DIST = .03
 
 WF_ROT_LIM = .5
 WF_DIST_TARGET = .35
-WF_SPEED = .0 #.4
+WF_SPEED = .4
 WF_ROTATION = 1.0
 
 # Capture ball

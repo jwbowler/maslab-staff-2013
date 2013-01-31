@@ -125,7 +125,7 @@ int init_opencv() {
     params.blobColor = 255;
     params.filterByCircularity = false;
     params.filterByArea = true;
-    params.minArea = 5.;
+    params.minArea = 5;
     params.maxArea = 640.*480;
     
     //blob_detector = new cv::SimpleBlobDetector(params);
