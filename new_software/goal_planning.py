@@ -10,6 +10,7 @@ class GoalPlanning:
     SCORE = 2
     goalNames = ["HUNT","BUTTON", "SCORE"]
 
+    #list of target types
     BALL = 0
     BUTTON = 1
     TOWER = 2
@@ -29,7 +30,7 @@ class GoalPlanning:
     def chooseGoal(self):
         if c.STATE().getTimeRemaining() < ONLY_SCORE_PERIOD:
             self.goal = self.SCORE
-        else
+        else:
             self.goal = self.HUNT
 
     def chooseTarget(self):
