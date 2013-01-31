@@ -16,7 +16,6 @@ class MovePlanning:
     def log(self):
         c.LOG("~~~MOVE~~~")
         c.LOG("Move: " + str(self.moveObject))
-        self.moveObject.log()
 
 class Movement():
     def __init__(self):
@@ -30,8 +29,8 @@ class Movement():
         next = self.transition()
         if next == None: next = self
 
-        if (time.time() > self.timeOut())
-        return next
+        if (time.time() > self.timeOut):
+            return next
 
     def __str__(self):
         return self.__class__.__name__
@@ -52,7 +51,7 @@ class TimeoutRun(Movement):
         self.setNoTimeout(True)
 
     def transition(self):
-        if time.time() > (self.startTime + 2.0)
+        if time.time() > (self.startTime + 2.0):
             return WallFollow()
 
     def move(self):
@@ -61,13 +60,12 @@ class TimeoutRun(Movement):
 class WallFollow(Movement):
     def __init__(self):
         Movement.__init__(self)
-        self.setAvoidWalls(False)
 
         self.distPid = pid.Pid(2.8, 0, .000, 0.3, 0)
         self.anglePid = pid.Pid(.08, 0, .02, 0.4, 0)
 
     def transition(self):
-        if c.GOAL.getTarget() is not None:
+        if c.GOAL().getTarget() is not None:
             return ApproachTarget()
 
     def move(self):
@@ -86,7 +84,7 @@ class WallFollow(Movement):
         speed = FW_SPEED_SCALE
         rotation = FW_ROT_SCALE * pidVal
 
-        c.CTRL().setMovement(speed, utils.absBound(rotation, self.rotLim))
+        c.CTRL().setMovement(speed, rotation)
 
 class ApproachTarget(Movement):
     def __init__(self):
@@ -139,7 +137,6 @@ class ApproachTarget(Movement):
 class CaptureBall(Movement):
     def __init__(self):
         Movement.__init__(self)
-        self.setAvoidWalls(False)
 
     def transition(self):
         goal = c.GOAL().getGoal()
@@ -156,7 +153,6 @@ class CaptureBall(Movement):
 class HitButton(Movement):
     def __init__(self):
         Movement.__init__(self)
-        self.setAvoidWalls(False);
 
     def transition(self):
         goal = c.GOAL().getGoal()
@@ -249,7 +245,6 @@ class RotateInPlace(Movement):
 class Score(Movement):
     def __init__(self):
         Movement.__init__(self)
-        self.setAvoidWalls(False)
 
     def transition(self):
         goal = c.GOAL().getGoal()

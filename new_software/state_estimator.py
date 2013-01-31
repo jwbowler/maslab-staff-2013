@@ -8,6 +8,9 @@ class StateEstimator:
     def __init__(self):
         self.data = c.DATA()
         self.startTime = time.time()
+        self.towerBase = None
+        self.towerMiddle = None
+        self.towerTop = None
 
     # Updates estimated state according to data in Data class
     def run(self):
@@ -135,7 +138,7 @@ class StateEstimator:
     # Returns the forward distance that the robot can travel
     # before it hits a wall
     def getCollisionDistance(self):
-        dist = self.getWallDistances()
+        dist = self.getWallDistancesAdjusted()
         dist = [(p[0]-ROBOT_RADIUS)/math.cos(math.radians(p[1])) - ROBOT_RADIUS for p in dist if abs(p[1]) < 90]
         return min(dist)
 
@@ -145,33 +148,31 @@ class StateEstimator:
     # Takes two sensor indices to use for wall estimation
     # Returns (distance to wall, angle of wall relative to bot's orientation)
     def getWallPosFrom2Sensors(self, index0, index1):
-        sensorList = self.getWallDistances()
+        sensorList = self.getWallDistancesAdjusted()
 
-        # phi = 1/2 the angle difference the sensors. sensor A -> clockwise -> sensor B
-        phi = .5 * abs(sensorA[1] - sensorB[1])
-        a = sensorA[0]
-        b = sensorB[0]
+        # phi = the angle difference the sensors. index0 -> clockwise -> index1
+        phi = abs(sensorList[index0][1] - sensorList[index1][1])
 
-        # theta = angle of wall relative to robot. will return positive
-        # unless the sensors are >180 degrees apart, measured clockwise from A to B
-        thetaRad = math.asin(math.sqrt((abs(a-b) / (a+b)) * math.cos(math.radians(phi))
-        theta = math.degrees(thetaRad)
-
-        # sets sign of theta: negative means the robot will hit the wall
-        if (a > b and theta > 0) or (a < b and theta < 0):
-            theta = -theta
+        # measured distances
+        a = sensorList[index0][0]
+        b = sensorList[index1][0]
 
         # d = calculated distance to robot
-        d = b * math.cos((math.pi/180) * (phi - theta)) / math.cos((math.pi/180)*theta)
+        c = math.sqrt(a**2 + b**2 - 2*a*b*math.cos(math.radians(phi)))
+        d = a*b*math.sin(math.radians(phi)) / c
+        # theta = angle of wall relative to robot
+        alpha = math.degrees(math.asin(a * math.sin(math.radians(phi)) / c))
+        alpha = math.degrees(math.asin(a * math.sin(math.radians(phi)) / c))
+        theta = alpha - 90 + phi/2
 
         # offset is zero if sensors are centered at the robot's 9-o'clock, otherwise it corrects theta
-        angleOffset = -(sensorA[1] + sensorB[1])/2 - 90
+        angleOffset = -(sensorList[index0][1] + sensorList[index1][1])/2 - 90
         return (d, theta + angleOffset)
 
     # Like above, but picks two sensors automatically to use in the calculation
     def getWallRelativePos(self, numSensors):
-        sensorList = self.getWallDistances()
-        sensorIndices = sorted(range(numSensors), key = getSensorPriority)
+        sensorList = self.getWallDistancesAdjusted()
+        sensorIndices = sorted(range(numSensors), key = self.getSensorPriority)
         closestSensorIndex = sensorIndices[0]
 
         # edge cases
@@ -187,7 +188,7 @@ class StateEstimator:
             
         # Log the priority calculation
         sortedDistances = [sensorList[i][0] for i in sensorIndices]
-        sortedMultipliedDistances = getSensorPriority(i) for i in sensorIndices]
+        sortedMultipliedDistances = [self.getSensorPriority(i) for i in sensorIndices]
         c.LOG("Wall following sensors:")
         c.LOG("closest sensor index = " + str(closestSensorIndex))
         c.LOG("neighbor index = " + str(neighborIndex))
@@ -199,7 +200,7 @@ class StateEstimator:
     # Returns the priority (smaller is better) of the sensor with the given index,
     # taking into account closeness to front of robot and smallness or distance measurement
     def getSensorPriority(self, index):
-        dist = sensorList[i][0] - ROBOT_RADIUS
-        weight = 180 - abs(sensorList[i][1]
+        sensorList = self.getWallDistancesAdjusted()
+        dist = sensorList[index][0] - ROBOT_RADIUS
+        weight = 180 - abs(sensorList[index][1])
         return dist/weight
-

@@ -29,7 +29,7 @@ class GoalPlanning:
     def chooseGoal(self):
         if c.STATE().getTimeRemaining() < ONLY_SCORE_PERIOD:
             self.goal = self.SCORE
-        else
+        else:
             self.goal = self.HUNT
 
     def chooseTarget(self):
