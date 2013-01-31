@@ -105,6 +105,7 @@ def go():
         DATA().run()
         DATA().log()
         STATE().run()
+        STATE().log()
         GOAL().run()
         GOAL().log()
         MOVE().run()

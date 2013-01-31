@@ -1,5 +1,5 @@
 #Commander
-LOG_FREQUENCY = .1 #seconds
+LOG_FREQUENCY = .5 #seconds
 
 TIME_BEFORE_HALT = -1 # value <= 0 --> never stops
 BALL_BUTTON_TIMEOUT = 20
@@ -42,7 +42,10 @@ ONLY_SCORE_PERIOD = 30
 #Movement
 # Follow wall
 WF_DIST_PID = (2.8, 0, .000, 0.3, 0)
-WF_ANGLE_PID = (.08, 0, .02, 0.4, 0)
+WF_ANGLE_PID = (.08, 0, .0, 0.4, 0)
+
+WF_SLOWDOWN_DIST = .15
+WF_STOP_DIST = .03
 
 WF_ROT_LIM = .5
 WF_PHI = 18

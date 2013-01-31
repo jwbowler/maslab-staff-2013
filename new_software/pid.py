@@ -48,7 +48,6 @@ class Pid:
         longDt = self.prevVals[-1][0]-self.prevVals[0][0]
         longDx = self.prevVals[-1][1]-self.prevVals[0][1]
 
-
         p = self.target-value
         d = 0 if longDt == 0 else (longDx/longDt)
         self.i += p*dt;

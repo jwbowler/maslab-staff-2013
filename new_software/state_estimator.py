@@ -37,6 +37,10 @@ class StateEstimator:
 
     def log(self):
         c.LOG("~~~State Log~~~")
+        c.LOG("Adjusted wall distances:")
+        c.LOG(self.getWallDistancesAdjusted())
+        c.LOG("Collision distance:")
+        c.LOG(self.getCollisionDistance())
 
     def getTimeRemaining(self):
         if TIME_BEFORE_HALT <= 0:
@@ -139,7 +143,7 @@ class StateEstimator:
     # before it hits a wall
     def getCollisionDistance(self):
         dist = self.getWallDistancesAdjusted()
-        dist = [(p[0]-ROBOT_RADIUS)/math.cos(math.radians(p[1])) - ROBOT_RADIUS for p in dist if abs(p[1]) < 90]
+        dist = [(p[0]-ROBOT_RADIUS)/math.cos(math.radians(p[1])) for p in dist if abs(p[1]) < 90]
         return min(dist)
 
     def nearCollision(self):
@@ -156,14 +160,17 @@ class StateEstimator:
         # measured distances
         a = sensorList[index0][0]
         b = sensorList[index1][0]
+        c.LOG("a = " + str(a))
+        c.LOG("b = " + str(b))
 
         # d = calculated distance to robot
-        c = math.sqrt(a**2 + b**2 - 2*a*b*math.cos(math.radians(phi)))
-        d = a*b*math.sin(math.radians(phi)) / c
+        e = math.sqrt(a**2 + b**2 - 2*a*b*math.cos(math.radians(phi)))
+        d = a*b*math.sin(math.radians(phi)) / e
+        #c.LOG("e = " + str(e))
         # theta = angle of wall relative to robot
-        alpha = math.degrees(math.asin(a * math.sin(math.radians(phi)) / c))
-        alpha = math.degrees(math.asin(a * math.sin(math.radians(phi)) / c))
-        theta = alpha - 90 + phi/2
+        alpha = math.degrees(math.asin(a * math.sin(math.radians(phi)) / e))
+        #c.LOG("alpha = " + str(alpha))
+        theta = -alpha + 90 - phi/2
 
         # offset is zero if sensors are centered at the robot's 9-o'clock, otherwise it corrects theta
         angleOffset = -(sensorList[index0][1] + sensorList[index1][1])/2 - 90
@@ -172,7 +179,8 @@ class StateEstimator:
     # Like above, but picks two sensors automatically to use in the calculation
     def getWallRelativePos(self, numSensors):
         sensorList = self.getWallDistancesAdjusted()
-        sensorIndices = sorted(range(numSensors), key = self.getSensorPriority)
+        #sensorIndices = sorted(range(numSensors), key = self.getSensorPriority)
+        sensorIndices = sorted(range(numSensors), key = lambda i: sensorList[i][0])
         closestSensorIndex = sensorIndices[0]
 
         # edge cases
@@ -192,6 +200,14 @@ class StateEstimator:
         c.LOG("Wall following sensors:")
         c.LOG("closest sensor index = " + str(closestSensorIndex))
         c.LOG("neighbor index = " + str(neighborIndex))
+
+        if sensorList[closestSensorIndex][0] >= .7:
+            return (.7, 0)
+        if sensorList[neighborIndex][0] >= .7:
+            if closestSensorIndex == 0:
+                return (.7, 0)
+            else:
+                return (sensorList[closestSensorIndex][0], -sensorList[closestSensorIndex][1] - 90)
 
         return self.getWallPosFrom2Sensors(
                 min(closestSensorIndex, neighborIndex),

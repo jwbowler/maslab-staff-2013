@@ -70,10 +70,10 @@ class WallFollow(Movement):
         distPid = self.distPid
         anglePid = self.anglePid
 
-        #(dist, angle) = c.STATE().getWallRelativePos(4)
-        (dist, angle) = c.STATE().getWallPosFrom2Sensors(0, 1)
+        (dist, angle) = c.STATE().getWallRelativePos(4)
+        #(dist, angle) = c.STATE().getWallPosFrom2Sensors(0, 1)
         c.LOG("dist = " + str(dist))
-        c.LOG("theta = " + str(angle))
+        c.LOG("angle = " + str(angle))
 
         if (not distPid.running):
             distPid.start(dist, WF_DIST_TARGET)
@@ -88,6 +88,15 @@ class WallFollow(Movement):
         c.LOG("PID = " + str(pidVal))
 
         speed = WF_SPEED_SCALE
+        #blah = c.STATE().getWallDistancesAdjusted()[3][0]
+        colDist = c.STATE().getCollisionDistance()
+        if colDist < WF_SLOWDOWN_DIST:
+            slowRange = WF_SLOWDOWN_DIST-WF_STOP_DIST
+            speed *= (slowRange-colDist)/slowRange
+        c.LOG("Slowed: " + str(speed))
+
+        
+
         rotation = WF_ROT_SCALE * pidVal
 
         c.CTRL().setMovement(speed, rotation)

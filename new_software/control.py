@@ -138,21 +138,21 @@ def getMotorSpeeds(vel, rot):
 
 if __name__=="__main__":
     c.ARD()
-    #c.DATA()
+    c.DATA()
     c.CTRL()
     c.ARD().run()
     
     try:
-        '''
+      
         #########################
-        c.CTRL().setRoller(True)
-        c.CTRL().setHelix(True)
-        c.CTRL().setLeftMotor(.0)
-        c.CTRL().setRightMotor(.0)
+        c.CTRL().setRoller(False)
+        c.CTRL().setHelix(False)
+        c.CTRL().setLeftMotor(.3)
+        c.CTRL().setRightMotor(.3)
         c.CTRL().setRamp(0)
         print "Running motors..."
         c.CTRL().run()
-        time.sleep(5)
+        time.sleep(500)
         c.CTRL().setLeftMotor(.0)
         c.CTRL().setRightMotor(.0)
         c.CTRL().setRamp(45)
@@ -162,7 +162,7 @@ if __name__=="__main__":
         c.CTRL().run()
 
         #########################
-        '''
+      
 
         c.CTRL().roller.setSpeed(0)
 
