@@ -56,6 +56,7 @@ class GoalPlanning:
         return self.goal
 
     def getTarget(self):
+        return self.target
 
     def getTargetType(self):
         return self.targetType

@@ -206,7 +206,6 @@ class AlignWithTower(Movement):
         if c.STATE().getTowerMiddle() is None:
             return
         pid = self.pid
-        #self.d = c.STATE().getFrontProximity()
         self.d = c.STATE().getTowerMiddle()[0]
         self.theta = -c.STATE().getTowerMiddle()[1]
 
@@ -216,7 +215,6 @@ class AlignWithTower(Movement):
         self.pidVal = pid.iterate(self.theta)
         self.speed = ALIGN_TOWER_TRANSLATE_SPEED
         self.rotation = ALIGN_TOWER_ROTATE_SPEED_SCALE * self.pidVal
-        #c.CTRL().setMovement(0, 0)
         c.CTRL().setMovement(self.speed, self.rotation)
 
 class AlignWithButton(Movement):
@@ -236,7 +234,6 @@ class AlignWithButton(Movement):
 class RotateInPlace(Movement):
     def __init__(self):
         Movement.__init__(self)
-        self.startAngle = c.STATE().getRelativeAngle()
 
     def transition(self):
         goal = c.GOAL().getGoal()

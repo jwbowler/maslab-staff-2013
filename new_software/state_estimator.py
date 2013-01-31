@@ -37,7 +37,7 @@ class StateEstimator:
 
     def getTimeRemaining(self):
         if TIME_BEFORE_HALT <= 0:
-            return 999
+            return -1
         return self.startTime + TIME_BEFORE_HALT - time.time()
 
     # Called by move_planning after running through the HitButton movement
@@ -46,13 +46,6 @@ class StateEstimator:
 
     def isButtonUsed(self):
         return self.buttonUsed
-
-    # Called by move_planning after running through the Score movement
-    def notifyScore(self):
-        self.timeLastScore = time.time()
-
-    def getTimeSinceLastScore(self):
-        return time.time() - self.timeLastScore
 
     # Returns set of ball distances and angles (not behind wall):
     # ((distance, angle), (distance, angle), ...)
