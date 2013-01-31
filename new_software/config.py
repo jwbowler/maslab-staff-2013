@@ -1,5 +1,5 @@
 #Commander
-LOG_FREQUENCY = .5 #seconds
+LOG_FREQUENCY = .1 #seconds
 
 TIME_BEFORE_HALT = -1 # value <= 0 --> never stops
 BALL_BUTTON_TIMEOUT = 20

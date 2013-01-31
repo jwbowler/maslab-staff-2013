@@ -347,7 +347,7 @@ if __name__ == "__main__":
             c.DATA().run()
             c.DATA().log()
             #c.CTRL().setMovement(0.2, 0)
-            time.sleep(.1)
+            time.sleep(.01)
     except KeyboardInterrupt:
         print "Interrupting"
         c.CTRL().halt()
