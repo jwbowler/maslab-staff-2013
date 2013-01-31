@@ -6,25 +6,46 @@ class GoalPlanning:
 
     # List of goals
     HUNT = 0
-    HUNT_AND_SCORE = 1
+    BUTTON = 1
     SCORE = 2
-    goalNames = ["HUNT", "HUNT_AND_SCORE", "SCORE"]
+    goalNames = ["HUNT","BUTTON", "SCORE"]
+
+    BALL = 0
+    BUTTON = 1
+    TOWER = 2
+    
     
     def __init__(self):
         #self.goal = GoalPlanning.HUNT
         self.goal = GoalPlanning.SCORE
+        self.target = None
+        self.targetType = None 
     
     # Updates current goal according to estimated state
     def run(self):
-        self.goal = GoalPlanning.SCORE
-        return
+        self.chooseGoal()
+        self.chooseTarget()
+
+    def chooseGoal(self):
         if c.STATE().getTimeRemaining() < ONLY_SCORE_PERIOD:
-            #self.goal = GoalPlanning.SCORE_AND_LOITER
-            pass
-        elif c.STATE().getTimeSinceLastScore() < MIN_WAIT_BETWEEN_SCORING:
-            self.goal = GoalPlanning.HUNT
-        else:
-            self.goal = GoalPlanning.HUNT_AND_SCORE
+            self.goal = self.SCORE
+        else
+            self.goal = self.HUNT
+
+    def chooseTarget(self):
+        self.target = None
+        self.targetType = None
+
+        if self.getGoal() == self.HUNT:
+            self.target = c.STATE().getNearestBall()
+            self.targetType = self.BALL
+        elif self.getGoal() == self.BUTTON:
+            self.target = c.STATE().getButton()
+            self.targetType = self.BUTTON
+        elif self.getGoal() == self.SCORE:
+            self.target = c.STATE().getTowerMiddle()
+            self.targetType = self.TOWER
+
 
     def log(self):
         c.LOG("~~~GOAL~~~")
@@ -33,6 +54,12 @@ class GoalPlanning:
     # Returns current goal
     def getGoal(self):
         return self.goal
+
+    def getTarget(self):
+
+    def getTargetType(self):
+        return self.targetType
+
         
 if __name__ == "__main__":
     c.ARD()

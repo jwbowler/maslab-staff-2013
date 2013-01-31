@@ -8,131 +8,32 @@ class StateEstimator:
     def __init__(self):
         self.data = c.DATA()
         self.startTime = time.time()
-        self.timeLastScore = 0
-        self.buttonUsed = False
-        self.relativeAngle = None
-        self.lastImageStamp = None
-        self.myBalls = []
-        self.opBalls = []
-        self.goalWalls = []
-        self.buttons = []
-        self.towerBase = None
-        self.towerMiddle = None
-        self.towerTop = None
-        self.allBalls = []
-        self.nearestBall = None
-        self.nearestBallOrGoal = None
-        self.nearestNonGoalObj = None
-        self.nearestObj = None
-    
+
     # Updates estimated state according to data in Data class
     def run(self):
         #self.computeRelativeAngle()
-
         cam = self.data.getCamera()
         if cam.hasNewFrame():
-            self.myBalls = sorted(cam.getMyReachableBalls(), key = lambda obj: obj[0])
-            self.opBalls = sorted(cam.getOpReachableBalls(), key = lambda obj: obj[0])
-            self.goalWalls = sorted(cam.getReachableGoalWalls(), key = lambda obj: obj[0])
-            self.buttons = sorted(cam.getReachableButtons(), key = lambda obj: obj[0])
-            if cam.getTowerBase_Bottom() is not None:
-                self.towerBase = (cam.getTowerBase_Bottom()[0], cam.getTowerBase_Center()[1])
-            else:
-                self.towerBase = None
-            if cam.getTowerMiddle_Bottom() is not None:
-                self.towerMiddle = (cam.getTowerMiddle_Bottom()[0], cam.getTowerMiddle_Center()[1])
-            else:
-                self.towerMiddle = None
-            if cam.getTowerTop_Bottom() is not None:
-                self.towerTop = (cam.getTowerTop_Bottom()[0], cam.getTowerTop_Center()[1])
-            else:
-                self.towerTop = None
-            self.angleAtLastFrame = self.relativeAngle
-        elif False:
-            shift = self.relativeAngle - self.angleAtLastFrame
-            self.myBalls = [(b[0], b[1]+shift) for b in self.myBalls]
-            self.opBalls = [(b[0], b[1]+shift) for b in self.opBalls]
-            self.goalWalls = [(w[0], w[1]+shift) for w in self.goalWalls]
-            self.buttons = [(b[0], b[1]+shift) for b in self.buttons]
-            self.towerBase = (self.towerBase[0], self.towerBase[1]+shift)
-            self.towerTop = (self.towerTop[0], self.towerTop[1]+shift)
-        self.allBalls = self.myBalls + self.opBalls
+            self.loadFrame()
 
-        if self.allBalls == []:
-            self.nearestBall = None
+    def loadFrame(self):
+        if cam.getTowerBase_Bottom() is not None:
+            self.towerBase = (cam.getTowerBase_Bottom()[0], cam.getTowerBase_Center()[1])
         else:
-            self.nearestBall = min(self.allBalls, key = lambda obj: obj[0])
-
-        if self.allBalls + self.goalWalls == []:
-            self.nearestBallOrGoal = None
+            self.towerBase = None
+        if cam.getTowerMiddle_Bottom() is not None:
+            self.towerMiddle = (cam.getTowerMiddle_Bottom()[0], cam.getTowerMiddle_Center()[1])
         else:
-            if self.towerBase is not None:
-                self.nearestBallOrGoal = min(self.allBalls + [self.towerBase], key = lambda obj: obj[0])
-            else:
-                if self.allBalls == []:
-                    self.nearestBallOrGoal = None
-                else:
-                    self.nearestBallOrGoal = min(self.allBalls, key = lambda obj: obj[0])
-
-        if self.allBalls + self.buttons == []:
-            self.nearestNonGoalObj = None
+            self.towerMiddle = None
+        if cam.getTowerTop_Bottom() is not None:
+            self.towerTop = (cam.getTowerTop_Bottom()[0], cam.getTowerTop_Center()[1])
         else:
-            if self.allBalls + self.buttons == None:
-                self.nearestNonGoalObj = None
-            else:
-                self.nearestNonGoalObj = min(self.allBalls + self.buttons, key = lambda obj: obj[0])
-                
+            self.towerTop = None
+        self.angleAtLastFrame = self.relativeAngle
 
-        if self.allBalls + self.buttons + self.goalWalls == []:
-            self.nearestObj = None
-        else:
-            if self.towerBase is not None:
-                self.nearestObj = min(self.allBalls + self.buttons + [self.towerBase], key = lambda obj: obj[0])
-            else:
-                if self.allBalls + self.buttons == []:
-                    self.nearestObj = None
-                else:
-                    self.nearestObj = min(self.allBalls + self.buttons, key = lambda obj: obj[0])
-
-
-        self.timeLastScore = time.time()
 
     def log(self):
         c.LOG("~~~State Log~~~")
-
-        c.LOG("My Balls")
-        c.LOG(self.getMyBalls())
-
-        c.LOG("Opponent Balls")
-        c.LOG(self.getOpBalls())
-
-        c.LOG("Buttons")
-        c.LOG(self.getButtons())
-
-        c.LOG("Goal Walls")
-        c.LOG(self.getGoalWalls())
-
-        c.LOG("Tower Base")
-        c.LOG(self.getTowerBase())
-
-        c.LOG("Tower Middle")
-        c.LOG(self.getTowerMiddle())
-
-        c.LOG("Tower Top")
-        c.LOG(self.getTowerTop())
-
-        c.LOG("Raw Wall Distances")
-        c.LOG(self.getRawWallDistances())
-
-        c.LOG("Corrected Wall Dist")
-        c.LOG(self.getWallDistances())
-
-        c.LOG("Collision Distance")
-        c.LOG(self.getCollisionDistance())
-
-        c.LOG("Near Collision?")
-        c.LOG(self.nearCollision())
-
 
     def getTimeRemaining(self):
         if TIME_BEFORE_HALT <= 0:
@@ -153,61 +54,37 @@ class StateEstimator:
     def getTimeSinceLastScore(self):
         return time.time() - self.timeLastScore
 
-    def computeRelativeAngle():
-        compass = c.DATA().getImu().getCompassHeading()
-        if self.relativeAngle == None:
-            self.relativeAngle = compass
-        else:
-            delta = compass = self.relativeAngle
-            if delta > 180:
-                delta -= 360
-            elif delta < 180:
-                delta += 360
-
-            #shift, then ensure that angle is in sync with imu
-            self.relativeAngle += delta
-            #not sure if necessary...
-            self.relativeAngle = math.round((self.relativeAngle-compass)/360.0)*360 + compass
-        
-        
     # Returns set of ball distances and angles (not behind wall):
     # ((distance, angle), (distance, angle), ...)
     def getMyBalls(self):
-        return self.myBalls
+        return sorted(cam.getMyReachableBalls())
         
     # Returns (distance, angle) of nearest ball (not behind wall)
     def getMyNearestBall(self):
-        if len(self.myBalls) == 0:
-            return None
-        return self.myBalls[0]
+        balls = self.getMyBalls()
+        return balls[0] if len(balls) > 0 else None
 
     # Returns set of ball distances and angles (not behind wall):
     # ((distance, angle), (distance, angle), ...)
     def getOpBalls(self):
-        return self.opBalls
+        return sorted(cam.getOpReachableBalls())
         
     # Returns (distance, angle) of nearest ball (not behind wall)
     def getOpNearestBall(self):
-        if len(self.opBalls) == 0:
-            return None
-        return self.opBalls[0]
+        balls = self.getOpBalls()
+        return balls[0] if len(balls) > 0 else None
 
     def getGoalWalls(self):
-        return self.goalWalls
+        return sorted(cam.getReachableGoalWalls())
         
     def getNearestGoalWall(self):
-        if len(self.goalWalls) == 0:
-            return None
-        return self.goalWalls[0]
+        walls = self.getGoalWalls()
+        return balls[0] if len(balls) > 0 else None
 
-    def getButtons(self):
-        return self.buttons
+    def getButton(self):
+        buttons = sorted(cam.getReachableButtons())
+        return buttons[0] if len(buttons) > 0 else None
         
-    def getNearestButton(self):
-        if len(self.buttons) == 0:
-            return None
-        return self.buttons[0]
-
     def getTowerBase(self):
         return self.towerBase
 
@@ -243,30 +120,17 @@ class StateEstimator:
 
     # Returns the nearest ball regardless of color
     def getNearestBall(self):
-        return self.nearestBall
+        allBalls = sorted(self.getMyBalls() + self.getOpBalls())
+        return allBalls[0] if len(allBalls) > 0 else None
 
-    # Returns the nearest object from the combined list of balls and goal walls
-    def getNearestBallOrGoal(self):
-        return self.nearestBallOrGoal
-
-    # Returns the nearest object that isn't a goal wall
-    def getNearestNonGoalObj(self):
-        return self.nearestNonGoalObj
-
-    # Returns the nearest object regardless of type
-    def getNearestObj(self):
-        return self.nearestObj
-      
     # Returns fully corrected set of wall distances ond angles from all sensors:
     # ((distance, angle), (distance, angle), ...)
-    def getWallDistances(self):
+    def getWallDistancesAdjusted(self):
         dist = self.getRawWallDistances()
         for i in xrange(len(dist)):
             if dist[i][0] > 1000:
                 dist[i] = (.7, dist[i][1])
-
         return dist
-
 
     # Returns wall distances without any corrections
     def getRawWallDistances(self):
@@ -279,17 +143,11 @@ class StateEstimator:
     # before it hits a wall
     def getCollisionDistance(self):
         dist = self.getWallDistances()
-        dist = [p[0]/math.cos(math.radians(p[1])) - ROBOT_RADIUS for p in dist]
-        dist = [d for d in dist if d > 0]
+        dist = [(p[0]-ROBOT_RADIUS)/math.cos(math.radians(p[1])) - ROBOT_RADIUS for p in dist if abs(p[1]) < 90]
         return min(dist)
 
     def nearCollision(self):
-        return self.getFrontProximity() < .25
-
-    def getFrontProximity(self):
-        # Dependent on a specific sensor configuration. Need to make more general.
-        dist = self.getRawWallDistances()
-        return dist[3][0]
+        return self.getCollisionDistance() < .25
 
     # Takes two sensor indices to use for wall estimation
     # Returns (distance to wall, angle of wall relative to bot's orientation)
@@ -321,12 +179,6 @@ class StateEstimator:
                                  key = lambda i: (sensorList[i][0] - ROBOT_RADIUS) / (180 - abs(sensorList[i][1])))
         sortedDistances = [sensorList[i][0] for i in sensorIndices]
         sortedMultipliedDistances = [(sensorList[i][0] - ROBOT_RADIUS) / (180 - abs(sensorList[i][1])) for i in sensorIndices]
-        c.LOG("sensor indices:")
-        c.LOG(sensorIndices)
-        c.LOG("sorted distances:")
-        c.LOG(sortedDistances)
-        c.LOG("sorted multiplied distances:")
-        c.LOG(sortedMultipliedDistances)
         closestSensorIndex = sensorIndices[0]
         if closestSensorIndex == 0:
             neighborIndex = 1
@@ -340,14 +192,3 @@ class StateEstimator:
         c.LOG("closest sensor index = " + str(closestSensorIndex))
         c.LOG("neighbor index = " + str(neighborIndex))
         return self.getWallPosFrom2Sensors(closestSensorIndex, neighborIndex)
-    
-    # Returns landmarks like QR codes and the goal tower:
-    # ((type, ID, distance, angle), ...)
-    def getLandmarks(self):
-        pass
-
-    def getAbsoluteAngle(self):
-        return 0.0
-
-    def getRelativeAngle(self):
-        return 0.0

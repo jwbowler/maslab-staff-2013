@@ -8,7 +8,6 @@ from config import *
 import commander as c
 
 class DataCollection:
-    
     # creates data object
     def __init__(self):
         self.initSensors()
@@ -20,8 +19,6 @@ class DataCollection:
         #self.encoderPair = EncoderPair(0,0)
         self.irs = [Ir(IR_PINS[i], IR_POSITIONS[i]) for i in xrange(len(IR_PINS))]
         self.ults= [Ult(ULT_PINS[i], ULT_POSITIONS[i]) for i in xrange(len(ULT_PINS))]
-        self.currents = CurrentSensors()
-
         self.allSensors = [self.camera]
         self.allSensors.extend(self.irs)
         self.allSensors.extend(self.ults)
@@ -94,7 +91,6 @@ class DataCollection:
         
 
 class Sensor:
-
     # updates the timestamp if a measurement was taken
     def run(self):
         raise NotImplementedError
@@ -111,7 +107,6 @@ class Sensor:
         return self.__class__.__name__ + " at " + self.timestamp
 
 class Camera(Sensor):
-    
     # creates camera object and starts OpenCV thread
     def __init__(self):
         self.vision = vision_wrapper.VisionWrapper()
@@ -268,7 +263,6 @@ class Camera(Sensor):
         return (d, a)
 
 class Ir(Sensor):
-
     # analog pin and position relative bot center
     def __init__(self, pin, position):
         self.ardRef = arduino.AnalogInput(c.ARD(), pin)
@@ -292,11 +286,7 @@ class Ir(Sensor):
         x = math.log(value, 10)
         return 10**(3.1307*x**2 - 19.329*x + 30.707)
 
-
-
-
 class Ult(Sensor):
-
     # analog pin and position relative bot center
     def __init__(self, (trig, echo), position):
         self.ardRef = arduino.Ult(c.ARD(), trig, echo)
@@ -317,7 +307,6 @@ class Ult(Sensor):
         return 1000 if val == None or val == 0 else (val/5359.2)
         
 class Imu(Sensor):
-
     # analog pin
     def __init__(self):
         self.imu = arduino.IMU(c.ARD())
@@ -335,7 +324,6 @@ class Imu(Sensor):
         return (self.accelX, self.accelY, self.accelZ)
 
 class EncoderPair(Sensor):
-
     # encoder pins
     def __init__(self, leftPin, rightPin):
         pass
@@ -346,16 +334,6 @@ class EncoderPair(Sensor):
     # returns totals tics taken (left, right)
     def getTics(self):
         pass
-
-class CurrentSensors(Sensor):
-    def __init__(self):
-       pass
-
-    def run(self):
-        pass
-
-    def getCurrents(self):
-        return c.CTRL().getCurrents()
 
 if __name__ == "__main__":
     c.ARD()
