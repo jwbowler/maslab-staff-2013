@@ -156,7 +156,7 @@ class StateEstimator:
         dist = [((p[0]-ROBOT_RADIUS)/math.cos(math.radians(p[1])), p[1]) for p in dist if abs(p[1]) < 90]
         minDist = min(dist)
         if minDist[0] < 0:
-            minDist[0] = 0
+            return (0, minDist[1])
 
         return minDist
 

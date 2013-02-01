@@ -6,7 +6,7 @@ BALL_BUTTON_TIMEOUT = 20
 
 #Pins
 IR_PINS = []
-ULT_PINS =[(52,53),(50,51),(48,49),(46,47),(44,45)]
+ULT_PINS =[(52,53),(50,51),(48,49),(46,47),(44,45),(42,43)]
 
 COLOR_SWITCH_PIN = 11
 RESET_BUTTON_PIN = 12
@@ -21,7 +21,7 @@ SCORER_PIN = 16
 #Data Collection
 IR_POSITIONS = []
 
-ULT_POSITIONS = [(.16,-108),(.16,-72),(.14,-36),(.09,0),(.14,36)]
+ULT_POSITIONS = [(.16,-108),(.16,-72),(.14,-36),(.09,0),(.14,36),(.16,72)]
 ULT_TIMEOUT = 6000
 
 #State Estimator
