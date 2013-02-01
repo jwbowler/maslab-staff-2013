@@ -98,12 +98,14 @@ class WallFollow(Movement):
             slowRange = WF_SLOWDOWN_DIST-WF_STOP_DIST
             speed *= (colDist-WF_STOP_DIST)/slowRange
 
-        #if speed < WF_IGNORE_ANGLE_SPEED:
-        #    pidVal = distPidVal
 
         c.LOG("Slowed: " + str(speed))
 
         rotation = WF_ROTATION * pidVal
+
+        maxWheel = abs(speed) + abs(rotation)
+        if maxWheel < WF_MIN_WHEEL_SPEED:
+            rotation *= (WF_MIN_WHEEL_SPEED-abs(speed))/abs(rotation)
 
         c.CTRL().setMovement(speed, rotation)
         c.CTRL().setHelix(True)

@@ -34,11 +34,11 @@ class Control():
         #self.ramp.setAngle(self.rampAngle)
 
         self.prevLeft = self.accelBound(self.prevLeft, self.leftSpeed)
-        l = boundAndScale(self.prevLeft, 8, 127)
+        l = boundAndScale(self.prevLeft, LEFT_MOTOR_MIN, LEFT_MOTOR_MAX)
         self.leftMotor.setSpeed(l)
 
         self.prevRight = self.accelBound(self.prevRight, self.rightSpeed)
-        r = boundAndScale(self.prevRight, 8, 127)
+        r = boundAndScale(self.prevRight, RIGHT_MOTOR_MIN, RIGHT_MOTOR_MAX)
         self.rightMotor.setSpeed(r)
 
         self.prevTime = time.time()
