@@ -153,15 +153,12 @@ class StateEstimator:
     # before it hits a wall
     def getCollisionDistance(self):
         dist = self.getWallDistancesAdjusted()
-        dist = [(p[0]-ROBOT_RADIUS)/math.cos(math.radians(p[1])) for p in dist if abs(p[1]) < 90]
+        dist = [((p[0]-ROBOT_RADIUS)/math.cos(math.radians(p[1])), p[1]) for p in dist if abs(p[1]) < 90]
         minDist = min(dist)
-        if minDist < 0:
-            return 0
+        if minDist[0] < 0:
+            minDist[0] = 0
 
         return minDist
-
-    def nearCollision(self):
-        return self.getCollisionDistance() < .25
 
     # Takes two sensor indices to use for wall estimation
     # Returns (distance to wall, angle of wall relative to bot's orientation)

@@ -93,7 +93,7 @@ class WallFollow(Movement):
         c.LOG("PID = " + str(pidVal))
 
         speed = WF_SPEED
-        colDist = c.STATE().getCollisionDistance()
+        (colDist, colAngle) = c.STATE().getCollisionDistance()
         if colDist < WF_SLOWDOWN_DIST:
             slowRange = WF_SLOWDOWN_DIST-WF_STOP_DIST
             speed *= (colDist-WF_STOP_DIST)/slowRange
@@ -105,7 +105,7 @@ class WallFollow(Movement):
 
         maxWheel = abs(speed) + abs(rotation)
         if maxWheel < WF_MIN_WHEEL_SPEED:
-            rotation *= (WF_MIN_WHEEL_SPEED-abs(speed))/abs(rotation)
+            rotation = math.copysign(WF_MIN_WHEEL_SPEED-abs(speed), rotation)
 
         c.CTRL().setMovement(speed, rotation)
         c.CTRL().setHelix(True)
@@ -152,6 +152,19 @@ class ApproachTarget(Movement):
             speed *= dist/APP_SLOWDOWN_DIST
 
         rotation = APP_ROTATION * self.pidVal
+
+        (colDist, colAngle) = c.STATE().getCollisionDistance()
+        if colDist < APP_WALL_SLOWDOWN_DIST:
+            slowRange = APP_WALL_SLOWDOWN_DIST-APP_WALL_STOP_DIST
+            speed *= (colDist-APP_WALL_STOP_DIST)/slowRange
+            rotation = -math.copysign(APP_K_WALL_AVOID*(APP_WALL_SLOWDOWN_DIST - colDist), colAngle)
+
+        maxWheel = abs(speed) + abs(rotation)
+        if maxWheel < APP_MIN_WHEEL_SPEED:
+            rotation = math.copysign(APP_MIN_WHEEL_SPEED-abs(speed), rotation)
+
+
+        c.LOG("Slowed: " + str(speed))
 
         c.CTRL().setMovement(speed, rotation)
 
