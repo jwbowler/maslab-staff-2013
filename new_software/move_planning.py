@@ -182,9 +182,9 @@ class CaptureBall(Movement):
             c.CTRL().setMovement(CPTR_SPEED, 0)
             c.CTRL().setRoller(True)
             c.CTRL().setHelix(True)
-        elif time.time() - self.startTime < (CPTR_TIME*(3/4):
+        elif time.time() - self.startTime < (CPTR_TIME*(3/4)):
             c.CTRL().setMovement(0, CPTR_SPEED)
-        elif time.time() - self.startTime < (CPTR_TIME*(4/4):
+        elif time.time() - self.startTime < (CPTR_TIME*(4/4)):
             c.CTRL().setMovement(0, -CPTR_SPEED)
         else:
             c.CTRL().setMovement(-CPTR_SPEED, 0)
