@@ -8,6 +8,7 @@ class StateEstimator:
     def __init__(self):
         self.data = c.DATA()
         self.startTime = time.time()
+        self.timeLastScore = time.time()
         self.towerBase = None
         self.towerMiddle = None
         self.towerTop = None
@@ -21,16 +22,13 @@ class StateEstimator:
 
     def loadFrame(self):
         cam = self.data.getCamera()
-        if cam.getTowerBase_Bottom() is not None:
-            self.towerBase = (cam.getTowerBase_Bottom()[0], cam.getTowerBase_Center()[1])
+        if cam.getTowerBase_Center() is not None:
+            self.towerBase = cam.getTowerBase_Center()
         else:
             self.towerBase = None
-        if cam.getTowerMiddle_Bottom() is not None:
-            self.towerMiddle = (cam.getTowerMiddle_Bottom()[0], cam.getTowerMiddle_Center()[1])
-        else:
-            self.towerMiddle = None
-        if cam.getTowerTop_Bottom() is not None:
-            self.towerTop = (cam.getTowerTop_Bottom()[0], cam.getTowerTop_Center()[1])
+        self.towerMiddle = None
+        if cam.getTowerTop_Center() is not None:
+            self.towerTop = (cam.getTowerTop_Center())
         else:
             self.towerTop = None
 
@@ -48,6 +46,12 @@ class StateEstimator:
         if TIME_BEFORE_HALT <= 0:
             return -1
         return self.startTime + TIME_BEFORE_HALT - time.time()
+
+    def getTimeSinceLastScore(self):
+        return time.time() - self.timeLastScore
+
+    def notifyScore(self):
+        self.timeLastScore = time.time()
 
     # Called by move_planning after running through the HitButton movement
     def notifyButtonUsed(self):

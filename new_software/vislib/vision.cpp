@@ -177,7 +177,7 @@ int step(bool isCalibMode, Mat **frame_ptr, Mat **scatter_ptr, int colorBeingCal
     }
 
     updateWallMap();
-    //updateGoalMap();
+    updateGoalMap();
 
     for (int i = 0; i < numCycles; i++) {
 
@@ -265,7 +265,7 @@ int step(bool isCalibMode, Mat **frame_ptr, Mat **scatter_ptr, int colorBeingCal
             objXLowestPoints[numDetections] = xL * scale;
             objYLowestPoints[numDetections] = yL * scale;
             objIsBehindWall[numDetections] = isBehindWall(x, y);
-            //objIsInGoal[numDetections] = isInGoal(x, y);
+            objIsInGoal[numDetections] = isInGoal(x, y);
             numDetections++;
             if (numDetections == maxDetections) {
                 break;
@@ -317,12 +317,11 @@ void updateGoalMap() {
         inRange(hsv, Scalar(0, t[2], t[4]), Scalar(t[1], t[3], t[5]), temp);
         bitwise_or(goalMap1, temp, goalMap1);
     }
-    bitwise_or(goalMap, goalMap1, goalMap);
     // add yellow wall to wall map
     Mat goalMap2;
     t = colorThresholds[1];
     inRange(hsv, Scalar(t[0], t[2], t[4]), Scalar(t[1], t[3], t[5]), goalMap2);
-    bitwise_or(goalMap, goalMap2, goalMap);
+    bitwise_or(goalMap1, goalMap2, goalMap);
 }    
 
 void getWallImages(Mat **frame_ptr, Mat **scatter_ptr) {

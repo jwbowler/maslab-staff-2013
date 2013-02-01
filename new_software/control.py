@@ -16,8 +16,8 @@ class Control():
         self.rightMotor = arduino.Motor(c.ARD(), RIGHT_MOTOR_PINS[0], RIGHT_MOTOR_PINS[1], RIGHT_MOTOR_PINS[2])
         self.leftMotor = arduino.Motor(c.ARD(), LEFT_MOTOR_PINS[0], LEFT_MOTOR_PINS[1], LEFT_MOTOR_PINS[2])
         self.helix = arduino.Motor(c.ARD(),HELIX_PINS[0], HELIX_PINS[1], HELIX_PINS[2])
-        #self.ramp = arduino.Motor(c.ARD(), HELIX_PINS[0], HELIX_PINS[1], RAMP_SERVO_PIN)
-        self.ramp = arduino.Servo(c.ARD(), RAMP_SERVO_PIN)
+        self.ramp = arduino.Motor(c.ARD(), HELIX_PINS[0], HELIX_PINS[1], RAMP_SERVO_PIN)
+        #self.ramp = arduino.Servo(c.ARD(), RAMP_SERVO_PIN)
 
         self.prevTime = time.time()
         self.prevRight = 0
@@ -31,7 +31,7 @@ class Control():
     def run(self):
         self.roller.setSpeed(-1*ROLLER_SPEED*self.rollerState) 
         self.helix.setSpeed(HELIX_SPEED*self.helixState)
-        self.ramp.setAngle(self.rampAngle)
+        #self.ramp.setAngle(self.rampAngle)
 
         self.prevLeft = self.accelBound(self.prevLeft, self.leftSpeed)
         l = boundAndScale(self.prevLeft, 8, 127)
@@ -70,8 +70,8 @@ class Control():
 
     # This method actuates the scoring ramp
     #input: angle in degrees from vertical
-    def setRamp(self,angle):
-        self.ramp
+    def setRamp(self, pwm):
+        self.ramp.setSpeed(pwm)
 
     # This method sets the speed of the left motor
     # Input: int from -1 to 1 inclusive
@@ -159,6 +159,16 @@ def rampMotors():
 
         time.sleep(2)
 
+def rampRamp():
+    for i in xrange(40, 127, 1):
+        print i
+        c.CTRL().setRamp(i)
+        time.sleep(.2)
+    for i in xrange(127, 40, - 1):
+        print i
+        c.CTRL().setRamp(i)
+        time.sleep(.2)
+
 if __name__=="__main__":
     c.ARD()
     c.DATA()
@@ -169,18 +179,35 @@ if __name__=="__main__":
     c.ARD().run()
     
     try:
-        rampMotors()
-      
-        """
+        rampRamp()
+        time.sleep(9)
+
+        '''
+        c.CTRL().halt()
+        print "halt"
+        time.sleep(10)
+        #rampMotors()
+        rampRamp()
+        c.CTRL().setRamp(30)
+        time.sleep(5)
+        c.CTRL().setRamp(90)
+        time.sleep(5)
+        c.CTRL().setRamp(100)
+        time.sleep(5)
+        c.CTRL().setRamp(127)
+        time.sleep(50)
+        '''
+
         #########################
-        c.CTRL().setRoller(False)
-        c.CTRL().setHelix(False)
-        c.CTRL().setLeftMotor(.3)
-        c.CTRL().setRightMotor(.3)
-        c.CTRL().setRamp(0)
+        c.CTRL().setRoller(True)
+        c.CTRL().setHelix(True)
+        c.CTRL().setLeftMotor(.0)
+        c.CTRL().setRightMotor(.0)
+        c.CTRL().setRamp(90)
         print "Running motors..."
         c.CTRL().run()
-        time.sleep(500)
+        time.sleep(5000)
+        '''
         c.CTRL().setLeftMotor(.0)
         c.CTRL().setRightMotor(.0)
         c.CTRL().setRamp(45)
@@ -218,13 +245,11 @@ if __name__=="__main__":
         time.sleep(3)
         c.CTRL().setHelix(False)
 
-        '''
         print "Testing Ramp"
         for i in xrange(127):
             print i
             c.CTRL().ramp.setSpeed(i)
             time.sleep(.2)
-        """
 
     except KeyboardInterrupt:
         pass

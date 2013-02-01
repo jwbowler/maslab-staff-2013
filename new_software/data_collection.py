@@ -41,11 +41,11 @@ class DataCollection:
         c.LOG("Reachable goal walls: " + str(self.camera.getReachableGoalWalls()))
         c.LOG("Buttons: " + str(self.camera.getButtons()))
         c.LOG("Reachable buttons: " + str(self.camera.getReachableButtons()))
-        c.LOG("Tower base (bottom): " + str(self.camera.getTowerBase_Bottom()))
+        #c.LOG("Tower base (bottom): " + str(self.camera.getTowerBase_Bottom()))
         c.LOG("Tower base (center): " + str(self.camera.getTowerBase_Center()))
-        c.LOG("Tower middle (bottom): " + str(self.camera.getTowerMiddle_Bottom()))
-        c.LOG("Tower middle (center): " + str(self.camera.getTowerMiddle_Center()))
-        c.LOG("Tower top (bottom): " + str(self.camera.getTowerTop_Bottom()))
+        #c.LOG("Tower middle (bottom): " + str(self.camera.getTowerMiddle_Bottom()))
+        #c.LOG("Tower middle (center): " + str(self.camera.getTowerMiddle_Center()))
+       # c.LOG("Tower top (bottom): " + str(self.camera.getTowerTop_Bottom()))
         c.LOG("Tower top (center): " + str(self.camera.getTowerTop_Center()))
 
         #print self.imu
@@ -167,10 +167,10 @@ class Camera(Sensor):
         objIndices = self.vision.getIndicesByType(type)
         if useBottom:
             objs = [(self.vision.getXBottom(i), self.vision.getYBottom(i)) \
-                          for i in objIndices if not self.vision.getIsBehindWall(i)]
+                          for i in objIndices if not self.vision.getIsBehindWall(i) and not self.vision.getIsInGoal(i)]
         else:
             objs = [(self.vision.getXCenter(i), self.vision.getYCenter(i)) \
-                          for i in objIndices if not self.vision.getIsBehindWall(i)]
+                          for i in objIndices if not self.vision.getIsBehindWall(i) and not self.vision.getIsInGoal(i)]
         objsConverted = [self.convCoords(coords, objHeight) for coords in objs]
         return objsConverted 
 
@@ -188,7 +188,7 @@ class Camera(Sensor):
 
     def getBiggestReachableObjOfType(self, type, objHeight, useBottom=False):
         objIndices = self.vision.getIndicesByType(type)
-        objIndices = [i for i in objIndices if not self.vision.getIsBehindWall(i)]
+        objIndices = [i for i in objIndices if not self.vision.getIsBehindWall(i) and not self.vision.getIsInGoal(i)]
         if objIndices == []:
             return None
         index = max(objIndices, key = lambda i: self.vision.getWeight(i))
@@ -232,24 +232,41 @@ class Camera(Sensor):
 
     def getReachableButtons(self):
         return self.getReachableObjsOfType("CYAN_BUTTON", BUTTON_CENTER_HEIGHT)
-
+    '''
     def getTowerBase_Bottom(self):
         return self.getBiggestObjOfType("PURPLE_GOAL", 0, True)
-
+    '''
     def getTowerBase_Center(self):
-        return self.getBiggestObjOfType("PURPLE_GOAL", 0, False)
+        type = "PURPLE_GOAL"
+        objHeight = TOWER_BASE_CENTER_HEIGHT
+        objIndices = self.vision.getIndicesByType(type)
+        objIndices = [i for i in objIndices if not self.vision.getIsBehindWall(i)]
+        if objIndices == []:
+            return None
+        index = max(objIndices, key = lambda i: self.vision.getWeight(i))
+        coords = (self.vision.getXCenter(index), self.vision.getYCenter(index))
+        out = self.convCoords(coords, objHeight)
+        return out
 
+    '''
     def getTowerMiddle_Bottom(self):
         return self.getBiggestObjOfType("YELLOW_WALL", TOWER_MIDDLE_BOTTOM_HEIGHT, True)
-
     def getTowerMiddle_Center(self):
         return self.getBiggestObjOfType("YELLOW_WALL", TOWER_MIDDLE_BOTTOM_HEIGHT, False)
-
     def getTowerTop_Bottom(self):
         return self.getBiggestObjOfType("BLUE_GOAL", TOWER_TOP_BOTTOM_HEIGHT, True)
-
+    '''
     def getTowerTop_Center(self):
-        return self.getBiggestObjOfType("BLUE_GOAL", TOWER_TOP_BOTTOM_HEIGHT, False)
+        type = "BLUE_GOAL"
+        objHeight = TOWER_TOP_CENTER_HEIGHT
+        objIndices = self.vision.getIndicesByType(type)
+        objIndices = [i for i in objIndices if self.vision.getIsInGoal(i)]
+        if objIndices == []:
+            return None
+        index = max(objIndices, key = lambda i: self.vision.getWeight(i))
+        coords = (self.vision.getXCenter(index), self.vision.getYCenter(index))
+        out = self.convCoords(coords, objHeight)
+        return out
 
     # returns (dist, angle) given x and y pixel coordinates (from upper left)
     # returns (dist, angle) given x and y pixel coordinates (from upper left)
