@@ -12,26 +12,24 @@ class Control():
 
     # The init
     def __init__(self):
-        self.roller = arduino.Motor(c.ARD(), ROLLER_PINS[0], ROLLER_PINS[1], ROLLER_PINS[2])
         self.rightMotor = arduino.Motor(c.ARD(), RIGHT_MOTOR_PINS[0], RIGHT_MOTOR_PINS[1], RIGHT_MOTOR_PINS[2])
         self.leftMotor = arduino.Motor(c.ARD(), LEFT_MOTOR_PINS[0], LEFT_MOTOR_PINS[1], LEFT_MOTOR_PINS[2])
-        self.helix = arduino.Motor(c.ARD(),HELIX_PINS[0], HELIX_PINS[1], HELIX_PINS[2])
-        self.ramp = arduino.Motor(c.ARD(), HELIX_PINS[0], HELIX_PINS[1], RAMP_SERVO_PIN)
-        #self.ramp = arduino.Servo(c.ARD(), RAMP_SERVO_PIN)
+        self.rollerAndHelix = arduino.Motor(c.ARD(), ROLLER_HELIX_PINS[0], ROLLER_HELIX_PINS[1], ROLLER_HELIX_PINS[2])
+        self.ramp = arduino.Motor(c.ARD(), ROLLER_HELIX_PINS[0], ROLLER_HELIX_PINS[1], RAMP_SERVO_PIN)
 
         self.prevTime = time.time()
         self.prevRight = 0
         self.prevLeft = 0
         self.rightSpeed = 0
         self.leftSpeed = 0
-        self.rollerState = False
-        self.helixState = False
         self.rampAngle = 0
+        self.enableRollerAndHelix = True
 
     def run(self):
-        self.roller.setSpeed(-1*ROLLER_SPEED*self.rollerState) 
-        self.helix.setSpeed(HELIX_SPEED*self.helixState)
-        #self.ramp.setAngle(self.rampAngle)
+        if time.time() % HELIX_CYCLE_INTERVAL < 0.5 and str(c.MOVE().moveObject) != 'CaptureBall':
+            self.rollerAndHelix.setSpeed(-ROLLER_HELIX_SPEED/2) 
+        else:
+            self.rollerAndHelix.setSpeed(ROLLER_HELIX_SPEED)
 
         self.prevLeft = self.accelBound(self.prevLeft, self.leftSpeed)
         l = boundAndScale(self.prevLeft, LEFT_MOTOR_MIN, LEFT_MOTOR_MAX)
@@ -46,8 +44,7 @@ class Control():
     def log(self):
         c.LOG("DRIVE GOAL: " + str((self.leftSpeed,self.rightSpeed)))
         c.LOG("DRIVE ACTUAL: " + str((self.prevLeft,self.prevRight)))
-        c.LOG("ROLLER: " + str(self.rollerState))
-        c.LOG("HELIX: " + str(self.helixState))
+        c.LOG("ROLLER/HELIX: " + str(self.rollerState))
         c.LOG("RAMP: " + str(self.rampAngle))
 
     def accelBound(self, prevSpeed, goalSpeed):
@@ -57,16 +54,6 @@ class Control():
         newSpeed = prevSpeed + utils.absBound(delta, maxDelta)
         c.LOG(newSpeed)
         return utils.absBound(newSpeed, goalSpeed)
-
-    # This method turns on and off the roller motor
-    # Input:Boolean
-    def setRoller(self,switch):
-        self.rollerState = switch
-
-    # This method turns on and off the helix motor
-    # Input:Boolean
-    def setHelix(self,switch):
-        self.helixState = switch
 
     # This method actuates the scoring ramp
     #input: angle in degrees from vertical
@@ -82,6 +69,9 @@ class Control():
     # Input: int from -1 to 1 inclusive
     def setRightMotor(self,speed):
         self.rightSpeed = speed
+
+    def setRollerAndHelix(self, enable):
+        enableRollerAndHelix = enable
     
 
     # This methods calculates motors speeds from a vector
@@ -92,13 +82,10 @@ class Control():
         self.setLeftMotor(l)
 
     def halt(self):
-        self.setRoller(False)
-        self.setHelix(False)
         self.setLeftMotor(0)
         self.setRightMotor(0)
+        self.enableRollerAndHelix = False
         self.run()
-        self.roller.setSpeed(0)
-        self.helix.setSpeed(0)
         self.leftMotor.setSpeed(0)
         self.rightMotor.setSpeed(0)
         self.ramp.setSpeed(40)
@@ -170,16 +157,28 @@ def rampRamp():
         c.CTRL().setRamp(i)
         time.sleep(.2)
 
-if __name__=="__main__":
-    c.ARD()
-    c.DATA()
-    c.STATE()
+def helixRamp():
+    for i in xrange(128):
+        print i
+        c.CTRL().rollerAndHelix.setSpeed(i)
+        time.sleep(.2)
+
+if __name__ == "__main__":
+
     c.GOAL()
     c.MOVE()
     c.CTRL()
     c.ARD().run()
     
     try:
+        #helixRamp()
+        c.CTRL().halt()
+        print "halt"
+        time.sleep(100)
+
+        for i in range(2000):
+            c.CTRL().run()
+            time.sleep(.01)
         c.CTRL().halt()
         print "halt"
         time.sleep(10)
@@ -200,8 +199,7 @@ if __name__=="__main__":
         '''
 
         #########################
-        c.CTRL().setRoller(True)
-        c.CTRL().setHelix(True)
+        c.CTRL().setRollerAndHelix(True)
         c.CTRL().setLeftMotor(.0)
         c.CTRL().setRightMotor(.0)
         c.CTRL().setRamp(40)
@@ -234,17 +232,9 @@ if __name__=="__main__":
         time.sleep(1)
 
         print "Testing Roller"
-        c.CTRL().setRoller(True)
-        c.CTRL().setHelix(True)
-        time.sleep(2)
-        c.CTRL().setRoller(False)
-        c.CTRL().setHelix(True)
-
-
-        print "Testing Helix"
-        c.CTRL().setHelix(True)
+        c.CTRL().setRollerAndHelix(True)
         time.sleep(3)
-        c.CTRL().setHelix(False)
+        c.CTRL().setRollerAndHelix(False)
 
         print "Testing Ramp"
         for i in xrange(127):
