@@ -101,6 +101,7 @@ def go():
     #print "Are my balls red?"
     #print Commander.myBallsAreRed
     
+    STATE().startTime = time.time()
  
     while True:
         FRAME_START()
