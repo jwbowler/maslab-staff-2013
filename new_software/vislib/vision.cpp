@@ -19,6 +19,7 @@ Mat colors;
 Mat colors3c;
 Mat temp;
 Mat wallMap;
+Mat goalMap;
 SimpleBlobDetector::Params params;
 cv::Ptr<FeatureDetector> blob_detector;
 vector<KeyPoint> keyPoints;
@@ -36,6 +37,7 @@ int objSizes[16];
 int objXLowestPoints[16];
 int objYLowestPoints[16];
 bool objIsBehindWall[16];
+bool objIsInGoal[16];
 
 VideoCapture cap;
 
@@ -175,6 +177,7 @@ int step(bool isCalibMode, Mat **frame_ptr, Mat **scatter_ptr, int colorBeingCal
     }
 
     updateWallMap();
+    //updateGoalMap();
 
     for (int i = 0; i < numCycles; i++) {
 
@@ -262,6 +265,7 @@ int step(bool isCalibMode, Mat **frame_ptr, Mat **scatter_ptr, int colorBeingCal
             objXLowestPoints[numDetections] = xL * scale;
             objYLowestPoints[numDetections] = yL * scale;
             objIsBehindWall[numDetections] = isBehindWall(x, y);
+            //objIsInGoal[numDetections] = isInGoal(x, y);
             numDetections++;
             if (numDetections == maxDetections) {
                 break;
@@ -298,28 +302,28 @@ void updateWallMap() {
     cvtColor(src, hsv, CV_BGR2HSV);
     int *t = wallStripeThresholds;
     inRange(hsv, Scalar(t[0], t[2], t[4]), Scalar(t[1], t[3], t[5]), wallMap);
+}
 
-    // quick, dirty and temporary:
-    Mat wallMap1;
+void updateGoalMap() {
+    Mat goalMap1;
     Mat temp;
     // add purple goal to wall map
-    t = colorThresholds[0];
+    int *t = colorThresholds[0];
     if (t[0] >= 0) {
-        inRange(hsv, Scalar(t[0], t[2], t[4]), Scalar(t[1], t[3], t[5]), wallMap1);
+        inRange(hsv, Scalar(t[0], t[2], t[4]), Scalar(t[1], t[3], t[5]), goalMap1);
     } else {
         int t_0 = 180 + t[0];
-        inRange(hsv, Scalar(t_0, t[2], t[4]), Scalar(180, t[3], t[5]), wallMap1);
+        inRange(hsv, Scalar(t_0, t[2], t[4]), Scalar(180, t[3], t[5]), goalMap1);
         inRange(hsv, Scalar(0, t[2], t[4]), Scalar(t[1], t[3], t[5]), temp);
-        bitwise_or(wallMap1, temp, wallMap1);
+        bitwise_or(goalMap1, temp, goalMap1);
     }
-    bitwise_or(wallMap, wallMap1, wallMap);
+    bitwise_or(goalMap, goalMap1, goalMap);
     // add yellow wall to wall map
-    Mat wallMap2;
+    Mat goalMap2;
     t = colorThresholds[1];
-    inRange(hsv, Scalar(t[0], t[2], t[4]), Scalar(t[1], t[3], t[5]), wallMap2);
-    bitwise_or(wallMap, wallMap2, wallMap);
-    
-}
+    inRange(hsv, Scalar(t[0], t[2], t[4]), Scalar(t[1], t[3], t[5]), goalMap2);
+    bitwise_or(goalMap, goalMap2, goalMap);
+}    
 
 void getWallImages(Mat **frame_ptr, Mat **scatter_ptr) {
     cap >> src;
@@ -344,17 +348,34 @@ bool isBehindWall(int pixelX, int pixelY) {
     if (x + w >= wImg) {
         x -= x + w + 1 - wImg;
     }
-    //cout << "(" << x << ", " << y << "), (" << x + w << ", " << y + h << ")" << endl;
 
-    //try {
-        Rect roi(x, y, w, h);
-        Mat wallMapROI = wallMap(roi);
-        bool out = (bool) countNonZero(wallMapROI);
-        //cout << out << endl;
-        return out;
-    //} catch (cv::Exception &e) {
-        //return false;
-    //}
+    Rect roi(x, y, w, h);
+    Mat wallMapROI = wallMap(roi);
+    bool out = (bool) countNonZero(wallMapROI);
+    return out;
+}
+
+bool isInGoal(int pixelX, int pixelY) {
+    int wImg = goalMap.size().width;
+    int hImg = goalMap.size().height;
+    int x = pixelX - gapWidthThreshold;
+    int y = pixelY;
+    int w = gapWidthThreshold*2 + 1;
+    int h = hImg - pixelY;
+    if (h < 1) {
+        return false;
+    }
+    if (x < 0) {
+        x = 0;
+    }
+    if (x + w >= wImg) {
+        x -= x + w + 1 - wImg;
+    }
+
+    Rect roi(x, y, w, h);
+    Mat goalMapROI = goalMap(roi);
+    bool out = (bool) countNonZero(goalMapROI);
+    return out;
 }
 
 void findBlobs(const cv::Mat &binaryImage, vector<Point2d> &centers, vector<Rect> &boxes, vector<int> &areas, vector<Point2d> &lowestPoints) {

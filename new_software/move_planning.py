@@ -67,7 +67,6 @@ class WallFollow(Movement):
         if c.GOAL().getTarget() is not None:
             return ApproachTarget()
         '''
-        pass
 
     def move(self):
         distPid = self.distPid

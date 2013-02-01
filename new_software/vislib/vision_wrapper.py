@@ -77,6 +77,9 @@ class VisionWrapper:
 
     def getIsBehindWall(self, i):
         return self.data[i][6]
+
+    def getIsInGoal(self, i):
+        return self.data[i][7]
 		
 def f(conn):
     while (True):
