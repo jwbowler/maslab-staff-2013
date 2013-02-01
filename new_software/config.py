@@ -1,7 +1,7 @@
 #Commander
 LOG_FREQUENCY = .1 #seconds
 
-TIME_BEFORE_HALT = -1 # value <= 0 --> never stops
+TIME_BEFORE_HALT = 3 # value <= 0 --> never stops
 BALL_BUTTON_TIMEOUT = 20
 
 #Pins

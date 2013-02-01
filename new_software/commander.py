@@ -11,6 +11,11 @@ import signal
 import sys
 import time
 
+class Alarm(Exception):
+    pass
+
+def alarm_handler(signum, frame):
+    raise Alarm
 
 class Commander:
     ard = None
@@ -91,27 +96,36 @@ def go():
     START()
     ARD().run()
 
+    print "Waiting for button..."
+
     while True:
         Commander.myBallsAreRed = START().poll()
         if Commander.myBallsAreRed is not None:
             break
         time.sleep(.01)
 
-    print "Are my balls red?"
-    print Commander.myBallsAreRed
+    #print "Are my balls red?"
+    #print Commander.myBallsAreRed
     
-    while True:
-        FRAME_START()
-        DATA().run()
-        DATA().log()
-        STATE().run()
-        STATE().log()
-        GOAL().run()
-        GOAL().log()
-        MOVE().run()
-        MOVE().log()
-        CTRL().run()
-        CTRL().log()
+    signal.signal(signal.SIGALRM, alarm_handler)
+    if TIME_BEFORE_HALT > 0:
+        signal.alarm(TIME_BEFORE_HALT)
+ 
+    try:
+        while True:
+            FRAME_START()
+            DATA().run()
+            DATA().log()
+            STATE().run()
+            STATE().log()
+            GOAL().run()
+            GOAL().log()
+            MOVE().run()
+            MOVE().log()
+            CTRL().run()
+            CTRL().log()
+    except (Alarm):
+        pass
 
 def stop():
     CTRL().halt()
