@@ -50,7 +50,7 @@ class TimeoutRun(Movement):
         Movement.__init__(self)
 
     def transition(self):
-        if time.time() > (self.startTime + 2.0):
+        if time.time() > (self.startTime + 1.3):
             return WallFollow()
 
     def move(self):
@@ -63,7 +63,7 @@ class WallFollow(Movement):
         self.distPid = pid.Pid(*WF_DIST_PID)
         self.anglePid = pid.Pid(*WF_ANGLE_PID)
 
-        self.setTimeOut(15000000)
+        self.setTimeOut(WF_TIMEOUT)
 
     def transition(self):
         if c.GOAL().getTarget() is not None:
@@ -114,7 +114,7 @@ class ApproachTarget(Movement):
     def __init__(self):
         Movement.__init__(self)
         self.pid = pid.Pid(*APP_PID)
-        self.setTimeOut(10)
+        self.setTimeOut(APP_TIMEOUT)
 
     def transition(self):
         targetType = c.GOAL().getTargetType()
@@ -178,9 +178,9 @@ class CaptureBall(Movement):
         if time.time() - self.startTime < (CPTR_TIME*(2.0/4)):
             c.CTRL().setMovement(CPTR_SPEED, 0)
         elif time.time() - self.startTime < (CPTR_TIME*(3.0/4)):
-            c.CTRL().setMovement(0, CPTR_SPEED)
+            c.CTRL().setMovement(CPTR_SPEED/2.0, -CPTR_SPEED/2.0)
         elif time.time() - self.startTime < (CPTR_TIME*(4.0/4)):
-            c.CTRL().setMovement(0, -CPTR_SPEED)
+            c.CTRL().setMovement(CPTR_SPEED/2.0, CPTR_SPEED/2.0)
         else:
             c.CTRL().setMovement(-CPTR_SPEED, 0)
 

@@ -26,6 +26,9 @@ class Control():
         self.enableRollerAndHelix = True
 
     def run(self):
+        if time.time() - c.STATE().startTime > 180:
+            self.halt()
+            return
         if time.time() % HELIX_CYCLE_INTERVAL < 0.5 and str(c.MOVE().moveObject) != 'CaptureBall':
             self.rollerAndHelix.setSpeed(-ROLLER_HELIX_SPEED/2) 
         else:
@@ -82,12 +85,9 @@ class Control():
         self.setLeftMotor(l)
 
     def halt(self):
-        self.setLeftMotor(0)
-        self.setRightMotor(0)
-        self.enableRollerAndHelix = False
-        self.run()
         self.leftMotor.setSpeed(0)
         self.rightMotor.setSpeed(0)
+        self.rollerAndHelix.setSpeed(0)
         self.ramp.setSpeed(40)
 
 # This method rescales an input from 0 to 1 to the oMin and oMax
