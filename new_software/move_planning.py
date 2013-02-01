@@ -50,7 +50,7 @@ class TimeoutRun(Movement):
         Movement.__init__(self)
 
     def transition(self):
-        if time.time() > (self.startTime + 1.3):
+        if time.time() > (self.startTime + 1):
             return WallFollow()
 
     def move(self):

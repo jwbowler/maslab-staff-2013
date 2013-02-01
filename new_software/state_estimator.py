@@ -43,9 +43,7 @@ class StateEstimator:
         c.LOG(self.getMyBalls())
 
     def getTimeRemaining(self):
-        if TIME_BEFORE_HALT <= 0:
-            return -1
-        return self.startTime + TIME_BEFORE_HALT - time.time()
+        return self.startTime + 180 - time.time()
 
     def getTimeSinceLastScore(self):
         return time.time() - self.timeLastScore
