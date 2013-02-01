@@ -101,6 +101,7 @@ class Control():
         self.helix.setSpeed(0)
         self.leftMotor.setSpeed(0)
         self.rightMotor.setSpeed(0)
+        self.ramp.setSpeed(40)
 
 # This method rescales an input from 0 to 1 to the oMin and oMax
 # while maintaining sign
@@ -179,6 +180,9 @@ if __name__=="__main__":
     c.ARD().run()
     
     try:
+        c.CTRL().halt()
+        print "halt"
+        time.sleep(10)
         '''
         c.CTRL().halt()
         print "halt"
