@@ -173,15 +173,19 @@ class CaptureBall(Movement):
         Movement.__init__(self)
 
     def transition(self):
-        if self.startTime + CPTR_TIME + 1 < time.time():
+        if self.startTime + CPTR_TIME * (5/4) < time.time():
             c.CTRL().setRoller(False)
             return WallFollow()   
 
     def move(self):
-        if time.time() - self.startTime < CPTR_TIME:
+        if time.time() - self.startTime < (CPTR_TIME*(2/4)):
             c.CTRL().setMovement(CPTR_SPEED, 0)
             c.CTRL().setRoller(True)
             c.CTRL().setHelix(True)
+        elif time.time() - self.startTime < (CPTR_TIME*(3/4):
+            c.CTRL().setMovement(0, CPTR_SPEED)
+        elif time.time() - self.startTime < (CPTR_TIME*(4/4):
+            c.CTRL().setMovement(0, -CPTR_SPEED)
         else:
             c.CTRL().setMovement(-CPTR_SPEED, 0)
 

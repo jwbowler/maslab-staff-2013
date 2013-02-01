@@ -59,7 +59,7 @@ CPTR_DIST = .3
 CPTR_ANGLE = 10
 
 CPTR_SPEED = .3
-CPTR_TIME = 2
+CPTR_TIME = 2.0
 
 # Hit button
 HIT_DIST = .3
