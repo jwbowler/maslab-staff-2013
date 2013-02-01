@@ -179,9 +179,6 @@ if __name__=="__main__":
     c.ARD().run()
     
     try:
-        rampRamp()
-        time.sleep(9)
-
         '''
         c.CTRL().halt()
         print "halt"
@@ -203,7 +200,7 @@ if __name__=="__main__":
         c.CTRL().setHelix(True)
         c.CTRL().setLeftMotor(.0)
         c.CTRL().setRightMotor(.0)
-        c.CTRL().setRamp(90)
+        c.CTRL().setRamp(40)
         print "Running motors..."
         c.CTRL().run()
         time.sleep(5000)

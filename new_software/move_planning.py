@@ -63,13 +63,12 @@ class WallFollow(Movement):
         self.distPid = pid.Pid(*WF_DIST_PID)
         self.anglePid = pid.Pid(*WF_ANGLE_PID)
 
-        self.setTimeOut(15)
+        self.setTimeOut(15000000)
 
     def transition(self):
-        '''
         if c.GOAL().getTarget() is not None:
             return ApproachTarget()
-        '''
+
         pass
 
     def move(self):
@@ -97,7 +96,11 @@ class WallFollow(Movement):
         colDist = c.STATE().getCollisionDistance()
         if colDist < WF_SLOWDOWN_DIST:
             slowRange = WF_SLOWDOWN_DIST-WF_STOP_DIST
-            speed *= (slowRange-colDist)/slowRange
+            speed *= (colDist-WF_STOP_DIST)/slowRange
+
+        #if speed < WF_IGNORE_ANGLE_SPEED:
+        #    pidVal = distPidVal
+
         c.LOG("Slowed: " + str(speed))
 
         rotation = WF_ROTATION * pidVal
