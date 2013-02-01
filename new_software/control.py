@@ -44,7 +44,7 @@ class Control():
     def log(self):
         c.LOG("DRIVE GOAL: " + str((self.leftSpeed,self.rightSpeed)))
         c.LOG("DRIVE ACTUAL: " + str((self.prevLeft,self.prevRight)))
-        c.LOG("ROLLER/HELIX: " + str(self.rollerState))
+        c.LOG("ROLLER/HELIX: " + str(self.enableRollerAndHelix))
         c.LOG("RAMP: " + str(self.rampAngle))
 
     def accelBound(self, prevSpeed, goalSpeed):
